@@ -2,544 +2,390 @@
 
 import Link from "next/link"
 import Image from "next/image"
-import { BookOpen, ClipboardList, DollarSign, Users, Heart, Book } from "lucide-react"
-
-const MODULES = [
-  {
-    icon: BookOpen,
-    title: "Gestión Académica",
-    desc: "Notas, conducta, boletas y libros de calificaciones digitales.",
-    rgb: "26,51,204",
-    hex: "#1A33CC",
-  },
-  {
-    icon: ClipboardList,
-    title: "Asistencia",
-    desc: "Control diario con código QR por aula y nivel educativo.",
-    rgb: "71,181,232",
-    hex: "#47B5E8",
-  },
-  {
-    icon: DollarSign,
-    title: "Finanzas",
-    desc: "Pagos, pensiones y conceptos de cobro con historial completo.",
-    rgb: "240,200,0",
-    hex: "#F0C800",
-  },
-  {
-    icon: Users,
-    title: "Portal Familiar",
-    desc: "Acceso para padres a notas, asistencia y comunicados.",
-    rgb: "26,51,204",
-    hex: "#1A33CC",
-  },
-  {
-    icon: Heart,
-    title: "Ficha Médica",
-    desc: "Historial de salud, alergias, vacunas y atenciones.",
-    rgb: "71,181,232",
-    hex: "#47B5E8",
-  },
-  {
-    icon: Book,
-    title: "Biblioteca",
-    desc: "Catálogo digital y préstamos del acervo institucional.",
-    rgb: "240,200,0",
-    hex: "#F0C800",
-  },
-]
 
 export default function InicioPage() {
   return (
     <>
       <style>{`
-        :root { --font: var(--font-geist-sans, system-ui, sans-serif); }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
-        @keyframes float {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          33% { transform: translateY(-14px) rotate(0.5deg); }
-          66% { transform: translateY(-6px) rotate(-0.5deg); }
-        }
-        @keyframes glow-pulse {
-          0%, 100% {
-            filter:
-              drop-shadow(0 0 24px rgba(240,200,0,0.35))
-              drop-shadow(0 0 60px rgba(26,51,204,0.25))
-              drop-shadow(0 8px 32px rgba(0,0,0,0.5));
-          }
-          50% {
-            filter:
-              drop-shadow(0 0 48px rgba(240,200,0,0.55))
-              drop-shadow(0 0 100px rgba(26,51,204,0.45))
-              drop-shadow(0 8px 32px rgba(0,0,0,0.5));
-          }
-        }
-        @keyframes scan {
-          0%   { background-position: 0 0; }
-          100% { background-position: 0 60px; }
-        }
-        @keyframes border-spin {
-          0%   { background-position: 0% 50%; }
-          50%  { background-position: 100% 50%; }
-          100% { background-position: 0% 50%; }
+        :root {
+          --navy:      #0D1E3A;
+          --navy-mid:  #112448;
+          --navy-lite: #1A3060;
+          --gold:      #F0C800;
+          --gold-dim:  rgba(240,200,0,0.18);
+          --white:     #FFFFFF;
+          --text-dim:  rgba(255,255,255,0.62);
+          --text-faint:rgba(255,255,255,0.38);
+          --border:    rgba(255,255,255,0.08);
+          --font: var(--font-geist-sans, system-ui, sans-serif);
         }
 
-        .shield-anim {
-          animation: float 6s ease-in-out infinite, glow-pulse 4s ease-in-out infinite;
-          will-change: transform, filter;
+        @keyframes floatShield {
+          0%,100% { transform: translateY(0); }
+          50%      { transform: translateY(-10px); }
         }
+        .shield { animation: floatShield 5s ease-in-out infinite; }
 
-        .glass-card {
-          background: rgba(255,255,255,0.028);
-          backdrop-filter: blur(16px);
-          border: 1px solid rgba(255,255,255,0.07);
-          border-radius: 20px;
-          transition: background 0.3s, border-color 0.3s, transform 0.3s, box-shadow 0.3s;
-          cursor: default;
-        }
-        .glass-card:hover {
-          background: rgba(255,255,255,0.055);
-          transform: translateY(-6px) scale(1.01);
-          box-shadow: 0 28px 56px rgba(0,0,0,0.4);
-        }
-
-        .btn-gold {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          padding: 15px 40px;
-          border-radius: 12px;
-          background: #F0C800;
-          color: #020817;
-          font-weight: 800;
-          font-size: 14px;
-          letter-spacing: 0.07em;
-          text-transform: uppercase;
-          text-decoration: none;
-          transition: brightness 0.2s, transform 0.15s, box-shadow 0.2s;
-          box-shadow: 0 0 24px rgba(240,200,0,0.35);
-        }
-        .btn-gold:hover {
-          brightness: 1.08;
-          transform: translateY(-2px);
-          box-shadow: 0 0 40px rgba(240,200,0,0.55);
-        }
-        .btn-gold:active { transform: scale(0.97); }
-
-        .btn-ghost {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          padding: 15px 40px;
-          border-radius: 12px;
-          border: 1px solid rgba(255,255,255,0.14);
-          background: rgba(255,255,255,0.04);
-          color: rgba(255,255,255,0.85);
-          font-weight: 600;
-          font-size: 14px;
-          letter-spacing: 0.07em;
-          text-transform: uppercase;
-          text-decoration: none;
-          transition: background 0.2s, border-color 0.2s, transform 0.15s;
-        }
-        .btn-ghost:hover {
-          background: rgba(255,255,255,0.08);
-          border-color: rgba(255,255,255,0.28);
-          transform: translateY(-2px);
-        }
-        .btn-ghost:active { transform: scale(0.97); }
-
-        .divider-glow {
+        .divider {
           height: 1px;
-          background: linear-gradient(90deg,
-            transparent 0%,
-            rgba(240,200,0,0.5) 30%,
-            rgba(71,181,232,0.5) 70%,
-            transparent 100%
-          );
+          background: linear-gradient(90deg, transparent, rgba(240,200,0,0.45), rgba(71,181,232,0.3), transparent);
         }
 
-        .module-accent {
-          height: 2px;
-          border-radius: 1px;
-          margin-top: 24px;
+        .card {
+          background: rgba(255,255,255,0.04);
+          border: 1px solid var(--border);
+          border-radius: 16px;
+          padding: 32px;
+          transition: background .25s, border-color .25s;
         }
+        .card:hover { background: rgba(255,255,255,0.07); border-color: rgba(240,200,0,0.25); }
+
+        .nivel-card {
+          background: rgba(255,255,255,0.04);
+          border: 1px solid var(--border);
+          border-radius: 14px;
+          padding: 28px 24px;
+          text-align: center;
+          transition: background .25s, border-color .25s, transform .25s;
+        }
+        .nivel-card:hover { background: rgba(255,255,255,0.07); border-color: rgba(240,200,0,0.3); transform: translateY(-4px); }
+
+        .btn-primary {
+          display: inline-block;
+          padding: 14px 36px;
+          border-radius: 10px;
+          background: var(--gold);
+          color: var(--navy);
+          font-weight: 800;
+          font-size: 15px;
+          text-decoration: none;
+          transition: opacity .2s, transform .15s;
+        }
+        .btn-primary:hover { opacity: .9; transform: translateY(-2px); }
+
+        .contact-item {
+          display: flex;
+          align-items: flex-start;
+          gap: 16px;
+          padding: 20px 0;
+          border-bottom: 1px solid var(--border);
+        }
+        .contact-item:last-child { border-bottom: none; }
+        .contact-icon {
+          width: 44px;
+          height: 44px;
+          border-radius: 10px;
+          background: var(--gold-dim);
+          border: 1px solid rgba(240,200,0,0.25);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+          font-size: 20px;
+        }
+
+        section { font-family: var(--font); }
       `}</style>
 
-      <div style={{
-        background: "#020817",
-        minHeight: "100vh",
-        fontFamily: "var(--font)",
-        color: "white",
-        position: "relative",
-        overflowX: "hidden",
-      }}>
+      <div style={{ background: "var(--navy)", minHeight: "100vh", color: "var(--white)", fontFamily: "var(--font)" }}>
 
-        {/* ── NAV ─────────────────────────────────────────────────────── */}
+        {/* ── NAVEGACIÓN ────────────────────────────────────────────── */}
         <header style={{
-          position: "sticky",
-          top: 0,
-          zIndex: 100,
-          backdropFilter: "blur(24px)",
-          background: "rgba(2,8,23,0.85)",
-          borderBottom: "1px solid rgba(255,255,255,0.055)",
+          position: "sticky", top: 0, zIndex: 100,
+          backdropFilter: "blur(20px)",
+          background: "rgba(13,30,58,0.92)",
+          borderBottom: "1px solid var(--border)",
         }}>
-          <div style={{
-            maxWidth: 1280,
-            margin: "0 auto",
-            padding: "0 28px",
-            height: 64,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-              <div style={{ position: "relative", width: 34, height: 42, flexShrink: 0 }}>
-                <Image src="/logo-cr.svg" alt="Escudo Cristo Reina" fill style={{ objectFit: "contain" }} />
+          <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px", height: 64, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <div style={{ position: "relative", width: 32, height: 40, flexShrink: 0 }}>
+                <Image src="/logo-cr.svg" alt="Escudo I.E.P. Cristo Reina" fill style={{ objectFit: "contain" }} />
               </div>
-              <div style={{ lineHeight: 1.2 }}>
-                <div style={{
-                  fontSize: 9.5,
-                  fontWeight: 700,
-                  letterSpacing: "0.28em",
-                  color: "#F0C800",
-                  textTransform: "uppercase",
-                }}>I.E.P.</div>
-                <div style={{ fontSize: 14, fontWeight: 800, letterSpacing: "0.04em" }}>
-                  Cristo Reina
-                </div>
+              <div>
+                <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.22em", color: "var(--gold)", textTransform: "uppercase" }}>I.E.P.</div>
+                <div style={{ fontSize: 14, fontWeight: 800, letterSpacing: "0.03em" }}>Cristo Reina</div>
               </div>
             </div>
-
-            <Link href="/login" className="btn-gold" style={{ padding: "9px 24px", fontSize: 13 }}>
-              Iniciar sesion
+            <Link href="/login" style={{
+              padding: "8px 20px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.2)",
+              color: "rgba(255,255,255,0.85)", fontSize: 13, fontWeight: 600,
+              textDecoration: "none", transition: "border-color .2s, background .2s",
+            }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(240,200,0,0.5)"; e.currentTarget.style.background = "rgba(255,255,255,0.06)"; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.2)"; e.currentTarget.style.background = "transparent"; }}
+            >
+              Acceso personal
             </Link>
           </div>
         </header>
 
-        {/* ── HERO ────────────────────────────────────────────────────── */}
+        {/* ── HERO ──────────────────────────────────────────────────── */}
         <section style={{
           minHeight: "100dvh",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: "60px 28px 80px",
-          position: "relative",
-          textAlign: "center",
-          overflow: "hidden",
+          display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+          textAlign: "center", padding: "80px 24px",
+          background: "linear-gradient(160deg, #0D1E3A 0%, #112448 60%, #0D1E3A 100%)",
+          position: "relative", overflow: "hidden",
         }}>
+          {/* Glow background */}
+          <div style={{ position: "absolute", top: "40%", left: "50%", transform: "translate(-50%,-50%)", width: 600, height: 400, borderRadius: "50%", background: "radial-gradient(ellipse, rgba(26,48,96,0.6) 0%, transparent 70%)", pointerEvents: "none" }} />
 
-          {/* Background grid */}
-          <div style={{
-            position: "absolute",
-            inset: 0,
-            backgroundImage: [
-              "linear-gradient(rgba(26,51,204,0.12) 1px, transparent 1px)",
-              "linear-gradient(90deg, rgba(26,51,204,0.12) 1px, transparent 1px)",
-            ].join(", "),
-            backgroundSize: "64px 64px",
-            pointerEvents: "none",
-          }} />
-
-          {/* Radial center glow */}
-          <div style={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            width: 720,
-            height: 720,
-            borderRadius: "50%",
-            background: "radial-gradient(circle, rgba(26,51,204,0.18) 0%, rgba(71,181,232,0.08) 40%, transparent 70%)",
-            pointerEvents: "none",
-          }} />
-
-          {/* Bottom gold horizon */}
-          <div style={{
-            position: "absolute",
-            bottom: 0,
-            left: 0,
-            right: 0,
-            height: 2,
-            background: "linear-gradient(90deg, transparent, rgba(240,200,0,0.6), rgba(71,181,232,0.4), transparent)",
-          }} />
-
-          {/* Eyebrow label */}
-          <div style={{
-            fontSize: 10.5,
-            fontWeight: 700,
-            letterSpacing: "0.3em",
-            color: "rgba(240,200,0,0.8)",
-            textTransform: "uppercase",
-            marginBottom: 48,
-          }}>
-            UGEL N.&deg; 06 &bull; Ate-Vitarte, Lima &bull; Peru
+          {/* Escudo */}
+          <div className="shield" style={{ position: "relative", width: 160, height: 200, marginBottom: 36,
+            filter: "drop-shadow(0 8px 32px rgba(240,200,0,0.22)) drop-shadow(0 0 60px rgba(17,36,72,0.8))" }}>
+            <Image src="/logo-cr.svg" alt="Escudo I.E.P. Cristo Reina" fill style={{ objectFit: "contain" }} priority />
           </div>
 
-          {/* Shield */}
-          <div className="shield-anim" style={{
-            position: "relative",
-            width: 190,
-            height: 240,
-            marginBottom: 52,
-            flexShrink: 0,
-          }}>
-            <Image
-              src="/logo-cr.svg"
-              alt="Escudo Oficial I.E.P. Cristo Reina"
-              fill
-              style={{ objectFit: "contain" }}
-              priority
-            />
-          </div>
-
-          {/* School name */}
-          <div style={{ position: "relative", marginBottom: 28 }}>
-            <h1 style={{
-              fontSize: "clamp(52px, 9vw, 104px)",
-              fontWeight: 900,
-              letterSpacing: "-0.03em",
-              lineHeight: 0.92,
-              margin: 0,
-              color: "white",
-            }}>
-              CRISTO
-            </h1>
-            <h1 style={{
-              fontSize: "clamp(52px, 9vw, 104px)",
-              fontWeight: 900,
-              letterSpacing: "-0.03em",
-              lineHeight: 0.92,
-              margin: 0,
-              color: "#F0C800",
-              textShadow: "0 0 60px rgba(240,200,0,0.35)",
-            }}>
-              REINA
-            </h1>
-          </div>
-
-          {/* Subtitle */}
-          <p style={{
-            fontSize: "clamp(12px, 1.6vw, 15px)",
-            color: "rgba(255,255,255,0.4)",
-            letterSpacing: "0.25em",
-            textTransform: "uppercase",
-            marginBottom: 52,
-            fontWeight: 500,
-          }}>
-            Plataforma Institucional de Gestion Escolar
+          {/* Nombre */}
+          <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.28em", color: "var(--gold)", textTransform: "uppercase", marginBottom: 14 }}>
+            Institución Educativa Particular
+          </p>
+          <h1 style={{ fontSize: "clamp(38px, 6vw, 72px)", fontWeight: 900, letterSpacing: "-0.02em", lineHeight: 1.05, marginBottom: 20 }}>
+            Cristo Reina
+          </h1>
+          <p style={{ fontSize: "clamp(15px, 2vw, 18px)", color: "var(--text-dim)", maxWidth: 520, lineHeight: 1.7, marginBottom: 40 }}>
+            Formando personas íntegras con valores, conocimiento y vocación de servicio en Ate-Vitarte, Lima.
           </p>
 
-          {/* CTAs */}
-          <div style={{ display: "flex", gap: 14, flexWrap: "wrap", justifyContent: "center" }}>
-            <Link href="/login" className="btn-gold">
-              Acceder al sistema
-            </Link>
-            <a href="#modulos" className="btn-ghost">
-              Ver modulos
-            </a>
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", justifyContent: "center" }}>
+            <a href="#nosotros" className="btn-primary">Conoce el colegio</a>
+            <a href="#contacto" style={{
+              display: "inline-block", padding: "14px 36px", borderRadius: 10,
+              border: "1px solid rgba(255,255,255,0.2)", color: "rgba(255,255,255,0.85)",
+              fontSize: 15, fontWeight: 600, textDecoration: "none",
+              transition: "border-color .2s, background .2s",
+            }}>Contáctanos</a>
           </div>
         </section>
 
-        {/* ── MODULES ─────────────────────────────────────────────────── */}
-        <section id="modulos" style={{ padding: "100px 28px" }}>
-          <div style={{ maxWidth: 1280, margin: "0 auto" }}>
+        <div className="divider" />
 
-            {/* Section header */}
-            <div style={{ marginBottom: 64, maxWidth: 560 }}>
-              <h2 style={{
-                fontSize: "clamp(30px, 4.5vw, 52px)",
-                fontWeight: 900,
-                letterSpacing: "-0.03em",
-                lineHeight: 1,
-                marginBottom: 20,
-              }}>
-                Sistema{" "}
-                <span style={{ color: "#F0C800" }}>Integral</span>
+        {/* ── QUIÉNES SOMOS ─────────────────────────────────────────── */}
+        <section id="nosotros" style={{ padding: "88px 24px", background: "var(--navy-mid)" }}>
+          <div style={{ maxWidth: 1200, margin: "0 auto", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 64, alignItems: "center" }}>
+            {/* Texto */}
+            <div>
+              <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.25em", color: "var(--gold)", textTransform: "uppercase", marginBottom: 16 }}>
+                Quiénes somos
+              </p>
+              <h2 style={{ fontSize: "clamp(28px, 3.5vw, 42px)", fontWeight: 800, letterSpacing: "-0.02em", lineHeight: 1.15, marginBottom: 24 }}>
+                Una institución con vocación educativa
               </h2>
-              <p style={{
-                color: "rgba(255,255,255,0.38)",
-                fontSize: 16,
-                lineHeight: 1.7,
-                maxWidth: 480,
-              }}>
-                Herramientas digitales que cubren cada area de la gestion escolar, desde la academia hasta el bienestar del alumno.
+              <p style={{ color: "var(--text-dim)", fontSize: 16, lineHeight: 1.8, marginBottom: 20 }}>
+                La I.E.P. Cristo Reina es una institución educativa particular ubicada en Ate-Vitarte, Lima,
+                comprometida con la formación integral de niños y jóvenes desde el nivel inicial hasta secundaria.
+              </p>
+              <p style={{ color: "var(--text-dim)", fontSize: 16, lineHeight: 1.8 }}>
+                Brindamos una educación de calidad que combina la excelencia académica con la formación en valores,
+                acompañando a cada estudiante en su desarrollo personal y social.
               </p>
             </div>
 
-            {/* Module grid */}
-            <div style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
-              gap: 14,
-            }}>
-              {MODULES.map((mod) => (
-                <div key={mod.title} className="glass-card" style={{ padding: "28px 28px 24px" }}>
-                  {/* Icon */}
-                  <div style={{
-                    width: 46,
-                    height: 46,
-                    borderRadius: 14,
-                    background: `rgba(${mod.rgb},0.12)`,
-                    border: `1px solid rgba(${mod.rgb},0.25)`,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    marginBottom: 20,
-                  }}>
-                    <mod.icon size={20} color={mod.hex} strokeWidth={1.8} />
-                  </div>
-
-                  <h3 style={{
-                    fontWeight: 700,
-                    fontSize: 15.5,
-                    letterSpacing: "-0.01em",
-                    marginBottom: 8,
-                  }}>
-                    {mod.title}
-                  </h3>
-                  <p style={{
-                    color: "rgba(255,255,255,0.38)",
-                    fontSize: 13.5,
-                    lineHeight: 1.65,
-                  }}>
-                    {mod.desc}
-                  </p>
-
-                  {/* Bottom accent bar */}
-                  <div className="module-accent" style={{
-                    background: `linear-gradient(90deg, rgba(${mod.rgb},0.7), transparent)`,
-                  }} />
+            {/* Stats / datos rápidos */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+              {[
+                { num: "3", label: "Niveles educativos", sub: "Inicial, Primaria y Secundaria" },
+                { num: "UGEL", label: "N.° 06", sub: "Ate-Vitarte, Lima" },
+                { num: "+", label: "Años de trayectoria", sub: "Formando generaciones" },
+                { num: "100%", label: "Compromiso", sub: "Con cada estudiante" },
+              ].map((item) => (
+                <div key={item.label} className="card">
+                  <div style={{ fontSize: 28, fontWeight: 900, color: "var(--gold)", lineHeight: 1, marginBottom: 6 }}>{item.num}</div>
+                  <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 4 }}>{item.label}</div>
+                  <div style={{ color: "var(--text-faint)", fontSize: 12, lineHeight: 1.5 }}>{item.sub}</div>
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* ── DIVIDER ─────────────────────────────────────────────────── */}
-        <div className="divider-glow" />
+        <div className="divider" />
 
-        {/* ── INFO BAND ───────────────────────────────────────────────── */}
-        <section style={{
-          padding: "72px 28px",
-          background: "rgba(26,51,204,0.06)",
-        }}>
-          <div style={{
-            maxWidth: 1280,
-            margin: "0 auto",
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-            gap: 48,
-            textAlign: "center",
-          }}>
-            {[
-              { label: "Institucion", value: "I.E.P. Cristo Reina", sub: "Educacion Inicial, Primaria y Secundaria" },
-              { label: "Dependencia",  value: "UGEL N.° 06",         sub: "Ate-Vitarte, Lima, Peru" },
-              { label: "Acceso",       value: "Solo autorizado",     sub: "Contacta a direccion para credenciales" },
-            ].map((item) => (
-              <div key={item.label}>
-                <div style={{
-                  fontSize: 10,
-                  fontWeight: 700,
-                  letterSpacing: "0.28em",
-                  color: "#F0C800",
-                  textTransform: "uppercase",
-                  marginBottom: 12,
-                }}>
-                  {item.label}
+        {/* ── MISIÓN Y VISIÓN ───────────────────────────────────────── */}
+        <section id="mision" style={{ padding: "88px 24px", background: "var(--navy)" }}>
+          <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+            <div style={{ textAlign: "center", marginBottom: 56 }}>
+              <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.25em", color: "var(--gold)", textTransform: "uppercase", marginBottom: 14 }}>
+                Identidad institucional
+              </p>
+              <h2 style={{ fontSize: "clamp(26px, 3.5vw, 40px)", fontWeight: 800, letterSpacing: "-0.02em" }}>
+                Misión y Visión
+              </h2>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
+              {/* Misión */}
+              <div className="card" style={{ borderTop: "3px solid var(--gold)" }}>
+                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.22em", color: "var(--gold)", textTransform: "uppercase", marginBottom: 18 }}>
+                  Misión
                 </div>
-                <div style={{ fontWeight: 800, fontSize: 18, letterSpacing: "-0.01em", marginBottom: 6 }}>
-                  {item.value}
-                </div>
-                <div style={{ color: "rgba(255,255,255,0.35)", fontSize: 13, lineHeight: 1.5 }}>
-                  {item.sub}
-                </div>
+                <h3 style={{ fontWeight: 800, fontSize: 20, lineHeight: 1.3, marginBottom: 16 }}>
+                  Formar personas íntegras para la sociedad
+                </h3>
+                <p style={{ color: "var(--text-dim)", fontSize: 15, lineHeight: 1.8 }}>
+                  Brindar una educación de calidad basada en valores cristianos, excelencia académica y formación
+                  humana, desarrollando en cada estudiante las competencias necesarias para enfrentar los retos del
+                  mundo moderno con ética y responsabilidad.
+                </p>
               </div>
-            ))}
+
+              {/* Visión */}
+              <div className="card" style={{ borderTop: "3px solid #47B5E8" }}>
+                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.22em", color: "#47B5E8", textTransform: "uppercase", marginBottom: 18 }}>
+                  Visión
+                </div>
+                <h3 style={{ fontWeight: 800, fontSize: 20, lineHeight: 1.3, marginBottom: 16 }}>
+                  Ser referente educativo en Ate-Vitarte
+                </h3>
+                <p style={{ color: "var(--text-dim)", fontSize: 15, lineHeight: 1.8 }}>
+                  Ser reconocida como una institución educativa líder en el distrito de Ate-Vitarte, destacada por
+                  la calidad de su enseñanza, la solidez de sus valores y el impacto positivo de sus egresados
+                  en la familia, la comunidad y el país.
+                </p>
+              </div>
+            </div>
           </div>
         </section>
 
-        {/* ── DIVIDER ─────────────────────────────────────────────────── */}
-        <div className="divider-glow" />
+        <div className="divider" />
 
-        {/* ── CTA FINAL ───────────────────────────────────────────────── */}
-        <section style={{
-          padding: "100px 28px",
-          textAlign: "center",
-          position: "relative",
-          overflow: "hidden",
-        }}>
-          <div style={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            width: 500,
-            height: 300,
-            borderRadius: "50%",
-            background: "radial-gradient(ellipse, rgba(240,200,0,0.06) 0%, transparent 70%)",
-            pointerEvents: "none",
-          }} />
+        {/* ── NIVELES EDUCATIVOS ────────────────────────────────────── */}
+        <section id="niveles" style={{ padding: "88px 24px", background: "var(--navy-mid)" }}>
+          <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+            <div style={{ textAlign: "center", marginBottom: 56 }}>
+              <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.25em", color: "var(--gold)", textTransform: "uppercase", marginBottom: 14 }}>
+                Oferta educativa
+              </p>
+              <h2 style={{ fontSize: "clamp(26px, 3.5vw, 40px)", fontWeight: 800, letterSpacing: "-0.02em" }}>
+                Niveles que ofrecemos
+              </h2>
+            </div>
 
-          <div style={{
-            position: "relative",
-            width: 80,
-            height: 100,
-            margin: "0 auto 32px",
-          }}>
-            <Image src="/logo-cr.svg" alt="Escudo" fill style={{ objectFit: "contain", opacity: 0.85 }} />
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20 }}>
+              {[
+                {
+                  nivel: "Inicial",
+                  rango: "3 a 5 años",
+                  desc: "Estimulamos el desarrollo integral del niño mediante el juego, la creatividad y el afecto, sentando las bases para su aprendizaje futuro.",
+                  color: "#F0C800",
+                },
+                {
+                  nivel: "Primaria",
+                  rango: "1.° a 6.° grado",
+                  desc: "Fortalecemos las habilidades lectoras, matemáticas y científicas con metodologías activas que motivan el aprendizaje significativo.",
+                  color: "#1A33CC",
+                },
+                {
+                  nivel: "Secundaria",
+                  rango: "1.° a 5.° año",
+                  desc: "Preparamos a los jóvenes para la educación superior y la vida, con una formación académica sólida y orientación vocacional.",
+                  color: "#47B5E8",
+                },
+              ].map((n) => (
+                <div key={n.nivel} className="nivel-card">
+                  <div style={{
+                    width: 48, height: 48, borderRadius: "50%", margin: "0 auto 20px",
+                    background: `rgba(${n.color === "#F0C800" ? "240,200,0" : n.color === "#1A33CC" ? "26,51,204" : "71,181,232"},0.15)`,
+                    border: `2px solid ${n.color}`,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                  }}>
+                    <div style={{ width: 14, height: 14, borderRadius: "50%", background: n.color }} />
+                  </div>
+                  <div style={{ fontWeight: 900, fontSize: 22, marginBottom: 6 }}>{n.nivel}</div>
+                  <div style={{ fontSize: 13, color: n.color, fontWeight: 600, marginBottom: 16, letterSpacing: "0.05em" }}>{n.rango}</div>
+                  <p style={{ color: "var(--text-dim)", fontSize: 14, lineHeight: 1.7 }}>{n.desc}</p>
+                </div>
+              ))}
+            </div>
           </div>
-
-          <h2 style={{
-            fontSize: "clamp(28px, 4vw, 44px)",
-            fontWeight: 900,
-            letterSpacing: "-0.02em",
-            marginBottom: 16,
-          }}>
-            Listo para ingresar?
-          </h2>
-          <p style={{
-            color: "rgba(255,255,255,0.38)",
-            fontSize: 15,
-            marginBottom: 40,
-            maxWidth: 420,
-            margin: "0 auto 40px",
-            lineHeight: 1.6,
-          }}>
-            Accede con tus credenciales institucionales para gestionar el colegio.
-          </p>
-          <Link href="/login" className="btn-gold">
-            Acceder ahora
-          </Link>
         </section>
 
-        {/* ── FOOTER ──────────────────────────────────────────────────── */}
-        <footer style={{
-          borderTop: "1px solid rgba(255,255,255,0.05)",
-          padding: "28px 28px",
-          background: "rgba(0,0,0,0.3)",
-        }}>
-          <div style={{
-            maxWidth: 1280,
-            margin: "0 auto",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            flexWrap: "wrap",
-            gap: 16,
-          }}>
+        <div className="divider" />
+
+        {/* ── CONTACTO ──────────────────────────────────────────────── */}
+        <section id="contacto" style={{ padding: "88px 24px", background: "var(--navy)" }}>
+          <div style={{ maxWidth: 1200, margin: "0 auto", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 64, alignItems: "start" }}>
+            {/* Texto izquierdo */}
+            <div>
+              <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.25em", color: "var(--gold)", textTransform: "uppercase", marginBottom: 16 }}>
+                Contáctanos
+              </p>
+              <h2 style={{ fontSize: "clamp(26px, 3.5vw, 42px)", fontWeight: 800, letterSpacing: "-0.02em", lineHeight: 1.15, marginBottom: 24 }}>
+                Estamos para atenderte
+              </h2>
+              <p style={{ color: "var(--text-dim)", fontSize: 16, lineHeight: 1.8, marginBottom: 36 }}>
+                Si deseas información sobre matrículas, vacantes, pensiones u otros servicios, comunícate con
+                nosotros. El personal de admisión estará encantado de orientarte.
+              </p>
+              <a href="#contacto" className="btn-primary" style={{ fontSize: 14 }}>
+                Solicitar información
+              </a>
+            </div>
+
+            {/* Datos de contacto */}
+            <div>
+              {[
+                {
+                  icon: "📍",
+                  label: "Dirección",
+                  value: "Ate-Vitarte, Lima",
+                  sub: "Lima, Perú",
+                },
+                {
+                  icon: "📞",
+                  label: "Teléfono",
+                  value: "(01) 000-0000",
+                  sub: "Lunes a viernes, 8:00 a.m. – 5:00 p.m.",
+                },
+                {
+                  icon: "✉️",
+                  label: "Correo electrónico",
+                  value: "informes@cristoreina.edu.pe",
+                  sub: "Te respondemos en menos de 24 horas",
+                },
+                {
+                  icon: "🏫",
+                  label: "Dependencia",
+                  value: "UGEL N.° 06",
+                  sub: "Ate-Vitarte",
+                },
+              ].map((c) => (
+                <div key={c.label} className="contact-item">
+                  <div className="contact-icon">{c.icon}</div>
+                  <div>
+                    <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-faint)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 4 }}>{c.label}</div>
+                    <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 2 }}>{c.value}</div>
+                    <div style={{ color: "var(--text-faint)", fontSize: 13 }}>{c.sub}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <div className="divider" />
+
+        {/* ── FOOTER ────────────────────────────────────────────────── */}
+        <footer style={{ padding: "36px 24px", background: "rgba(0,0,0,0.3)" }}>
+          <div style={{ maxWidth: 1200, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 20 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <div style={{ position: "relative", width: 26, height: 32, flexShrink: 0 }}>
                 <Image src="/logo-cr.svg" alt="Logo" fill style={{ objectFit: "contain" }} />
               </div>
-              <span style={{ fontSize: 13, color: "rgba(255,255,255,0.3)" }}>
-                I.E.P. Cristo Reina &bull; UGEL 06 Ate-Vitarte
-              </span>
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 700 }}>I.E.P. Cristo Reina</div>
+                <div style={{ fontSize: 11, color: "var(--text-faint)" }}>UGEL N.° 06 — Ate-Vitarte, Lima</div>
+              </div>
             </div>
-            <span style={{ fontSize: 12, color: "rgba(255,255,255,0.18)" }}>
-              &copy; 2026 I.E.P. Cristo Reina. Todos los derechos reservados.
-            </span>
+
+            <div style={{ display: "flex", alignItems: "center", gap: 24, flexWrap: "wrap" }}>
+              <span style={{ fontSize: 12, color: "var(--text-faint)" }}>© 2026 I.E.P. Cristo Reina</span>
+              <Link href="/login" style={{ fontSize: 12, color: "var(--text-faint)", textDecoration: "none", borderBottom: "1px solid rgba(255,255,255,0.15)", paddingBottom: 1, transition: "color .2s" }}>
+                Acceso para personal
+              </Link>
+            </div>
           </div>
         </footer>
 
