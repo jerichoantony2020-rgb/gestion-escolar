@@ -1,11 +1,7 @@
-"use client"
-
 import Link from "next/link"
 import Image from "next/image"
-import { useEffect, useState } from "react"
-
-type Noticia = { id: string; title: string; content: string; imageUrl: string | null; createdAt: string }
-type Actividad = { id: string; title: string; description: string | null; imageUrl: string | null; category: string; date: string | null }
+import { prisma } from "@/lib/prisma"
+import ShieldHero from "./ShieldHero"
 
 const CATS: Record<string, { label: string; color: string; bg: string }> = {
   academica: { label: "Académica", color: "#1A33CC", bg: "rgba(26,51,204,0.15)" },
@@ -14,19 +10,35 @@ const CATS: Record<string, { label: string; color: string; bg: string }> = {
   religiosa:  { label: "Religiosa",  color: "#F0C800", bg: "rgba(240,200,0,0.15)"  },
 }
 
-export default function InicioPage() {
-  const [noticias, setNoticias] = useState<Noticia[]>([])
-  const [actividades, setActividades] = useState<Actividad[]>([])
+export const revalidate = 60 // refresca cada 60 s sin rebuild
 
-  useEffect(() => {
-    fetch("/api/noticias").then(r => r.json()).then(d => setNoticias(Array.isArray(d) ? d : [])).catch(() => {})
-    fetch("/api/actividades").then(r => r.json()).then(d => setActividades(Array.isArray(d) ? d : [])).catch(() => {})
-  }, [])
+export default async function InicioPage() {
+  let noticias: { id: string; title: string; content: string; imageUrl: string | null; createdAt: Date }[] = []
+  let actividades: { id: string; title: string; description: string | null; imageUrl: string | null; category: string; date: Date | null }[] = []
+
+  try {
+    const inst = await prisma.institution.findUnique({ where: { slug: "cristo-reina" } })
+    if (inst) {
+      ;[noticias, actividades] = await Promise.all([
+        prisma.noticia.findMany({
+          where: { institutionId: inst.id, published: true },
+          orderBy: { createdAt: "desc" },
+          take: 6,
+        }),
+        prisma.actividad.findMany({
+          where: { institutionId: inst.id, published: true },
+          orderBy: { createdAt: "desc" },
+          take: 6,
+        }),
+      ])
+    }
+  } catch {
+    // DB no disponible en entorno local — la página igual renderiza con secciones vacías
+  }
 
   return (
     <>
       <style>{`
-        * { box-sizing: border-box; margin: 0; padding: 0; }
         :root {
           --navy:      #0D1E3A;
           --navy-mid:  #112448;
@@ -35,47 +47,50 @@ export default function InicioPage() {
           --white:     #FFFFFF;
           --dim:       rgba(255,255,255,0.62);
           --faint:     rgba(255,255,255,0.35);
-          --border:    rgba(255,255,255,0.08);
-          --font: var(--font-geist-sans, system-ui, sans-serif);
+          --iborder:   rgba(255,255,255,0.08);
         }
-        @keyframes floatShield { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
-        .shield { animation: floatShield 5s ease-in-out infinite; }
-        .divider { height:1px; background:linear-gradient(90deg,transparent,rgba(240,200,0,0.4),rgba(71,181,232,0.25),transparent); }
-        .card { background:rgba(255,255,255,0.04); border:1px solid var(--border); border-radius:16px; padding:28px; transition:background .25s,border-color .25s; }
-        .card:hover { background:rgba(255,255,255,0.07); border-color:rgba(240,200,0,0.22); }
-        .news-card { background:rgba(255,255,255,0.04); border:1px solid var(--border); border-radius:14px; overflow:hidden; transition:background .25s,border-color .25s,transform .2s; display:flex; flex-direction:column; }
+        .inicio-card { background:rgba(255,255,255,0.04); border:1px solid var(--iborder); border-radius:16px; padding:28px; transition:background .25s,border-color .25s; }
+        .inicio-card:hover { background:rgba(255,255,255,0.07); border-color:rgba(240,200,0,0.22); }
+        .news-card { background:rgba(255,255,255,0.04); border:1px solid var(--iborder); border-radius:14px; overflow:hidden; transition:background .25s,border-color .25s,transform .2s; display:flex; flex-direction:column; }
         .news-card:hover { background:rgba(255,255,255,0.07); border-color:rgba(240,200,0,0.25); transform:translateY(-3px); }
-        .act-card { background:rgba(255,255,255,0.04); border:1px solid var(--border); border-radius:14px; overflow:hidden; transition:background .25s,border-color .25s,transform .2s; }
+        .act-card { background:rgba(255,255,255,0.04); border:1px solid var(--iborder); border-radius:14px; overflow:hidden; transition:background .25s,border-color .25s,transform .2s; }
         .act-card:hover { background:rgba(255,255,255,0.07); border-color:rgba(255,255,255,0.15); transform:translateY(-3px); }
         .btn-gold { display:inline-block; padding:14px 36px; border-radius:10px; background:var(--gold); color:var(--navy); font-weight:800; font-size:15px; text-decoration:none; transition:opacity .2s,transform .15s; }
         .btn-gold:hover { opacity:.9; transform:translateY(-2px); }
-        .contact-row { display:flex; align-items:flex-start; gap:16px; padding:20px 0; border-bottom:1px solid var(--border); }
+        .contact-row { display:flex; align-items:flex-start; gap:16px; padding:20px 0; border-bottom:1px solid var(--iborder); }
         .contact-row:last-child { border-bottom:none; }
         .ci { width:44px; height:44px; border-radius:10px; background:var(--gold-dim); border:1px solid rgba(240,200,0,0.22); display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:20px; }
-        section { font-family:var(--font); }
         .section-label { font-size:10px; font-weight:700; letter-spacing:.25em; color:var(--gold); text-transform:uppercase; margin-bottom:14px; }
+        .divider { height:1px; background:linear-gradient(90deg,transparent,rgba(240,200,0,0.4),rgba(71,181,232,0.25),transparent); }
         .empty-state { border:1px dashed rgba(255,255,255,0.12); border-radius:14px; padding:48px 24px; text-align:center; color:var(--faint); font-size:14px; }
-        nav a:hover { color: var(--white) !important; }
+        .inicio-nav-link { font-size:13px; color:var(--dim,rgba(255,255,255,0.62)); text-decoration:none; padding:6px 12px; border-radius:8px; transition:color .2s; }
+        .inicio-nav-link:hover { color:#fff; }
+        @media(max-width:768px) {
+          .inicio-grid-2 { grid-template-columns:1fr !important; }
+          .inicio-grid-3 { grid-template-columns:1fr !important; }
+          .portal-grid   { grid-template-columns:1fr !important; }
+          .contact-grid  { grid-template-columns:1fr !important; }
+          .inicio-nav-links { display:none; }
+        }
       `}</style>
 
-      <div style={{ background:"var(--navy)", minHeight:"100vh", color:"var(--white)", fontFamily:"var(--font)" }}>
+      <div style={{ background:"var(--navy)", minHeight:"100vh", color:"var(--white)", fontFamily:"var(--font-geist-sans,system-ui,sans-serif)" }}>
 
-        {/* ── NAV ──────────────────────────────────────────────────── */}
-        <header style={{ position:"sticky", top:0, zIndex:100, backdropFilter:"blur(20px)", background:"rgba(13,30,58,0.92)", borderBottom:"1px solid var(--border)" }}>
+        {/* ── NAV ── */}
+        <header style={{ position:"sticky", top:0, zIndex:100, backdropFilter:"blur(20px)", background:"rgba(13,30,58,0.92)", borderBottom:"1px solid var(--iborder)" }}>
           <div style={{ maxWidth:1200, margin:"0 auto", padding:"0 24px", height:64, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
             <div style={{ display:"flex", alignItems:"center", gap:12 }}>
               <div style={{ position:"relative", width:32, height:40, flexShrink:0 }}>
-                <Image src="/logo-cr.png" alt="Escudo I.E.P. Cristo Reina" fill style={{ objectFit:"contain" }}
-                  onError={e => { (e.target as HTMLImageElement).src = "/logo-cr.svg" }} />
+                <Image src="/logo-cr.png" alt="Escudo I.E.P. Cristo Reina" fill sizes="32px" style={{ objectFit:"contain" }} />
               </div>
               <div>
                 <div style={{ fontSize:9, fontWeight:700, letterSpacing:"0.22em", color:"var(--gold)", textTransform:"uppercase" }}>I.E.P.</div>
-                <div style={{ fontSize:14, fontWeight:800, letterSpacing:"0.03em" }}>Cristo Reina</div>
+                <div style={{ fontSize:14, fontWeight:800 }}>Cristo Reina</div>
               </div>
             </div>
-            <nav style={{ display:"flex", gap:4, alignItems:"center" }}>
+            <nav className="inicio-nav-links" style={{ display:"flex", gap:4, alignItems:"center" }}>
               {(["#nosotros","#noticias","#actividades","#contacto"] as const).map((h, i) => (
-                <a key={h} href={h} style={{ fontSize:13, color:"var(--dim)", textDecoration:"none", padding:"6px 12px", borderRadius:8, transition:"color .2s" }}>
+                <a key={h} href={h} className="inicio-nav-link">
                   {["Nosotros","Noticias","Actividades","Contacto"][i]}
                 </a>
               ))}
@@ -86,15 +101,10 @@ export default function InicioPage() {
           </div>
         </header>
 
-        {/* ── HERO ─────────────────────────────────────────────────── */}
+        {/* ── HERO ── */}
         <section style={{ minHeight:"100dvh", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", textAlign:"center", padding:"80px 24px", background:"linear-gradient(160deg,#0D1E3A 0%,#112448 60%,#0D1E3A 100%)", position:"relative", overflow:"hidden" }}>
           <div style={{ position:"absolute", top:"40%", left:"50%", transform:"translate(-50%,-50%)", width:600, height:400, borderRadius:"50%", background:"radial-gradient(ellipse,rgba(26,48,96,0.55) 0%,transparent 70%)", pointerEvents:"none" }} />
-
-          <div className="shield" style={{ position:"relative", width:180, height:220, marginBottom:36, filter:"drop-shadow(0 8px 32px rgba(240,200,0,0.2))" }}>
-            <Image src="/logo-cr.png" alt="Escudo I.E.P. Cristo Reina" fill style={{ objectFit:"contain" }} priority
-              onError={e => { (e.target as HTMLImageElement).src = "/logo-cr.svg" }} />
-          </div>
-
+          <ShieldHero />
           <p style={{ fontSize:11, fontWeight:700, letterSpacing:"0.28em", color:"var(--gold)", textTransform:"uppercase", marginBottom:14 }}>Institución Educativa Particular</p>
           <h1 style={{ fontSize:"clamp(40px,7vw,76px)", fontWeight:900, letterSpacing:"-0.02em", lineHeight:1.05, marginBottom:20 }}>Cristo Reina</h1>
           <p style={{ fontSize:"clamp(15px,2vw,18px)", color:"var(--dim)", maxWidth:520, lineHeight:1.7, marginBottom:40 }}>
@@ -108,9 +118,9 @@ export default function InicioPage() {
 
         <div className="divider" />
 
-        {/* ── QUIÉNES SOMOS ───────────────────────────────────────── */}
+        {/* ── QUIÉNES SOMOS ── */}
         <section id="nosotros" style={{ padding:"88px 24px", background:"var(--navy-mid)" }}>
-          <div style={{ maxWidth:1200, margin:"0 auto", display:"grid", gridTemplateColumns:"1fr 1fr", gap:64, alignItems:"center" }}>
+          <div className="inicio-grid-2" style={{ maxWidth:1200, margin:"0 auto", display:"grid", gridTemplateColumns:"1fr 1fr", gap:64, alignItems:"center" }}>
             <div>
               <p className="section-label">Quiénes somos</p>
               <h2 style={{ fontSize:"clamp(28px,3.5vw,42px)", fontWeight:800, letterSpacing:"-0.02em", lineHeight:1.15, marginBottom:24 }}>Una institución con vocación educativa</h2>
@@ -128,7 +138,7 @@ export default function InicioPage() {
                 { num:"+",    label:"Años de trayectoria", sub:"Formando generaciones" },
                 { num:"100%", label:"Compromiso",          sub:"Con cada estudiante" },
               ].map(s => (
-                <div key={s.label} className="card">
+                <div key={s.label} className="inicio-card">
                   <div style={{ fontSize:26, fontWeight:900, color:"var(--gold)", marginBottom:6 }}>{s.num}</div>
                   <div style={{ fontWeight:700, fontSize:14, marginBottom:4 }}>{s.label}</div>
                   <div style={{ color:"var(--faint)", fontSize:12, lineHeight:1.5 }}>{s.sub}</div>
@@ -140,20 +150,20 @@ export default function InicioPage() {
 
         <div className="divider" />
 
-        {/* ── MISIÓN Y VISIÓN ─────────────────────────────────────── */}
+        {/* ── MISIÓN Y VISIÓN ── */}
         <section style={{ padding:"88px 24px", background:"var(--navy)" }}>
           <div style={{ maxWidth:1200, margin:"0 auto" }}>
             <div style={{ textAlign:"center", marginBottom:56 }}>
               <p className="section-label">Identidad institucional</p>
               <h2 style={{ fontSize:"clamp(26px,3.5vw,40px)", fontWeight:800, letterSpacing:"-0.02em" }}>Misión y Visión</h2>
             </div>
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:24 }}>
-              <div className="card" style={{ borderTop:"3px solid var(--gold)" }}>
+            <div className="inicio-grid-2" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:24 }}>
+              <div className="inicio-card" style={{ borderTop:"3px solid var(--gold)" }}>
                 <div style={{ fontSize:10, fontWeight:700, letterSpacing:"0.22em", color:"var(--gold)", textTransform:"uppercase", marginBottom:18 }}>Misión</div>
                 <h3 style={{ fontWeight:800, fontSize:20, lineHeight:1.3, marginBottom:16 }}>Formar personas íntegras para la sociedad</h3>
                 <p style={{ color:"var(--dim)", fontSize:15, lineHeight:1.8 }}>Brindar una educación de calidad basada en valores, excelencia académica y formación humana, desarrollando en cada estudiante las competencias necesarias para enfrentar los retos del mundo moderno con ética y responsabilidad.</p>
               </div>
-              <div className="card" style={{ borderTop:"3px solid #47B5E8" }}>
+              <div className="inicio-card" style={{ borderTop:"3px solid #47B5E8" }}>
                 <div style={{ fontSize:10, fontWeight:700, letterSpacing:"0.22em", color:"#47B5E8", textTransform:"uppercase", marginBottom:18 }}>Visión</div>
                 <h3 style={{ fontWeight:800, fontSize:20, lineHeight:1.3, marginBottom:16 }}>Ser referente educativo en Ate, Lima</h3>
                 <p style={{ color:"var(--dim)", fontSize:15, lineHeight:1.8 }}>Ser reconocida como una institución educativa líder en el distrito de Ate, destacada por la calidad de su enseñanza, la solidez de sus valores y el impacto positivo de sus egresados en la familia, la comunidad y el país.</p>
@@ -164,7 +174,7 @@ export default function InicioPage() {
 
         <div className="divider" />
 
-        {/* ── NOTICIAS ────────────────────────────────────────────── */}
+        {/* ── NOTICIAS ── */}
         <section id="noticias" style={{ padding:"88px 24px", background:"var(--navy-mid)" }}>
           <div style={{ maxWidth:1200, margin:"0 auto" }}>
             <div style={{ textAlign:"center", marginBottom:56 }}>
@@ -178,7 +188,7 @@ export default function InicioPage() {
                 {noticias.map(n => (
                   <div key={n.id} className="news-card">
                     {n.imageUrl
-                      ? <img src={n.imageUrl} alt={n.title} style={{ width:"100%", height:180, objectFit:"cover" }} />
+                      ? <img src={n.imageUrl} alt={n.title} loading="lazy" style={{ width:"100%", height:180, objectFit:"cover" }} />
                       : <div style={{ height:8, background:"linear-gradient(90deg,var(--gold),#47B5E8)" }} />
                     }
                     <div style={{ padding:24, flex:1, display:"flex", flexDirection:"column" }}>
@@ -186,9 +196,7 @@ export default function InicioPage() {
                         {new Date(n.createdAt).toLocaleDateString("es-PE", { day:"2-digit", month:"long", year:"numeric" })}
                       </p>
                       <h3 style={{ fontWeight:700, fontSize:17, lineHeight:1.3, marginBottom:10 }}>{n.title}</h3>
-                      <p style={{ color:"var(--dim)", fontSize:14, lineHeight:1.7, flex:1, overflow:"hidden", display:"-webkit-box", WebkitLineClamp:3, WebkitBoxOrient:"vertical" as const }}>
-                        {n.content}
-                      </p>
+                      <p style={{ color:"var(--dim)", fontSize:14, lineHeight:1.7 }}>{n.content.slice(0, 160)}{n.content.length > 160 ? "…" : ""}</p>
                     </div>
                   </div>
                 ))}
@@ -199,7 +207,7 @@ export default function InicioPage() {
 
         <div className="divider" />
 
-        {/* ── ACTIVIDADES ─────────────────────────────────────────── */}
+        {/* ── ACTIVIDADES ── */}
         <section id="actividades" style={{ padding:"88px 24px", background:"var(--navy)" }}>
           <div style={{ maxWidth:1200, margin:"0 auto" }}>
             <div style={{ textAlign:"center", marginBottom:56 }}>
@@ -220,7 +228,7 @@ export default function InicioPage() {
                   return (
                     <div key={a.id} className="act-card">
                       {a.imageUrl
-                        ? <img src={a.imageUrl} alt={a.title} style={{ width:"100%", height:160, objectFit:"cover" }} />
+                        ? <img src={a.imageUrl} alt={a.title} loading="lazy" style={{ width:"100%", height:160, objectFit:"cover" }} />
                         : <div style={{ height:6, background:cat.color }} />
                       }
                       <div style={{ padding:20 }}>
@@ -229,7 +237,7 @@ export default function InicioPage() {
                           {a.date && <span style={{ fontSize:11, color:"var(--faint)", marginLeft:"auto" }}>{new Date(a.date).toLocaleDateString("es-PE", { day:"2-digit", month:"short" })}</span>}
                         </div>
                         <h3 style={{ fontWeight:700, fontSize:16, lineHeight:1.3, marginBottom:8 }}>{a.title}</h3>
-                        {a.description && <p style={{ color:"var(--dim)", fontSize:13, lineHeight:1.6, overflow:"hidden", display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical" as const }}>{a.description}</p>}
+                        {a.description && <p style={{ color:"var(--dim)", fontSize:13, lineHeight:1.6 }}>{a.description.slice(0,120)}{a.description.length > 120 ? "…" : ""}</p>}
                       </div>
                     </div>
                   )
@@ -241,20 +249,20 @@ export default function InicioPage() {
 
         <div className="divider" />
 
-        {/* ── NIVELES ─────────────────────────────────────────────── */}
+        {/* ── NIVELES ── */}
         <section style={{ padding:"88px 24px", background:"var(--navy-mid)" }}>
           <div style={{ maxWidth:1200, margin:"0 auto" }}>
             <div style={{ textAlign:"center", marginBottom:56 }}>
               <p className="section-label">Oferta educativa</p>
               <h2 style={{ fontSize:"clamp(26px,3.5vw,40px)", fontWeight:800, letterSpacing:"-0.02em" }}>Niveles que ofrecemos</h2>
             </div>
-            <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:20 }}>
+            <div className="inicio-grid-3" style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:20 }}>
               {[
                 { nivel:"Inicial",    rango:"3 a 5 años",      desc:"Estimulamos el desarrollo integral del niño mediante el juego, la creatividad y el afecto, sentando las bases para su aprendizaje futuro.", color:"var(--gold)" },
                 { nivel:"Primaria",   rango:"1.° a 6.° grado", desc:"Fortalecemos las habilidades lectoras, matemáticas y científicas con metodologías activas que motivan el aprendizaje significativo.",      color:"#1A33CC" },
                 { nivel:"Secundaria", rango:"1.° a 5.° año",   desc:"Preparamos a los jóvenes para la educación superior y la vida, con una formación académica sólida y orientación vocacional.",              color:"#47B5E8" },
               ].map(n => (
-                <div key={n.nivel} className="card" style={{ textAlign:"center" }}>
+                <div key={n.nivel} className="inicio-card" style={{ textAlign:"center" }}>
                   <div style={{ width:48, height:48, borderRadius:"50%", margin:"0 auto 20px", border:`2px solid ${n.color}`, display:"flex", alignItems:"center", justifyContent:"center", background:`${n.color}18` }}>
                     <div style={{ width:14, height:14, borderRadius:"50%", background:n.color }} />
                   </div>
@@ -269,10 +277,10 @@ export default function InicioPage() {
 
         <div className="divider" />
 
-        {/* ── PORTAL FAMILIAR ─────────────────────────────────────── */}
+        {/* ── PORTAL FAMILIAR ── */}
         <section id="portal" style={{ padding:"72px 24px", background:"var(--navy)" }}>
           <div style={{ maxWidth:900, margin:"0 auto" }}>
-            <div style={{ borderRadius:20, border:"1px solid rgba(240,200,0,0.25)", background:"rgba(240,200,0,0.05)", padding:"52px 48px", display:"grid", gridTemplateColumns:"1fr auto", gap:40, alignItems:"center" }}>
+            <div className="portal-grid" style={{ borderRadius:20, border:"1px solid rgba(240,200,0,0.25)", background:"rgba(240,200,0,0.05)", padding:"52px 48px", display:"grid", gridTemplateColumns:"1fr auto", gap:40, alignItems:"center" }}>
               <div>
                 <p className="section-label">Para padres y personal</p>
                 <h2 style={{ fontSize:"clamp(22px,3vw,34px)", fontWeight:800, letterSpacing:"-0.02em", lineHeight:1.2, marginBottom:16 }}>Portal institucional</h2>
@@ -294,9 +302,9 @@ export default function InicioPage() {
 
         <div className="divider" />
 
-        {/* ── CONTACTO ─────────────────────────────────────────────── */}
+        {/* ── CONTACTO ── */}
         <section id="contacto" style={{ padding:"88px 24px", background:"var(--navy-mid)" }}>
-          <div style={{ maxWidth:1200, margin:"0 auto", display:"grid", gridTemplateColumns:"1fr 1fr", gap:64, alignItems:"start" }}>
+          <div className="contact-grid" style={{ maxWidth:1200, margin:"0 auto", display:"grid", gridTemplateColumns:"1fr 1fr", gap:64, alignItems:"start" }}>
             <div>
               <p className="section-label">Contáctanos</p>
               <h2 style={{ fontSize:"clamp(26px,3.5vw,42px)", fontWeight:800, letterSpacing:"-0.02em", lineHeight:1.15, marginBottom:24 }}>Estamos para atenderte</h2>
@@ -307,9 +315,9 @@ export default function InicioPage() {
             </div>
             <div>
               {[
-                { icon:"📍", label:"Dirección",   value:"Av. Central 601, Ate",   sub:"Lima, Perú",                                                              href: undefined },
-                { icon:"📞", label:"Teléfono",    value:"+51 901 634 663",          sub:"Lunes a viernes · 8:00 a.m. – 5:00 p.m.",                               href:"tel:+51901634663" },
-                { icon:"🏫", label:"Dependencia", value:"UGEL N.° 06",             sub:"Ate, Lima",                                                               href: undefined },
+                { icon:"📍", label:"Dirección",   value:"Av. Central 601, Ate",   sub:"Lima, Perú",                                                                    href: undefined },
+                { icon:"📞", label:"Teléfono",    value:"+51 901 634 663",         sub:"Lunes a viernes · 8:00 a.m. – 5:00 p.m.",                                      href:"tel:+51901634663" },
+                { icon:"🏫", label:"Dependencia", value:"UGEL N.° 06",             sub:"Ate, Lima",                                                                     href: undefined },
                 { icon:"📘", label:"Facebook",    value:"I.E.P. Cristo Reina",     sub:"Ver nuestra página",  href:"https://www.facebook.com/profile.php?id=61556234216960" },
               ].map(c => (
                 <div key={c.label} className="contact-row">
@@ -330,13 +338,12 @@ export default function InicioPage() {
 
         <div className="divider" />
 
-        {/* ── FOOTER ───────────────────────────────────────────────── */}
+        {/* ── FOOTER ── */}
         <footer style={{ padding:"36px 24px", background:"rgba(0,0,0,0.25)" }}>
           <div style={{ maxWidth:1200, margin:"0 auto", display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:20 }}>
             <div style={{ display:"flex", alignItems:"center", gap:12 }}>
               <div style={{ position:"relative", width:26, height:32 }}>
-                <Image src="/logo-cr.png" alt="" fill style={{ objectFit:"contain" }}
-                  onError={e => { (e.target as HTMLImageElement).src = "/logo-cr.svg" }} />
+                <Image src="/logo-cr.png" alt="" fill sizes="26px" style={{ objectFit:"contain" }} />
               </div>
               <div>
                 <div style={{ fontSize:13, fontWeight:700 }}>I.E.P. Cristo Reina</div>
