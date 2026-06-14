@@ -1,77 +1,111 @@
-<svg viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg" aria-label="Escudo I.E.P. Cristo Reina">
+<svg viewBox="0 0 220 280" xmlns="http://www.w3.org/2000/svg" aria-label="Escudo I.E.P. Cristo Reina">
   <defs>
-    <clipPath id="sc">
-      <path d="M100,8 L192,8 L192,132 Q192,205 100,236 Q8,205 8,132 L8,8 Z"/>
+    <!-- Shield clip path: heraldic gothic shape -->
+    <clipPath id="shield-shape">
+      <path d="M18,46 L202,46 L202,168 Q202,238 110,268 Q18,238 18,168 Z"/>
     </clipPath>
-    <linearGradient id="lg-crown" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#FFE346"/>
-      <stop offset="100%" stop-color="#D4A800"/>
+    <!-- Gold gradient for crown and border -->
+    <linearGradient id="gold-v" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFE566"/>
+      <stop offset="40%" stop-color="#F0C800"/>
+      <stop offset="100%" stop-color="#C9A000"/>
     </linearGradient>
+    <linearGradient id="gold-h" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#FFE566"/>
+      <stop offset="50%" stop-color="#F0C800"/>
+      <stop offset="100%" stop-color="#C9A000"/>
+    </linearGradient>
+    <!-- Left blue gradient -->
+    <linearGradient id="blue-left" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#2244DD"/>
+      <stop offset="100%" stop-color="#0E22A0"/>
+    </linearGradient>
+    <!-- Right blue gradient -->
+    <linearGradient id="blue-right" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#5BC8F0"/>
+      <stop offset="100%" stop-color="#2A9ECC"/>
+    </linearGradient>
+    <!-- Crown glow filter -->
+    <filter id="gold-glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
   </defs>
 
-  <!-- Shield halves -->
-  <g clip-path="url(#sc)">
-    <!-- Left half: dark royal blue -->
-    <rect x="8" y="8" width="92" height="250" fill="#1A33CC"/>
+  <!-- ── Crown structure (sits on top of shield) ─────────────────── -->
+  <!-- Crown base band -->
+  <rect x="52" y="32" width="116" height="22" rx="4" fill="url(#gold-v)" stroke="#A07800" stroke-width="1"/>
+  <!-- Crown left point -->
+  <polygon points="62,32 56,12 68,32" fill="url(#gold-v)" stroke="#A07800" stroke-width="0.8"/>
+  <!-- Crown center point (tallest) -->
+  <polygon points="110,32 103,4 117,32" fill="url(#gold-v)" stroke="#A07800" stroke-width="0.8"/>
+  <!-- Crown right point -->
+  <polygon points="158,32 152,12 164,32" fill="url(#gold-v)" stroke="#A07800" stroke-width="0.8"/>
+  <!-- Crown gems -->
+  <circle cx="62"  cy="11" r="5.5" fill="#CC1111" stroke="#8A0000" stroke-width="0.8"/>
+  <circle cx="110" cy="3"  r="6"   fill="#CC1111" stroke="#8A0000" stroke-width="0.8"/>
+  <circle cx="158" cy="11" r="5.5" fill="#CC1111" stroke="#8A0000" stroke-width="0.8"/>
+  <!-- Crown small gems between points -->
+  <circle cx="86"  cy="28" r="4"   fill="#22AA55" stroke="#156633" stroke-width="0.6"/>
+  <circle cx="134" cy="28" r="4"   fill="#22AA55" stroke="#156633" stroke-width="0.6"/>
+
+  <!-- ── Shield body ───────────────────────────────────────────────── -->
+  <g clip-path="url(#shield-shape)">
+    <!-- Left half: royal blue -->
+    <rect x="18" y="46" width="92" height="280" fill="url(#blue-left)"/>
     <!-- Right half: sky blue -->
-    <rect x="100" y="8" width="92" height="250" fill="#47B5E8"/>
+    <rect x="110" y="46" width="92" height="280" fill="url(#blue-right)"/>
+    <!-- Subtle inner shadow at top -->
+    <rect x="18" y="46" width="184" height="20" fill="rgba(0,0,0,0.15)"/>
+    <!-- Subtle texture lines left side -->
+    <line x1="18" y1="80"  x2="110" y2="80"  stroke="rgba(255,255,255,0.06)" stroke-width="40"/>
+    <!-- Horizontal decorative band separator -->
+    <rect x="18" y="200" width="184" height="1" fill="rgba(255,255,255,0.15)"/>
   </g>
 
-  <!-- Shield border (gold) -->
-  <path d="M100,8 L192,8 L192,132 Q192,205 100,236 Q8,205 8,132 L8,8 Z"
-        fill="none" stroke="#F0C800" stroke-width="7" stroke-linejoin="round"/>
+  <!-- ── Shield border (gold) ──────────────────────────────────────── -->
+  <path d="M18,46 L202,46 L202,168 Q202,238 110,268 Q18,238 18,168 Z"
+        fill="none" stroke="url(#gold-h)" stroke-width="8" stroke-linejoin="round"
+        filter="url(#gold-glow)"/>
 
-  <!-- Center divider (gold) -->
-  <line x1="100" y1="8" x2="100" y2="236" stroke="#F0C800" stroke-width="4"/>
+  <!-- ── Center divider line ───────────────────────────────────────── -->
+  <line x1="110" y1="46" x2="110" y2="268" stroke="url(#gold-v)" stroke-width="4"/>
 
-  <!-- Crown base -->
-  <rect x="62" y="28" width="76" height="14" rx="3" fill="url(#lg-crown)" stroke="#B8860B" stroke-width="1"/>
-
-  <!-- Crown points -->
-  <!-- Center point -->
-  <polygon points="100,10 106,28 94,28" fill="url(#lg-crown)" stroke="#B8860B" stroke-width="0.8"/>
-  <!-- Left point -->
-  <polygon points="76,14 82,28 70,28" fill="url(#lg-crown)" stroke="#B8860B" stroke-width="0.8"/>
-  <!-- Right point -->
-  <polygon points="124,14 130,28 118,28" fill="url(#lg-crown)" stroke="#B8860B" stroke-width="0.8"/>
-
-  <!-- Crown gem: center (red) -->
-  <circle cx="100" cy="20" r="4" fill="#CC0000"/>
-  <!-- Crown gem: left (green) -->
-  <circle cx="76" cy="22" r="3" fill="#22AA44"/>
-  <!-- Crown gem: right (green) -->
-  <circle cx="124" cy="22" r="3" fill="#22AA44"/>
-
-  <!-- Text left: IEP -->
-  <text x="54" y="110"
+  <!-- ── Text: IEP (left side) ─────────────────────────────────────── -->
+  <text x="64" y="126"
         text-anchor="middle"
         fill="white"
         font-family="Georgia, 'Times New Roman', serif"
-        font-size="22"
+        font-size="30"
         font-weight="bold"
-        letter-spacing="1">IEP</text>
+        letter-spacing="2"
+        style="text-shadow: 0 2px 8px rgba(0,0,0,0.5)">IEP</text>
 
-  <!-- Text right: GR (Cristo Reina initials) -->
-  <text x="148" y="110"
+  <!-- ── Text: CR (right side, italic for calligraphy feel) ─────────── -->
+  <text x="156" y="130"
         text-anchor="middle"
         fill="white"
         font-family="Georgia, 'Times New Roman', serif"
-        font-size="26"
+        font-size="34"
         font-weight="bold"
         font-style="italic"
         letter-spacing="1">CR</text>
 
-  <!-- Bottom text: UGEL N°06 -->
-  <text x="100" y="178"
+  <!-- ── Bottom text band ──────────────────────────────────────────── -->
+  <!-- Darker band behind text for legibility -->
+  <path d="M18,200 L202,200 L202,168 Q202,238 110,268 Q18,238 18,168 Z"
+        fill="rgba(0,0,30,0.35)" clip-path="url(#shield-shape)"/>
+  <text x="110" y="230"
         text-anchor="middle"
-        fill="white"
-        font-family="Arial, sans-serif"
-        font-size="10"
+        fill="#F0C800"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="11"
         font-weight="bold"
-        letter-spacing="0.5"
-        opacity="0.9">UGEL N°06</text>
-
-  <!-- Horizontal lines decorating the bottom section -->
-  <line x1="30" y1="155" x2="170" y2="155" stroke="rgba(255,255,255,0.3)" stroke-width="0.8"/>
-  <line x1="30" y1="186" x2="170" y2="186" stroke="rgba(255,255,255,0.3)" stroke-width="0.8"/>
+        letter-spacing="1.5">UGEL N°06</text>
+  <text x="110" y="250"
+        text-anchor="middle"
+        fill="rgba(255,255,255,0.7)"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="8.5"
+        letter-spacing="1">ATE-VITARTE</text>
 </svg>
