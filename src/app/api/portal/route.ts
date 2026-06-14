@@ -1,0 +1,74 @@
+import { NextResponse } from "next/server"
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/lib/auth"
+import { prisma } from "@/lib/prisma"
+
+// GET /api/portal → datos de los hijos del apoderado: notas, conducta, asistencia diaria, pagos
+export async function GET() {
+  const session = await getServerSession(authOptions)
+  if (!session) return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+
+  const instId = session.user.institutionId
+  const links = await prisma.studentParent.findMany({
+    where: { institutionId: instId, userId: session.user.id },
+    include: {
+      student: {
+        include: { enrollments: { where: { active: true }, include: { section: { include: { grade: true, level: true } } }, take: 1, orderBy: { id: "desc" } } },
+      },
+    },
+  })
+
+  const now = new Date()
+  const year = now.getFullYear(), month = now.getMonth() + 1
+  const monthStart = new Date(year, month - 1, 1)
+  const monthEnd = new Date(year, month, 1)
+
+  const children = []
+  for (const link of links) {
+    const s = link.student
+    const enroll = s.enrollments[0]
+
+    const grades = await prisma.gradeRecord.findMany({
+      where: { institutionId: instId, studentId: s.id },
+      include: { course: true, period: true },
+      orderBy: { period: { number: "desc" } },
+    })
+
+    const att = await prisma.attendanceRecord.findMany({
+      where: { institutionId: instId, studentId: s.id, date: { gte: monthStart, lt: monthEnd } },
+      orderBy: { date: "desc" },
+    })
+    const present = att.filter(a => a.status === "present").length
+    const late = att.filter(a => a.status === "late").length
+    const absent = att.filter(a => a.status === "absent").length
+
+    const incidents = await prisma.incident.findMany({
+      where: { institutionId: instId, studentId: s.id },
+      orderBy: { date: "desc" },
+      take: 20,
+    })
+
+    const orders = await prisma.paymentOrder.findMany({
+      where: { institutionId: instId, studentId: s.id },
+      include: { payments: true },
+      orderBy: [{ year: "desc" }, { month: "desc" }],
+    })
+
+    children.push({
+      studentId: s.id,
+      studentName: `${s.firstName} ${s.lastName}`,
+      level: enroll?.section.level?.name ?? enroll?.section.grade?.level?.name ?? "",
+      section: enroll ? (enroll.section.poligrado ? enroll.section.name : `${enroll.section.grade?.name ?? ""} "${enroll.section.name}"`) : "—",
+      grades: grades.map(g => ({ course: g.course.name, period: g.period.name, display: g.course.gradeType === "qualitative" ? (g.qualitative ?? "—") : (g.finalGrade != null ? g.finalGrade.toFixed(1) : "—") })),
+      attendance: { present, late, absent, total: att.length },
+      attendanceDaily: att.slice(0, 15).map(a => ({
+        date: a.date, status: a.status,
+        entryAt: a.entryAt, exitAt: a.exitAt,
+      })),
+      conducta: incidents.map(i => ({ id: i.id, type: i.type, title: i.title, description: i.description, severity: i.severity, date: i.date })),
+      payments: orders.map(o => ({ month: o.month, year: o.year, amount: o.amount, status: o.status, paid: o.payments.reduce((p, x) => p + x.amount, 0) })),
+    })
+  }
+
+  return NextResponse.json({ children })
+}

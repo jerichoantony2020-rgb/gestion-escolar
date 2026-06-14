@@ -1,0 +1,22 @@
+import { getServerSession } from "next-auth"
+import { redirect } from "next/navigation"
+import { authOptions } from "@/lib/auth"
+import Dock from "@/components/navigation/Dock"
+import SessionProvider from "@/components/providers/SessionProvider"
+
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const session = await getServerSession(authOptions)
+  if (!session) redirect("/login")
+
+  return (
+    <SessionProvider session={session}>
+      <div className="min-h-screen" style={{ background: "var(--bg)" }}>
+        <Dock />
+        {/* Offset: mobile top bar + bottom dock; desktop top nav */}
+        <div className="pt-12 pb-24 md:pt-14 md:pb-0">
+          {children}
+        </div>
+      </div>
+    </SessionProvider>
+  )
+}
