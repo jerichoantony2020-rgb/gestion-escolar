@@ -15,7 +15,7 @@ export default withAuth(
   {
     callbacks: {
       authorized({ token, req }) {
-        const pub = ["/", "/nosotros", "/noticias", "/contacto", "/login"]
+        const pub = ["/", "/inicio", "/nosotros", "/noticias", "/contacto", "/login"]
         const pathname = req.nextUrl.pathname
         if (pub.some((p) => pathname === p || pathname.startsWith("/api/auth"))) return true
         return !!token

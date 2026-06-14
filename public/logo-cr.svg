@@ -1,0 +1,77 @@
+<svg viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg" aria-label="Escudo I.E.P. Cristo Reina">
+  <defs>
+    <clipPath id="sc">
+      <path d="M100,8 L192,8 L192,132 Q192,205 100,236 Q8,205 8,132 L8,8 Z"/>
+    </clipPath>
+    <linearGradient id="lg-crown" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFE346"/>
+      <stop offset="100%" stop-color="#D4A800"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Shield halves -->
+  <g clip-path="url(#sc)">
+    <!-- Left half: dark royal blue -->
+    <rect x="8" y="8" width="92" height="250" fill="#1A33CC"/>
+    <!-- Right half: sky blue -->
+    <rect x="100" y="8" width="92" height="250" fill="#47B5E8"/>
+  </g>
+
+  <!-- Shield border (gold) -->
+  <path d="M100,8 L192,8 L192,132 Q192,205 100,236 Q8,205 8,132 L8,8 Z"
+        fill="none" stroke="#F0C800" stroke-width="7" stroke-linejoin="round"/>
+
+  <!-- Center divider (gold) -->
+  <line x1="100" y1="8" x2="100" y2="236" stroke="#F0C800" stroke-width="4"/>
+
+  <!-- Crown base -->
+  <rect x="62" y="28" width="76" height="14" rx="3" fill="url(#lg-crown)" stroke="#B8860B" stroke-width="1"/>
+
+  <!-- Crown points -->
+  <!-- Center point -->
+  <polygon points="100,10 106,28 94,28" fill="url(#lg-crown)" stroke="#B8860B" stroke-width="0.8"/>
+  <!-- Left point -->
+  <polygon points="76,14 82,28 70,28" fill="url(#lg-crown)" stroke="#B8860B" stroke-width="0.8"/>
+  <!-- Right point -->
+  <polygon points="124,14 130,28 118,28" fill="url(#lg-crown)" stroke="#B8860B" stroke-width="0.8"/>
+
+  <!-- Crown gem: center (red) -->
+  <circle cx="100" cy="20" r="4" fill="#CC0000"/>
+  <!-- Crown gem: left (green) -->
+  <circle cx="76" cy="22" r="3" fill="#22AA44"/>
+  <!-- Crown gem: right (green) -->
+  <circle cx="124" cy="22" r="3" fill="#22AA44"/>
+
+  <!-- Text left: IEP -->
+  <text x="54" y="110"
+        text-anchor="middle"
+        fill="white"
+        font-family="Georgia, 'Times New Roman', serif"
+        font-size="22"
+        font-weight="bold"
+        letter-spacing="1">IEP</text>
+
+  <!-- Text right: GR (Cristo Reina initials) -->
+  <text x="148" y="110"
+        text-anchor="middle"
+        fill="white"
+        font-family="Georgia, 'Times New Roman', serif"
+        font-size="26"
+        font-weight="bold"
+        font-style="italic"
+        letter-spacing="1">CR</text>
+
+  <!-- Bottom text: UGEL N°06 -->
+  <text x="100" y="178"
+        text-anchor="middle"
+        fill="white"
+        font-family="Arial, sans-serif"
+        font-size="10"
+        font-weight="bold"
+        letter-spacing="0.5"
+        opacity="0.9">UGEL N°06</text>
+
+  <!-- Horizontal lines decorating the bottom section -->
+  <line x1="30" y1="155" x2="170" y2="155" stroke="rgba(255,255,255,0.3)" stroke-width="0.8"/>
+  <line x1="30" y1="186" x2="170" y2="186" stroke="rgba(255,255,255,0.3)" stroke-width="0.8"/>
+</svg>
