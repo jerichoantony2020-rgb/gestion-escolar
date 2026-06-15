@@ -1,5 +1,4 @@
 import Link from "next/link"
-import Image from "next/image"
 import { prisma } from "@/lib/prisma"
 import ShieldHero from "./ShieldHero"
 
@@ -65,12 +64,26 @@ export default async function InicioPage() {
         .empty-state { border:1px dashed rgba(255,255,255,0.12); border-radius:14px; padding:48px 24px; text-align:center; color:var(--faint); font-size:14px; }
         .inicio-nav-link { font-size:13px; color:var(--dim,rgba(255,255,255,0.62)); text-decoration:none; padding:6px 12px; border-radius:8px; transition:color .2s; }
         .inicio-nav-link:hover { color:#fff; }
+        .inicio-section-pad { padding:88px 24px; }
+        .hamburger-menu { display:none; }
         @media(max-width:768px) {
-          .inicio-grid-2 { grid-template-columns:1fr !important; }
-          .inicio-grid-3 { grid-template-columns:1fr !important; }
-          .portal-grid   { grid-template-columns:1fr !important; }
-          .contact-grid  { grid-template-columns:1fr !important; }
-          .inicio-nav-links { display:none; }
+          .inicio-grid-2  { grid-template-columns:1fr !important; }
+          .inicio-grid-3  { grid-template-columns:1fr !important; }
+          .portal-grid    { grid-template-columns:1fr !important; gap:14px !important; }
+          .contact-grid   { grid-template-columns:1fr !important; }
+          .inicio-nav-links { display:none !important; }
+          .inicio-section-pad { padding:56px 20px; }
+          .portal-btns    { flex-direction:column; width:100%; }
+          .portal-btns a  { text-align:center; }
+          .hamburger-menu { display:flex; align-items:center; }
+          .stats-inner-grid { grid-template-columns:1fr 1fr !important; gap:12px !important; }
+          .footer-inner   { flex-direction:column; align-items:flex-start !important; gap:16px !important; }
+          .btn-gold       { padding:12px 24px !important; font-size:14px !important; }
+        }
+        @media(max-width:480px) {
+          .inicio-section-pad { padding:44px 16px; }
+          .hero-buttons   { flex-direction:column; align-items:stretch; }
+          .hero-buttons a { text-align:center; }
         }
       `}</style>
 
@@ -80,24 +93,44 @@ export default async function InicioPage() {
         <header style={{ position:"sticky", top:0, zIndex:100, backdropFilter:"blur(20px)", background:"rgba(13,30,58,0.92)", borderBottom:"1px solid var(--iborder)" }}>
           <div style={{ maxWidth:1200, margin:"0 auto", padding:"0 24px", height:64, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
             <div style={{ display:"flex", alignItems:"center", gap:12 }}>
-              <div style={{ position:"relative", width:32, height:40, flexShrink:0 }}>
-                <Image src="/logo-cr.png" alt="Escudo I.E.P. Cristo Reina" fill sizes="32px" style={{ objectFit:"contain" }} />
+              <div style={{ width:32, height:40, flexShrink:0 }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/logo-cr.png" alt="Escudo I.E.P. Cristo Reina" width={32} height={40} style={{ objectFit:"contain", width:"100%", height:"100%" }} />
               </div>
               <div>
                 <div style={{ fontSize:9, fontWeight:700, letterSpacing:"0.22em", color:"var(--gold)", textTransform:"uppercase" }}>I.E.P.</div>
                 <div style={{ fontSize:14, fontWeight:800 }}>Cristo Reina</div>
               </div>
             </div>
-            <nav className="inicio-nav-links" style={{ display:"flex", gap:4, alignItems:"center" }}>
-              {(["#nosotros","#noticias","#actividades","#contacto"] as const).map((h, i) => (
-                <a key={h} href={h} className="inicio-nav-link">
-                  {["Nosotros","Noticias","Actividades","Contacto"][i]}
-                </a>
-              ))}
-              <Link href="/login" style={{ padding:"8px 18px", borderRadius:8, border:"1px solid rgba(255,255,255,0.2)", color:"rgba(255,255,255,0.85)", fontSize:13, fontWeight:600, textDecoration:"none", marginLeft:8 }}>
-                Acceso
+            <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+              <nav className="inicio-nav-links" style={{ display:"flex", gap:4, alignItems:"center" }}>
+                {(["#nosotros","#noticias","#actividades","#contacto"] as const).map((h, i) => (
+                  <a key={h} href={h} className="inicio-nav-link">
+                    {["Nosotros","Noticias","Actividades","Contacto"][i]}
+                  </a>
+                ))}
+              </nav>
+              <Link href="/portal" style={{ padding:"8px 18px", borderRadius:8, border:"1px solid rgba(255,255,255,0.2)", color:"rgba(255,255,255,0.85)", fontSize:13, fontWeight:600, textDecoration:"none" }}>
+                Portal
               </Link>
-            </nav>
+              {/* Hamburger — enlaces del menú como dropdown CSS-only */}
+              <div className="hamburger-menu" style={{ flexDirection:"column", gap:4, cursor:"pointer", padding:"4px 8px" }}>
+                <details style={{ position:"relative" }}>
+                  <summary style={{ listStyle:"none", cursor:"pointer", display:"flex", flexDirection:"column", gap:5 }}>
+                    <span style={{ display:"block", width:22, height:2, background:"rgba(255,255,255,0.8)", borderRadius:2 }} />
+                    <span style={{ display:"block", width:22, height:2, background:"rgba(255,255,255,0.8)", borderRadius:2 }} />
+                    <span style={{ display:"block", width:22, height:2, background:"rgba(255,255,255,0.8)", borderRadius:2 }} />
+                  </summary>
+                  <div style={{ position:"absolute", right:0, top:"calc(100% + 12px)", background:"rgba(13,30,58,0.98)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:12, padding:"8px 0", minWidth:180, zIndex:200, backdropFilter:"blur(20px)" }}>
+                    {(["#nosotros","#noticias","#actividades","#contacto"] as const).map((h, i) => (
+                      <a key={h} href={h} style={{ display:"block", padding:"12px 20px", color:"rgba(255,255,255,0.8)", textDecoration:"none", fontSize:14, fontWeight:600 }}>
+                        {["Nosotros","Noticias","Actividades","Contacto"][i]}
+                      </a>
+                    ))}
+                  </div>
+                </details>
+              </div>
+            </div>
           </div>
         </header>
 
@@ -110,7 +143,7 @@ export default async function InicioPage() {
           <p style={{ fontSize:"clamp(15px,2vw,18px)", color:"var(--dim)", maxWidth:520, lineHeight:1.7, marginBottom:40 }}>
             Formando personas íntegras con valores, conocimiento y vocación de servicio en Ate, Lima.
           </p>
-          <div style={{ display:"flex", gap:12, flexWrap:"wrap", justifyContent:"center" }}>
+          <div className="hero-buttons" style={{ display:"flex", gap:12, flexWrap:"wrap", justifyContent:"center" }}>
             <a href="#nosotros" className="btn-gold">Conoce el colegio</a>
             <a href="#contacto" style={{ display:"inline-block", padding:"14px 36px", borderRadius:10, border:"1px solid rgba(255,255,255,0.2)", color:"rgba(255,255,255,0.85)", fontSize:15, fontWeight:600, textDecoration:"none" }}>Contáctanos</a>
           </div>
@@ -119,7 +152,7 @@ export default async function InicioPage() {
         <div className="divider" />
 
         {/* ── QUIÉNES SOMOS ── */}
-        <section id="nosotros" style={{ padding:"88px 24px", background:"var(--navy-mid)" }}>
+        <section id="nosotros" className="inicio-section-pad" style={{ background:"var(--navy-mid)" }}>
           <div className="inicio-grid-2" style={{ maxWidth:1200, margin:"0 auto", display:"grid", gridTemplateColumns:"1fr 1fr", gap:64, alignItems:"center" }}>
             <div>
               <p className="section-label">Quiénes somos</p>
@@ -151,7 +184,7 @@ export default async function InicioPage() {
         <div className="divider" />
 
         {/* ── MISIÓN Y VISIÓN ── */}
-        <section style={{ padding:"88px 24px", background:"var(--navy)" }}>
+        <section className="inicio-section-pad" style={{ background:"var(--navy)" }}>
           <div style={{ maxWidth:1200, margin:"0 auto" }}>
             <div style={{ textAlign:"center", marginBottom:56 }}>
               <p className="section-label">Identidad institucional</p>
@@ -175,7 +208,7 @@ export default async function InicioPage() {
         <div className="divider" />
 
         {/* ── NOTICIAS ── */}
-        <section id="noticias" style={{ padding:"88px 24px", background:"var(--navy-mid)" }}>
+        <section id="noticias" className="inicio-section-pad" style={{ background:"var(--navy-mid)" }}>
           <div style={{ maxWidth:1200, margin:"0 auto" }}>
             <div style={{ textAlign:"center", marginBottom:56 }}>
               <p className="section-label">Actualidad</p>
@@ -208,7 +241,7 @@ export default async function InicioPage() {
         <div className="divider" />
 
         {/* ── ACTIVIDADES ── */}
-        <section id="actividades" style={{ padding:"88px 24px", background:"var(--navy)" }}>
+        <section id="actividades" className="inicio-section-pad" style={{ background:"var(--navy)" }}>
           <div style={{ maxWidth:1200, margin:"0 auto" }}>
             <div style={{ textAlign:"center", marginBottom:56 }}>
               <p className="section-label">Vida escolar</p>
@@ -250,7 +283,7 @@ export default async function InicioPage() {
         <div className="divider" />
 
         {/* ── NIVELES ── */}
-        <section style={{ padding:"88px 24px", background:"var(--navy-mid)" }}>
+        <section className="inicio-section-pad" style={{ background:"var(--navy-mid)" }}>
           <div style={{ maxWidth:1200, margin:"0 auto" }}>
             <div style={{ textAlign:"center", marginBottom:56 }}>
               <p className="section-label">Oferta educativa</p>
@@ -277,33 +310,8 @@ export default async function InicioPage() {
 
         <div className="divider" />
 
-        {/* ── PORTAL FAMILIAR ── */}
-        <section id="portal" style={{ padding:"72px 24px", background:"var(--navy)" }}>
-          <div style={{ maxWidth:900, margin:"0 auto" }}>
-            <div className="portal-grid" style={{ borderRadius:20, border:"1px solid rgba(240,200,0,0.25)", background:"rgba(240,200,0,0.05)", padding:"52px 48px", display:"grid", gridTemplateColumns:"1fr auto", gap:40, alignItems:"center" }}>
-              <div>
-                <p className="section-label">Para padres y personal</p>
-                <h2 style={{ fontSize:"clamp(22px,3vw,34px)", fontWeight:800, letterSpacing:"-0.02em", lineHeight:1.2, marginBottom:16 }}>Portal institucional</h2>
-                <p style={{ color:"var(--dim)", fontSize:15, lineHeight:1.7, maxWidth:480 }}>
-                  Accede al sistema de gestión para revisar calificaciones, asistencia, comunicados y más. Disponible para docentes, padres de familia y personal administrativo.
-                </p>
-              </div>
-              <div style={{ display:"flex", flexDirection:"column", gap:12, flexShrink:0 }}>
-                <Link href="/login" className="btn-gold" style={{ textAlign:"center", whiteSpace:"nowrap" }}>Ingresar al portal</Link>
-                <a href="https://www.facebook.com/profile.php?id=61556234216960" target="_blank" rel="noopener noreferrer"
-                  style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8, padding:"12px 24px", borderRadius:10, border:"1px solid rgba(255,255,255,0.15)", color:"var(--dim)", fontSize:14, fontWeight:600, textDecoration:"none" }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-                  Síguenos en Facebook
-                </a>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <div className="divider" />
-
         {/* ── CONTACTO ── */}
-        <section id="contacto" style={{ padding:"88px 24px", background:"var(--navy-mid)" }}>
+        <section id="contacto" className="inicio-section-pad" style={{ background:"var(--navy-mid)" }}>
           <div className="contact-grid" style={{ maxWidth:1200, margin:"0 auto", display:"grid", gridTemplateColumns:"1fr 1fr", gap:64, alignItems:"start" }}>
             <div>
               <p className="section-label">Contáctanos</p>
@@ -340,10 +348,11 @@ export default async function InicioPage() {
 
         {/* ── FOOTER ── */}
         <footer style={{ padding:"36px 24px", background:"rgba(0,0,0,0.25)" }}>
-          <div style={{ maxWidth:1200, margin:"0 auto", display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:20 }}>
+          <div className="footer-inner" style={{ maxWidth:1200, margin:"0 auto", display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:20 }}>
             <div style={{ display:"flex", alignItems:"center", gap:12 }}>
-              <div style={{ position:"relative", width:26, height:32 }}>
-                <Image src="/logo-cr.png" alt="" fill sizes="26px" style={{ objectFit:"contain" }} />
+              <div style={{ width:26, height:32 }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/logo-cr.png" alt="" width={26} height={32} style={{ objectFit:"contain", width:"100%", height:"100%" }} />
               </div>
               <div>
                 <div style={{ fontSize:13, fontWeight:700 }}>I.E.P. Cristo Reina</div>
@@ -353,7 +362,6 @@ export default async function InicioPage() {
             <div style={{ display:"flex", alignItems:"center", gap:20, flexWrap:"wrap" }}>
               <span style={{ fontSize:12, color:"var(--faint)" }}>© 2026 I.E.P. Cristo Reina</span>
               <a href="https://www.facebook.com/profile.php?id=61556234216960" target="_blank" rel="noopener noreferrer" style={{ fontSize:12, color:"var(--faint)", textDecoration:"none" }}>Facebook</a>
-              <Link href="/login" style={{ fontSize:12, color:"var(--faint)", textDecoration:"none", borderBottom:"1px solid rgba(255,255,255,0.15)", paddingBottom:1 }}>Acceso personal</Link>
             </div>
           </div>
         </footer>

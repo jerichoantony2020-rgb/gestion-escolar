@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { generatePortalCode } from "@/lib/portalRateLimit"
 
 type ImportRow = {
   firstName?: string
@@ -70,12 +71,18 @@ export async function POST(req: NextRequest) {
 
       const fee = r.monthlyFee !== undefined && r.monthlyFee !== "" ? parseFloat(String(r.monthlyFee)) : null
       if (r.guardianName || r.guardianPhone || fee != null) {
+        let portalCode = generatePortalCode()
+        // Ensure uniqueness (collision probability is negligible but guard anyway)
+        while (await prisma.studentParent.findUnique({ where: { portalCode } })) {
+          portalCode = generatePortalCode()
+        }
         await prisma.studentParent.create({
           data: {
             institutionId: instId, studentId: student.id,
             name: r.guardianName ? String(r.guardianName).trim() : "",
             phone: r.guardianPhone ? String(r.guardianPhone).trim() : null,
             monthlyFee: fee, relationship: "apoderado",
+            portalCode,
           },
         })
       }

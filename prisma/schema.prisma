@@ -257,6 +257,7 @@ model StudentParent {
   phone         String?
   email         String?
   monthlyFee    Float?
+  portalCode    String?     @unique
   institution   Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
   student       Student     @relation(fields: [studentId], references: [id])
   user          User?       @relation("ParentUser", fields: [userId], references: [id])

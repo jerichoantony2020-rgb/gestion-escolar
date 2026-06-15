@@ -34,21 +34,32 @@
   --font-mono: var(--font-geist-mono), monospace;
 }
 
-/* ── Dark mode via class ── */
+/* ── Light / Dark tokens ── */
 :root {
-  --bg: #ffffff;
-  --fg: #111827;
-  --surface: #f9fafb;
-  --border: #e5e7eb;
-  --muted: #6b7280;
+  --bg:      #EEF2FF;
+  --fg:      #0D1E3A;
+  --surface: #FFFFFF;
+  --border:  #D8E0F3;
+  --muted:   #5A6A8A;
+  --card-shadow: 0 1px 4px rgba(13,30,58,0.07), 0 4px 16px rgba(13,30,58,0.05);
 }
 
 .dark {
-  --bg: #0f172a;
-  --fg: #f1f5f9;
+  --bg:      #0f172a;
+  --fg:      #f1f5f9;
   --surface: #1e293b;
-  --border: #334155;
-  --muted: #94a3b8;
+  --border:  #334155;
+  --muted:   #94a3b8;
+  --card-shadow: 0 1px 4px rgba(0,0,0,0.3);
+}
+
+/* ── Dashboard decorative background ── */
+.dash-bg {
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(ellipse 80% 40% at 10% -10%, rgba(26,51,204,0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 90% 100%, rgba(71,181,232,0.07) 0%, transparent 60%);
+  min-height: 100vh;
 }
 
 html {

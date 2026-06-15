@@ -1,12 +1,19 @@
-import type { Metadata } from "next"
+import type { Metadata, Viewport } from "next"
 import { Geist } from "next/font/google"
 import "./globals.css"
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-geist-sans" })
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: "#0D1E3A",
+}
+
 export const metadata: Metadata = {
-  title: "I.E.P Cristo Reina — Plataforma Institucional",
-  description: "Sistema de gestión académica para I.E.P Cristo Reina, Ate-Vitarte, Lima.",
+  title: "I.E.P. Cristo Reina — Plataforma Institucional",
+  description: "Institución Educativa Particular Cristo Reina, Ate, Lima. Formando personas íntegras con valores, conocimiento y vocación de servicio.",
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

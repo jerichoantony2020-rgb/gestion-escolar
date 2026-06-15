@@ -13,13 +13,13 @@ interface DockItem {
 }
 
 const items: DockItem[] = [
-  { href: "/dashboard",           label: "Inicio",      icon: "🏠" },
-  { href: "/dashboard/academico", label: "Académico",   icon: "📚", roles: ["director", "docente", "coordinador"] },
-  { href: "/dashboard/portal",    label: "Portal",      icon: "👨‍👩‍👧", roles: ["padre"] },
-  { href: "/dashboard/finanzas",  label: "Finanzas",    icon: "💰", requirePayments: true },
-  { href: "/dashboard/medico",    label: "Médico",      icon: "🏥", roles: ["director", "coordinador", "enfermera"] },
-  { href: "/dashboard/biblioteca",label: "Biblioteca",  icon: "📖" },
-  { href: "/dashboard/admin",     label: "Admin",       icon: "⚙️", roles: ["director", "admin"] },
+  { href: "/dashboard",            label: "Inicio",      icon: "🏠" },
+  { href: "/dashboard/academico",  label: "Académico",   icon: "📚", roles: ["director", "docente", "coordinador"] },
+  { href: "/dashboard/portal",     label: "Portal",      icon: "👨‍👩‍👧", roles: ["padre"] },
+  { href: "/dashboard/finanzas",   label: "Finanzas",    icon: "💰", requirePayments: true },
+  { href: "/dashboard/medico",     label: "Médico",      icon: "🏥", roles: ["director", "coordinador", "enfermera"] },
+  { href: "/dashboard/biblioteca", label: "Biblioteca",  icon: "📖" },
+  { href: "/dashboard/admin",      label: "Admin",       icon: "⚙️", roles: ["director", "admin"] },
 ]
 
 export default function Dock() {
@@ -36,17 +36,34 @@ export default function Dock() {
 
   return (
     <>
-      {/* Desktop: top bar */}
-      <nav className="hidden md:flex fixed top-0 left-0 right-0 z-50 items-center gap-1 px-4 h-14 border-b backdrop-blur-sm"
-        style={{ background: "color-mix(in srgb, var(--surface) 90%, transparent)", borderColor: "var(--border)" }}
+      {/* ── Desktop top bar ── */}
+      <nav
+        className="hidden md:flex fixed top-0 left-0 right-0 z-50 items-center gap-1 px-4 h-14"
+        style={{
+          background: "rgba(255,255,255,0.85)",
+          backdropFilter: "blur(16px)",
+          borderBottom: "1px solid rgba(26,51,204,0.10)",
+          boxShadow: "0 1px 12px rgba(13,30,58,0.08)",
+        }}
       >
         {/* Brand */}
-        <div className="flex items-center gap-2 mr-4">
-          <div className="w-7 h-7 rounded-full bg-primary-500 flex items-center justify-center text-white text-xs font-bold">
-            CR
+        <Link href="/dashboard" className="flex items-center gap-2.5 mr-5 select-none">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/logo-cr.png"
+            alt="I.E.P. Cristo Reina"
+            width={30}
+            height={36}
+            style={{ objectFit: "contain", width: 30, height: 36 }}
+          />
+          <div>
+            <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.2em", color: "#1A33CC", textTransform: "uppercase" }}>I.E.P.</div>
+            <div style={{ fontSize: 13, fontWeight: 800, color: "#0D1E3A", lineHeight: 1 }}>Cristo Reina</div>
           </div>
-          <span className="text-sm font-semibold" style={{ color: "var(--fg)" }}>Cristo Reina</span>
-        </div>
+        </Link>
+
+        {/* Separator */}
+        <div style={{ width: 1, height: 24, background: "rgba(13,30,58,0.12)", marginRight: 4 }} />
 
         {visible.map((item) => {
           const active = pathname === item.href || pathname.startsWith(item.href + "/")
@@ -54,52 +71,80 @@ export default function Dock() {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                active
-                  ? "bg-primary-500 text-white"
-                  : "hover:bg-primary-50 text-[var(--muted)] hover:text-primary-600"
-              }`}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all"
+              style={active
+                ? { background: "#0D1E3A", color: "#FFFFFF", boxShadow: "0 2px 8px rgba(13,30,58,0.25)" }
+                : { color: "#5A6A8A" }
+              }
+              onMouseEnter={e => { if (!active) (e.currentTarget as HTMLElement).style.background = "#EEF2FF" }}
+              onMouseLeave={e => { if (!active) (e.currentTarget as HTMLElement).style.background = "" }}
             >
-              <span>{item.icon}</span>
+              <span className="text-base leading-none">{item.icon}</span>
               <span>{item.label}</span>
             </Link>
           )
         })}
 
-        <div className="ml-auto flex items-center gap-2">
-          <span className="text-xs" style={{ color: "var(--muted)" }}>
-            {session?.user?.name}
-          </span>
+        {/* Right side */}
+        <div className="ml-auto flex items-center gap-3">
+          <div style={{ textAlign: "right" }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: "#0D1E3A" }}>{session?.user?.name}</div>
+            <div style={{ fontSize: 10, color: "#5A6A8A", textTransform: "capitalize" }}>{role}</div>
+          </div>
           <button
             onClick={() => signOut({ callbackUrl: "/login" })}
-            className="px-3 py-1.5 rounded-lg text-xs font-medium border hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-colors"
-            style={{ borderColor: "var(--border)", color: "var(--muted)" }}
+            style={{
+              padding: "6px 14px", borderRadius: 8, fontSize: 12, fontWeight: 600,
+              border: "1px solid #DDE3F0", color: "#5A6A8A", background: "transparent", cursor: "pointer",
+              transition: "all .15s",
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "#FEE2E2"; (e.currentTarget as HTMLElement).style.color = "#DC2626"; (e.currentTarget as HTMLElement).style.borderColor = "#FECACA" }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = ""; (e.currentTarget as HTMLElement).style.color = "#5A6A8A"; (e.currentTarget as HTMLElement).style.borderColor = "#DDE3F0" }}
           >
             Salir
           </button>
         </div>
       </nav>
 
-      {/* Mobile: top bar with brand + salir */}
-      <nav className="md:hidden fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 h-12 border-b backdrop-blur-sm"
-        style={{ background: "color-mix(in srgb, var(--surface) 92%, transparent)", borderColor: "var(--border)" }}
+      {/* ── Mobile top bar ── */}
+      <nav
+        className="md:hidden fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 h-12"
+        style={{
+          background: "rgba(255,255,255,0.92)",
+          backdropFilter: "blur(16px)",
+          borderBottom: "1px solid rgba(26,51,204,0.10)",
+          boxShadow: "0 1px 8px rgba(13,30,58,0.07)",
+        }}
       >
-        <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded-full bg-primary-500 flex items-center justify-center text-white text-[10px] font-bold">CR</div>
-          <span className="text-sm font-semibold truncate max-w-[140px]" style={{ color: "var(--fg)" }}>{session?.user?.name?.split(" ")[0] ?? "Cristo Reina"}</span>
-        </div>
+        <Link href="/dashboard" className="flex items-center gap-2">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo-cr.png" alt="" width={22} height={28} style={{ objectFit: "contain", width: 22, height: 28 }} />
+          <span style={{ fontSize: 13, fontWeight: 800, color: "#0D1E3A" }}>
+            {session?.user?.name?.split(" ")[0] ?? "Cristo Reina"}
+          </span>
+        </Link>
         <button
           onClick={() => signOut({ callbackUrl: "/login" })}
-          className="px-3 py-1 rounded-lg text-xs font-medium border hover:bg-red-50 hover:text-red-600 transition-colors"
-          style={{ borderColor: "var(--border)", color: "var(--muted)" }}
+          style={{
+            padding: "5px 12px", borderRadius: 8, fontSize: 11, fontWeight: 600,
+            border: "1px solid #DDE3F0", color: "#5A6A8A", background: "transparent", cursor: "pointer",
+          }}
         >
           Salir
         </button>
       </nav>
 
-      {/* Mobile: bottom dock */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around px-2 pb-safe pt-2 border-t"
-        style={{ background: "color-mix(in srgb, var(--surface) 95%, transparent)", borderColor: "var(--border)" }}
+      {/* ── Mobile bottom dock ── */}
+      <nav
+        className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around px-2 pb-safe pt-1"
+        style={{
+          background: "rgba(255,255,255,0.95)",
+          backdropFilter: "blur(20px)",
+          borderTop: "1px solid rgba(26,51,204,0.10)",
+          boxShadow: "0 -2px 16px rgba(13,30,58,0.07)",
+          paddingBottom: "calc(env(safe-area-inset-bottom) + 6px)",
+          paddingTop: 6,
+        }}
       >
         {visible.slice(0, 5).map((item) => {
           const active = pathname === item.href || pathname.startsWith(item.href + "/")
@@ -107,12 +152,14 @@ export default function Dock() {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex flex-col items-center gap-0.5 px-3 py-2 rounded-xl transition-colors ${
-                active ? "text-primary-500" : "text-[var(--muted)]"
-              }`}
+              className="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all"
+              style={active
+                ? { background: "#EEF2FF", color: "#1A33CC" }
+                : { color: "#8A9ABB" }
+              }
             >
               <span className="text-xl leading-none">{item.icon}</span>
-              <span className="text-[10px] font-medium">{item.label}</span>
+              <span style={{ fontSize: 10, fontWeight: 600 }}>{item.label}</span>
             </Link>
           )
         })}
