@@ -14,5 +14,9 @@ export default async function DashboardPage() {
   if (role === "padre") {
     return <PadreDashboard session={session} />
   }
+  if (role === "psicologo") {
+    const { redirect } = await import("next/navigation")
+    redirect("/dashboard/psicologia")
+  }
   return <DocenteDashboard session={session} />
 }
