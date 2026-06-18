@@ -17,7 +17,8 @@ const items: DockItem[] = [
   { href: "/dashboard/academico",  label: "Académico",   icon: "📚", roles: ["director", "docente", "coordinador"] },
   { href: "/dashboard/portal",     label: "Portal",      icon: "👨‍👩‍👧", roles: ["padre"] },
   { href: "/dashboard/finanzas",   label: "Finanzas",    icon: "💰", requirePayments: true },
-  { href: "/dashboard/medico",     label: "Médico",      icon: "🏥", roles: ["director", "coordinador", "enfermera"] },
+  { href: "/dashboard/medico",      label: "Médico",      icon: "🏥", roles: ["director", "coordinador", "enfermera"] },
+  { href: "/dashboard/psicologia", label: "Psicología",  icon: "🧠", roles: ["director", "coordinador", "psicologo", "docente"] },
   { href: "/dashboard/biblioteca", label: "Biblioteca",  icon: "📖" },
   { href: "/dashboard/admin",      label: "Admin",       icon: "⚙️", roles: ["director", "admin"] },
 ]

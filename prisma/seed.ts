@@ -64,6 +64,7 @@ async function main() {
     { name: "admin",        label: "Administrador" },
     { name: "padre",        label: "Padre de familia" },
     { name: "enfermera",    label: "Enfermera" },
+    { name: "psicologo",    label: "Psicólogo/a" },
     { name: "superadmin",   label: "Superadministrador" },
   ]
   const rolesMap: Record<string, string> = {}
@@ -92,6 +93,7 @@ async function main() {
     { email: "subdirectora@cristoreina.edu.pe",  name: "Subdirectora",        password: "Subdir2026!",    role: "coordinador", canViewPayments: true },
     { email: "coordinador@cristoreina.edu.pe",   name: "Coordinador Primaria",password: "Coord2026!",     role: "coordinador", canViewPayments: false },
     { email: "docente@cristoreina.edu.pe",       name: "María García López",  password: "Docente2026!",   role: "docente",     canViewPayments: false },
+    { email: "psicologa@cristoreina.edu.pe",     name: "Psicóloga",           password: "Psicol2026!",    role: "psicologo",   canViewPayments: false },
   ]
 
   for (const u of users) {
