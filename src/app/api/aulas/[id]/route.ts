@@ -8,12 +8,12 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   const session = await getServerSession(authOptions)
   if (!session) return NextResponse.json({ error: "No autorizado" }, { status: 401 })
   const { id } = await params
-  const { name, gradeIds } = await req.json()
+  const { levelId, name, gradeIds } = await req.json()
 
   const poligrado = Array.isArray(gradeIds) && gradeIds.length > 1
   await prisma.section.update({
     where: { id },
-    data: { name, poligrado, gradeId: gradeIds?.[0] ?? null },
+    data: { name, poligrado, levelId: levelId || null, gradeId: gradeIds?.[0] ?? null },
   })
   if (Array.isArray(gradeIds)) {
     await prisma.sectionGrade.deleteMany({ where: { sectionId: id } })

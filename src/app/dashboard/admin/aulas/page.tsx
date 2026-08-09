@@ -141,15 +141,13 @@ export default function AulasPage() {
           <div className="w-full max-w-md rounded-2xl border p-6 shadow-xl max-h-[90vh] overflow-y-auto" style={{ background: "var(--bg)", borderColor: "var(--border)" }}>
             <h2 className="text-lg font-bold mb-4" style={{ color: "var(--fg)" }}>{editing ? "Editar aula" : "Nueva aula"}</h2>
             <form onSubmit={save} className="space-y-3">
-              {!editing && (
-                <div>
-                  <label className="block text-xs font-medium mb-1" style={{ color: "var(--fg)" }}>Nivel *</label>
-                  <select required value={levelId} onChange={e => { setLevelId(e.target.value); setGradeIds([]) }} className="w-full px-3 py-2 rounded-lg border text-sm outline-none" style={{ background: "var(--bg)", borderColor: "var(--border)", color: "var(--fg)" }}>
-                    <option value="">Seleccionar...</option>
-                    {levels.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
-                  </select>
-                </div>
-              )}
+              <div>
+                <label className="block text-xs font-medium mb-1" style={{ color: "var(--fg)" }}>Nivel *</label>
+                <select required value={levelId} onChange={e => { setLevelId(e.target.value); setGradeIds([]) }} className="w-full px-3 py-2 rounded-lg border text-sm outline-none" style={{ background: "var(--bg)", borderColor: "var(--border)", color: "var(--fg)" }}>
+                  <option value="">Seleccionar...</option>
+                  {levels.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
+                </select>
+              </div>
               <div>
                 <label className="block text-xs font-medium mb-1" style={{ color: "var(--fg)" }}>Nombre del aula *</label>
                 <input required value={name} onChange={e => setName(e.target.value)} placeholder='Ej. "Amistosos" o "1° A"' className="w-full px-3 py-2 rounded-lg border text-sm outline-none focus:ring-2 focus:ring-primary-500" style={{ background: "var(--bg)", borderColor: "var(--border)", color: "var(--fg)" }} />
