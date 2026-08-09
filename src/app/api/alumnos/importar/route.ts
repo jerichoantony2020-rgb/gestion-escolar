@@ -30,14 +30,16 @@ export async function POST(req: NextRequest) {
 
   const year = await prisma.institutionYear.findFirst({ where: { institutionId: instId, active: true } })
 
-  // Mapa de secciones por "grado seccion"
+  // Mapa de secciones por "grado seccion" — incluye todos los grados de aulas polígrado
   const sections = await prisma.section.findMany({
     where: { institutionId: instId },
-    include: { grade: true },
+    include: { sectionGrades: { include: { grade: true } } },
   })
   const sectionMap = new Map<string, string>()
   for (const s of sections) {
-    sectionMap.set(`${norm(s.grade.name)}|${norm(s.name)}`, s.id)
+    for (const sg of s.sectionGrades) {
+      sectionMap.set(`${norm(sg.grade.name)}|${norm(s.name)}`, s.id)
+    }
   }
 
   const errors: string[] = []
