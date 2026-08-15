@@ -29,6 +29,8 @@ MES_ALIASES["SEPTIEMBRE"] = 9
 const WEEKDAY_LETTERS = ["L", "M", "M", "J", "V"]
 
 type TemplateBlock = { year: number; month: number; days: number[]; students: { name: string; marks: (string | null)[] }[] }
+type ReportSection = { id: string; name: string; students: { studentName: string; days: Record<string, string>; present: number; late: number; absent: number; marked: number }[] }
+type ConsolidadoSection = { id: string; name: string; students: { studentId: string; studentName: string; present: number; late: number; absent: number; marked: number; pct: number }[] }
 
 function parseTemplate(rows: unknown[][], defaultYear: number): TemplateBlock[] {
   const blocks: TemplateBlock[] = []
@@ -93,6 +95,14 @@ export default function AsistenciaPage() {
   const [reportMonth, setReportMonth] = useState(thisMonth())
   const [reportSectionId, setReportSectionId] = useState("all")
   const [downloading, setDownloading] = useState(false)
+  const [reportPreview, setReportPreview] = useState<{ daysInMonth: number; sections: ReportSection[] } | null>(null)
+  const [loadingPreview, setLoadingPreview] = useState(false)
+  // historial / consolidado anual
+  const [consolidadoYear, setConsolidadoYear] = useState(new Date().getFullYear())
+  const [consolidadoSectionId, setConsolidadoSectionId] = useState("all")
+  const [consolidadoData, setConsolidadoData] = useState<{ year: number; sections: ConsolidadoSection[] } | null>(null)
+  const [loadingConsolidado, setLoadingConsolidado] = useState(false)
+  const [downloadingConsolidado, setDownloadingConsolidado] = useState(false)
   // cargar plantilla propia
   const [uploadSectionId, setUploadSectionId] = useState("")
   const [uploadYear, setUploadYear] = useState(new Date().getFullYear())
@@ -160,6 +170,52 @@ export default function AsistenciaPage() {
     absent: rows.filter(r => r.status === "absent").length,
   }
 
+  async function loadPreview() {
+    setLoadingPreview(true)
+    try {
+      const data = await fetch(`/api/asistencia/reporte?month=${reportMonth}&sectionId=${reportSectionId}`).then(r => r.json())
+      setReportPreview({ daysInMonth: data.daysInMonth, sections: data.sections ?? [] })
+    } finally {
+      setLoadingPreview(false)
+    }
+  }
+
+  async function loadConsolidado() {
+    setLoadingConsolidado(true)
+    try {
+      const data = await fetch(`/api/asistencia/consolidado?year=${consolidadoYear}&sectionId=${consolidadoSectionId}`).then(r => r.json())
+      setConsolidadoData({ year: data.year, sections: data.sections ?? [] })
+    } finally {
+      setLoadingConsolidado(false)
+    }
+  }
+
+  async function downloadConsolidado() {
+    setDownloadingConsolidado(true)
+    try {
+      const data = consolidadoData ?? await fetch(`/api/asistencia/consolidado?year=${consolidadoYear}&sectionId=${consolidadoSectionId}`).then(r => r.json())
+      const secs: ConsolidadoSection[] = data.sections ?? []
+      if (secs.length === 0) {
+        setToast("No hay alumnos para el filtro seleccionado")
+        setTimeout(() => setToast(""), 2500)
+        return
+      }
+      const wb = XLSX.utils.book_new()
+      for (const sec of secs) {
+        const header = ["N°", "Apellidos y Nombres", "Presente", "Tarde", "Ausente", "% Asistencia"]
+        const aoa: (string | number)[][] = [header]
+        sec.students.forEach((s, i) => aoa.push([i + 1, s.studentName, s.present, s.late, s.absent, `${s.pct}%`]))
+        const ws = XLSX.utils.aoa_to_sheet(aoa)
+        ws["!cols"] = [{ wch: 4 }, { wch: 30 }, { wch: 9 }, { wch: 7 }, { wch: 8 }, { wch: 11 }]
+        const sheetName = sec.name.replace(/[\\/?*[\]:]/g, "").slice(0, 31) || "Aula"
+        XLSX.utils.book_append_sheet(wb, ws, sheetName)
+      }
+      XLSX.writeFile(wb, `consolidado_asistencia_${consolidadoYear}.xlsx`)
+    } finally {
+      setDownloadingConsolidado(false)
+    }
+  }
+
   async function downloadReport() {
     setDownloading(true)
     try {
@@ -169,7 +225,7 @@ export default function AsistenciaPage() {
       const daysInMonthLocal = new Date(year, month, 0).getDate()
 
       const data = await fetch(`/api/asistencia/reporte?month=${reportMonth}&sectionId=${reportSectionId}`).then(r => r.json())
-      const sections: { id: string; name: string; students: { studentName: string; days: Record<string, string>; present: number; late: number; absent: number; marked: number }[] }[] = data.sections ?? []
+      const sections: ReportSection[] = data.sections ?? []
 
       if (sections.length === 0) {
         setToast("No hay alumnos para el filtro seleccionado")
@@ -489,13 +545,126 @@ export default function AsistenciaPage() {
                 {sections.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
               </select>
             </div>
-            <div className="flex items-end">
+            <div className="flex items-end gap-2">
+              <button onClick={loadPreview} disabled={loadingPreview} className="px-4 py-2.5 rounded-lg border text-sm font-semibold hover:bg-primary-50 hover:text-primary-600 transition-colors disabled:opacity-60" style={{ borderColor: "var(--border)", color: "var(--fg)" }}>
+                {loadingPreview ? "Cargando..." : "👁 Ver en pantalla"}
+              </button>
               <button onClick={downloadReport} disabled={downloading} className="px-5 py-2.5 rounded-lg bg-primary-500 text-white text-sm font-semibold hover:bg-primary-600 disabled:opacity-60">
                 {downloading ? "Generando..." : "⬇ Descargar Excel"}
               </button>
             </div>
           </div>
-          <p className="text-xs mb-8" style={{ color: "var(--muted)" }}>A = Asistió · T = Tarde · F = Falta · celda vacía = sin marcar ese día.</p>
+          <p className="text-xs mb-4" style={{ color: "var(--muted)" }}>A = Asistió · T = Tarde · F = Falta · celda vacía = sin marcar ese día.</p>
+
+          {reportPreview && (
+            <div className="mb-8 space-y-6">
+              {reportPreview.sections.length === 0 && (
+                <p className="text-sm" style={{ color: "var(--muted)" }}>No hay alumnos para el filtro seleccionado.</p>
+              )}
+              {reportPreview.sections.map(sec => (
+                <div key={sec.id} className="rounded-xl border overflow-hidden" style={{ borderColor: "var(--border)" }}>
+                  <div className="px-4 py-2 text-sm font-bold" style={{ background: "var(--surface)", color: "var(--fg)" }}>{sec.name}</div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs">
+                      <thead>
+                        <tr style={{ background: "var(--surface)" }}>
+                          <th className="px-2 py-1.5 text-left" style={{ color: "var(--muted)" }}>Alumno</th>
+                          {Array.from({ length: reportPreview.daysInMonth }, (_, i) => (
+                            <th key={i} className="px-1 py-1.5 text-center" style={{ color: "var(--muted)" }}>{i + 1}</th>
+                          ))}
+                          <th className="px-2 py-1.5 text-center" style={{ color: "var(--muted)" }}>%</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {sec.students.map((s, i) => {
+                          const pct = s.marked > 0 ? Math.round(((s.present + s.late) / s.marked) * 100) : 0
+                          return (
+                            <tr key={i} className="border-t" style={{ borderColor: "var(--border)" }}>
+                              <td className="px-2 py-1 whitespace-nowrap" style={{ color: "var(--fg)" }}>{s.studentName}</td>
+                              {Array.from({ length: reportPreview.daysInMonth }, (_, d) => {
+                                const st = s.days[d + 1]
+                                const abbr = STATUS_ABBR[st] ?? ""
+                                const color = st === "absent" ? "#dc2626" : st === "late" ? "#d97706" : st === "present" ? "#16a34a" : "var(--muted)"
+                                return <td key={d} className="px-1 py-1 text-center font-medium" style={{ color }}>{abbr}</td>
+                              })}
+                              <td className="px-2 py-1 text-center font-semibold" style={{ color: "var(--fg)" }}>{pct}%</td>
+                            </tr>
+                          )
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="rounded-xl border p-5 mb-6" style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
+            <h3 className="text-sm font-bold mb-1" style={{ color: "var(--fg)" }}>Historial / Consolidado anual</h3>
+            <p className="text-sm mb-4" style={{ color: "var(--muted)" }}>
+              Totales de asistencia del año completo por alumno — para ver el historial acumulado en cualquier momento, sin depender del Excel.
+            </p>
+            <div className="flex flex-wrap gap-3 items-end mb-3">
+              <div>
+                <label className="block text-xs font-medium mb-1" style={{ color: "var(--muted)" }}>Año</label>
+                <input type="number" value={consolidadoYear} onChange={e => setConsolidadoYear(parseInt(e.target.value) || consolidadoYear)}
+                  className="w-24 px-3 py-2 rounded-lg border text-sm outline-none focus:ring-2 focus:ring-primary-500"
+                  style={{ background: "var(--bg)", borderColor: "var(--border)", color: "var(--fg)" }} />
+              </div>
+              <div>
+                <label className="block text-xs font-medium mb-1" style={{ color: "var(--muted)" }}>Aula</label>
+                <select value={consolidadoSectionId} onChange={e => setConsolidadoSectionId(e.target.value)}
+                  className="px-3 py-2 rounded-lg border text-sm outline-none focus:ring-2 focus:ring-primary-500"
+                  style={{ background: "var(--bg)", borderColor: "var(--border)", color: "var(--fg)" }}>
+                  <option value="all">Todas las aulas</option>
+                  {sections.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                </select>
+              </div>
+              <button onClick={loadConsolidado} disabled={loadingConsolidado} className="px-4 py-2.5 rounded-lg border text-sm font-semibold hover:bg-primary-50 hover:text-primary-600 transition-colors disabled:opacity-60" style={{ borderColor: "var(--border)", color: "var(--fg)" }}>
+                {loadingConsolidado ? "Cargando..." : "👁 Ver consolidado"}
+              </button>
+              <button onClick={downloadConsolidado} disabled={downloadingConsolidado} className="px-4 py-2.5 rounded-lg bg-primary-500 text-white text-sm font-semibold hover:bg-primary-600 disabled:opacity-60">
+                {downloadingConsolidado ? "Generando..." : "⬇ Descargar Excel"}
+              </button>
+            </div>
+
+            {consolidadoData && (
+              <div className="space-y-6 mt-4">
+                {consolidadoData.sections.length === 0 && (
+                  <p className="text-sm" style={{ color: "var(--muted)" }}>No hay alumnos para el filtro seleccionado.</p>
+                )}
+                {consolidadoData.sections.map(sec => (
+                  <div key={sec.id} className="rounded-xl border overflow-hidden" style={{ borderColor: "var(--border)" }}>
+                    <div className="px-4 py-2 text-sm font-bold" style={{ background: "var(--bg)", color: "var(--fg)" }}>{sec.name}</div>
+                    <table className="w-full text-xs">
+                      <thead>
+                        <tr style={{ background: "var(--bg)" }}>
+                          <th className="px-3 py-1.5 text-left" style={{ color: "var(--muted)" }}>#</th>
+                          <th className="px-3 py-1.5 text-left" style={{ color: "var(--muted)" }}>Alumno</th>
+                          <th className="px-3 py-1.5 text-center text-green-600">Presente</th>
+                          <th className="px-3 py-1.5 text-center text-amber-600">Tarde</th>
+                          <th className="px-3 py-1.5 text-center text-red-600">Ausente</th>
+                          <th className="px-3 py-1.5 text-center" style={{ color: "var(--muted)" }}>% Asistencia</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {sec.students.map((s, i) => (
+                          <tr key={s.studentId} className="border-t" style={{ borderColor: "var(--border)" }}>
+                            <td className="px-3 py-1.5" style={{ color: "var(--muted)" }}>{i + 1}</td>
+                            <td className="px-3 py-1.5" style={{ color: "var(--fg)" }}>{s.studentName}</td>
+                            <td className="px-3 py-1.5 text-center font-semibold text-green-600">{s.present}</td>
+                            <td className="px-3 py-1.5 text-center font-semibold text-amber-600">{s.late}</td>
+                            <td className="px-3 py-1.5 text-center font-semibold text-red-600">{s.absent}</td>
+                            <td className="px-3 py-1.5 text-center font-bold" style={{ color: "var(--fg)" }}>{s.pct}%</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
 
           <div className="rounded-xl border p-5" style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
             <h3 className="text-sm font-bold mb-1" style={{ color: "var(--fg)" }}>Cargar tu plantilla de asistencia</h3>
