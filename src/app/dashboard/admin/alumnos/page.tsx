@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import ImportarAlumnos from "./ImportarAlumnos"
 
 type Parent = { name: string; phone: string | null; monthlyFee: number | null }
-type Enrollment = { section: { name: string; grade: { name: string; level: { name: string } } } }
+type Enrollment = { section: { id: string; name: string; grade: { name: string; level: { name: string } } } }
 type Student = {
   id: string
   firstName: string
@@ -50,7 +50,7 @@ export default function AlumnosPage() {
       dni: s.dni ?? "",
       birthDate: "",
       gender: s.gender ?? "",
-      sectionId: s.enrollments[0]?.section ? "" : "",
+      sectionId: s.enrollments[0]?.section?.id ?? "",
       guardianName: s.parents[0]?.name ?? "",
       guardianPhone: s.parents[0]?.phone ?? "",
       monthlyFee: s.parents[0]?.monthlyFee != null ? String(s.parents[0].monthlyFee) : "",
@@ -164,17 +164,15 @@ export default function AlumnosPage() {
                   </select>
                 </div>
                 <Field label="Fecha de nacimiento" type="date" value={form.birthDate} onChange={v => setForm(f => ({ ...f, birthDate: v }))} />
-                {!editing && (
-                  <div>
-                    <label className="block text-xs font-medium mb-1" style={{ color: "var(--fg)" }}>Sección</label>
-                    <select value={form.sectionId} onChange={e => setForm(f => ({ ...f, sectionId: e.target.value }))} className="w-full px-3 py-2 rounded-lg border text-sm outline-none" style={{ background: "var(--bg)", borderColor: "var(--border)", color: "var(--fg)" }}>
-                      <option value="">Sin asignar</option>
-                      {grades.map(g => g.sections.map(sec => (
-                        <option key={sec.id} value={sec.id}>{g.level.name} — {g.name} "{sec.name}"</option>
-                      )))}
-                    </select>
-                  </div>
-                )}
+                <div>
+                  <label className="block text-xs font-medium mb-1" style={{ color: "var(--fg)" }}>Grado / Salón</label>
+                  <select value={form.sectionId} onChange={e => setForm(f => ({ ...f, sectionId: e.target.value }))} className="w-full px-3 py-2 rounded-lg border text-sm outline-none" style={{ background: "var(--bg)", borderColor: "var(--border)", color: "var(--fg)" }}>
+                    <option value="">Sin asignar</option>
+                    {grades.map(g => g.sections.map(sec => (
+                      <option key={sec.id} value={sec.id}>{g.level.name} — {g.name} "{sec.name}"</option>
+                    )))}
+                  </select>
+                </div>
               </div>
 
               <p className="text-xs font-semibold uppercase tracking-wider pt-2" style={{ color: "var(--muted)" }}>Apoderado</p>

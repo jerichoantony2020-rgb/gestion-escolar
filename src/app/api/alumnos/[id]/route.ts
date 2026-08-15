@@ -9,7 +9,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
   const { id } = await params
   const body = await req.json()
-  const { firstName, lastName, dni, birthDate, gender, guardianName, guardianPhone, monthlyFee } = body
+  const { firstName, lastName, dni, birthDate, gender, sectionId, guardianName, guardianPhone, monthlyFee } = body
 
   const student = await prisma.student.update({
     where: { id },
@@ -21,6 +21,28 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       gender: gender || null,
     },
   })
+
+  if (sectionId !== undefined) {
+    const year = await prisma.institutionYear.findFirst({
+      where: { institutionId: session.user.institutionId, active: true },
+    })
+    if (year) {
+      const existing = await prisma.studentEnrollment.findUnique({
+        where: { studentId_yearId: { studentId: id, yearId: year.id } },
+      })
+      if (sectionId) {
+        if (existing) {
+          await prisma.studentEnrollment.update({ where: { id: existing.id }, data: { sectionId, active: true } })
+        } else {
+          await prisma.studentEnrollment.create({
+            data: { institutionId: session.user.institutionId, studentId: id, sectionId, yearId: year.id, active: true },
+          })
+        }
+      } else if (existing) {
+        await prisma.studentEnrollment.update({ where: { id: existing.id }, data: { active: false } })
+      }
+    }
+  }
 
   if (guardianName !== undefined || guardianPhone !== undefined || monthlyFee !== undefined) {
     const fee = monthlyFee !== undefined && monthlyFee !== "" ? parseFloat(monthlyFee) : null
