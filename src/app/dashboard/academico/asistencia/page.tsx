@@ -21,7 +21,71 @@ const STATUSES = [
 function today() { return new Date().toISOString().slice(0, 10) }
 function thisMonth() { return new Date().toISOString().slice(0, 7) }
 
-const STATUS_ABBR: Record<string, string> = { present: "P", late: "T", absent: "F" }
+const STATUS_ABBR: Record<string, string> = { present: "A", late: "T", absent: "F" }
+const MESES_ES = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SETIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"]
+const MES_ALIASES: Record<string, number> = {}
+MESES_ES.forEach((m, i) => { MES_ALIASES[m] = i + 1 })
+MES_ALIASES["SEPTIEMBRE"] = 9
+const WEEKDAY_LETTERS = ["L", "M", "M", "J", "V"]
+
+type TemplateBlock = { year: number; month: number; days: number[]; students: { name: string; marks: (string | null)[] }[] }
+
+function parseTemplate(rows: unknown[][], defaultYear: number): TemplateBlock[] {
+  const blocks: TemplateBlock[] = []
+  let year = defaultYear
+  for (let r = 0; r < Math.min(rows.length, 6); r++) {
+    for (const cell of rows[r] ?? []) {
+      if (typeof cell === "string") {
+        const m = cell.match(/(20\d{2})/)
+        if (m) { year = parseInt(m[1]); break }
+      }
+    }
+  }
+
+  for (let r = 0; r < rows.length; r++) {
+    const row = rows[r] ?? []
+    if (String(row[1] ?? "").trim().toUpperCase() !== "APELLIDOS Y NOMBRES") continue
+
+    const mesRow = rows[r - 2] ?? []
+    const mesCell = String(mesRow[0] ?? "").toUpperCase().normalize("NFD").replace(/[̀-ͯ]/g, "")
+    const mesMatch = mesCell.match(/MES\s*:?\s*([A-Z]+)/)
+    const month = mesMatch ? (MES_ALIASES[mesMatch[1]] ?? 1) : 1
+
+    const days: number[] = []
+    const dayCols: number[] = []
+    let emptyStreak = 0
+    for (let c = 2; c < row.length; c++) {
+      const v = row[c]
+      if (typeof v === "number" && v >= 1 && v <= 31) {
+        days.push(v); dayCols.push(c); emptyStreak = 0
+      } else {
+        emptyStreak++
+        if (emptyStreak >= 3 && days.length > 0) break
+      }
+    }
+    if (days.length === 0) continue
+
+    const students: { name: string; marks: (string | null)[] }[] = []
+    let rr = r + 1
+    let blankStreak = 0
+    while (rr < rows.length) {
+      const srow = rows[rr] ?? []
+      if (String(srow[1] ?? "").trim().toUpperCase() === "APELLIDOS Y NOMBRES") break
+      if (String(srow[0] ?? "").toUpperCase().startsWith("MES")) break
+      const name = String(srow[1] ?? "").trim()
+      if (!name) {
+        blankStreak++
+        if (blankStreak >= 2) break
+      } else {
+        blankStreak = 0
+        students.push({ name, marks: dayCols.map(c => (srow[c] != null ? String(srow[c]).trim() : null)) })
+      }
+      rr++
+    }
+    if (students.length > 0) blocks.push({ year, month, days, students })
+  }
+  return blocks
+}
 
 export default function AsistenciaPage() {
   const [tab, setTab] = useState<"marcar" | "qr" | "escaneo" | "reporte">("marcar")
@@ -29,6 +93,11 @@ export default function AsistenciaPage() {
   const [reportMonth, setReportMonth] = useState(thisMonth())
   const [reportSectionId, setReportSectionId] = useState("all")
   const [downloading, setDownloading] = useState(false)
+  // cargar plantilla propia
+  const [uploadSectionId, setUploadSectionId] = useState("")
+  const [uploadYear, setUploadYear] = useState(new Date().getFullYear())
+  const [uploading, setUploading] = useState(false)
+  const [uploadResult, setUploadResult] = useState<{ written: number; unmatched: string[] } | null>(null)
   // escaneo
   const [scanInput, setScanInput] = useState("")
   const [scanMode, setScanMode] = useState<"entry" | "exit">("entry")
@@ -94,8 +163,12 @@ export default function AsistenciaPage() {
   async function downloadReport() {
     setDownloading(true)
     try {
+      const [yearStr, monthStr] = reportMonth.split("-")
+      const year = parseInt(yearStr)
+      const month = parseInt(monthStr)
+      const daysInMonthLocal = new Date(year, month, 0).getDate()
+
       const data = await fetch(`/api/asistencia/reporte?month=${reportMonth}&sectionId=${reportSectionId}`).then(r => r.json())
-      const daysInMonth: number = data.daysInMonth
       const sections: { id: string; name: string; students: { studentName: string; days: Record<string, string>; present: number; late: number; absent: number; marked: number }[] }[] = data.sections ?? []
 
       if (sections.length === 0) {
@@ -104,17 +177,82 @@ export default function AsistenciaPage() {
         return
       }
 
+      // Agrupa los días hábiles (lun-vie) del mes en semanas de 5
+      const weeks: number[][] = []
+      let current: number[] = []
+      for (let d = 1; d <= daysInMonthLocal; d++) {
+        const dow = new Date(year, month - 1, d).getDay() // 0=dom..6=sab
+        if (dow >= 1 && dow <= 5) {
+          current.push(d)
+          if (current.length === 5) { weeks.push(current); current = [] }
+        }
+      }
+      if (current.length > 0) weeks.push(current)
+      const totalSlots = weeks.length * 5
+      const dayCol0 = 2 // columna C (0-indexed)
+      const summaryCol0 = dayCol0 + totalSlots
+
       const wb = XLSX.utils.book_new()
       for (const sec of sections) {
-        const header = ["N°", "Apellidos y Nombres", ...Array.from({ length: daysInMonth }, (_, i) => String(i + 1)), "Presente", "Tarde", "Ausente", "% Asistencia"]
-        const aoa: (string | number)[][] = [header]
-        sec.students.forEach((s, i) => {
-          const dayCells = Array.from({ length: daysInMonth }, (_, d) => STATUS_ABBR[s.days[d + 1]] ?? "")
-          const pct = s.marked > 0 ? Math.round(((s.present + s.late) / s.marked) * 100) : 0
-          aoa.push([i + 1, s.studentName, ...dayCells, s.present, s.late, s.absent, `${pct}%`])
+        const aoa: (string | number)[][] = Array.from({ length: 7 }, () => [])
+        const merges: { s: { r: number; c: number }; e: { r: number; c: number } }[] = []
+
+        // Fila 1 (0): vacía
+        aoa[0] = []
+        // Fila 2 (1): título + encabezados de resumen
+        aoa[1] = new Array(summaryCol0 + 6).fill("")
+        aoa[1][2] = `REGISTRO DE ASISTENCIA ${year}`
+        ;["ASISTENCIA", "TARDANZAS", "T.JUSTIFICADA", "FALTAS", "F.JUSTIFICADA", "% ASISTENCIA"].forEach((h, i) => { aoa[1][summaryCol0 + i] = h })
+        merges.push({ s: { r: 1, c: 2 }, e: { r: 1, c: dayCol0 + totalSlots - 1 } })
+        for (let i = 0; i < 6; i++) merges.push({ s: { r: 1, c: summaryCol0 + i }, e: { r: 6, c: summaryCol0 + i } })
+
+        // Fila 3 (2): nivel / aula
+        aoa[2] = []
+        aoa[2][2] = ` NIVEL:                                                                    AULA: ${sec.name} `
+        // Fila 4 (3): tutor
+        aoa[3] = []
+        aoa[3][2] = "TUTOR (A):  "
+        // Fila 5 (4): "MES : X" + "SEMANA n"
+        aoa[4] = []
+        aoa[4][0] = `MES :  ${MESES_ES[month - 1]}`
+        weeks.forEach((_, wi) => {
+          const c0 = dayCol0 + wi * 5
+          aoa[4][c0] = `SEMANA ${wi + 1}`
+          merges.push({ s: { r: 4, c: c0 }, e: { r: 4, c: c0 + 4 } })
         })
+        // Fila 6 (5): letras L M M J V
+        aoa[5] = []
+        weeks.forEach((week, wi) => {
+          week.forEach((_, di) => { aoa[5][dayCol0 + wi * 5 + di] = WEEKDAY_LETTERS[di] })
+        })
+        // Fila 7 (6): N° / Apellidos y Nombres / números de día
+        aoa[6] = []
+        aoa[6][0] = "N°"
+        aoa[6][1] = "APELLIDOS Y NOMBRES"
+        weeks.forEach((week, wi) => {
+          week.forEach((d, di) => { aoa[6][dayCol0 + wi * 5 + di] = d })
+        })
+
+        sec.students.forEach((s, i) => {
+          const row: (string | number)[] = []
+          row[0] = i + 1
+          row[1] = s.studentName
+          weeks.forEach((week, wi) => {
+            week.forEach((d, di) => { row[dayCol0 + wi * 5 + di] = STATUS_ABBR[s.days[d]] ?? "" })
+          })
+          const pct = s.marked > 0 ? Math.round(((s.present + s.late) / s.marked) * 100) : 0
+          row[summaryCol0] = s.present
+          row[summaryCol0 + 1] = s.late
+          row[summaryCol0 + 2] = 0
+          row[summaryCol0 + 3] = s.absent
+          row[summaryCol0 + 4] = 0
+          row[summaryCol0 + 5] = `${pct}%`
+          aoa.push(row)
+        })
+
         const ws = XLSX.utils.aoa_to_sheet(aoa)
-        ws["!cols"] = [{ wch: 4 }, { wch: 30 }, ...Array.from({ length: daysInMonth }, () => ({ wch: 3 })), { wch: 9 }, { wch: 7 }, { wch: 8 }, { wch: 11 }]
+        ws["!merges"] = merges
+        ws["!cols"] = [{ wch: 4 }, { wch: 30 }, ...Array.from({ length: totalSlots }, () => ({ wch: 3 })), { wch: 9 }, { wch: 9 }, { wch: 12 }, { wch: 7 }, { wch: 12 }, { wch: 11 }]
         const sheetName = sec.name.replace(/[\\/?*[\]:]/g, "").slice(0, 31) || "Aula"
         XLSX.utils.book_append_sheet(wb, ws, sheetName)
       }
@@ -122,6 +260,44 @@ export default function AsistenciaPage() {
     } finally {
       setDownloading(false)
     }
+  }
+
+  function handleUploadFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (!uploadSectionId) {
+      setToast("Selecciona primero el aula")
+      setTimeout(() => setToast(""), 2500)
+      e.target.value = ""
+      return
+    }
+    setUploading(true)
+    setUploadResult(null)
+    const reader = new FileReader()
+    reader.onload = async (ev) => {
+      const data = new Uint8Array(ev.target?.result as ArrayBuffer)
+      const wb = XLSX.read(data, { type: "array" })
+      let allBlocks: TemplateBlock[] = []
+      for (const sheetName of wb.SheetNames) {
+        const ws = wb.Sheets[sheetName]
+        const sheetRows = XLSX.utils.sheet_to_json<unknown[]>(ws, { header: 1, raw: true }) as unknown[][]
+        allBlocks = allBlocks.concat(parseTemplate(sheetRows, uploadYear))
+      }
+      if (allBlocks.length === 0) {
+        setUploading(false)
+        setToast("No se reconoció el formato de la plantilla")
+        setTimeout(() => setToast(""), 3000)
+        return
+      }
+      const res = await fetch("/api/asistencia/importar-plantilla", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sectionId: uploadSectionId, blocks: allBlocks }),
+      }).then(r => r.json())
+      setUploading(false)
+      setUploadResult(res)
+      e.target.value = ""
+    }
+    reader.readAsArrayBuffer(file)
   }
 
   async function doScan(qrData: string) {
@@ -295,9 +471,9 @@ export default function AsistenciaPage() {
       {tab === "reporte" && (
         <div>
           <p className="text-sm mb-4" style={{ color: "var(--muted)" }}>
-            Descarga la asistencia del mes en Excel: una hoja por aula, con cada alumno y su marca (P/T/F) día por día, más el % de asistencia.
+            Descarga la asistencia del mes en Excel con tu mismo formato: semanas, días L-M-M-J-V y columnas de resumen, una hoja por aula.
           </p>
-          <div className="flex flex-wrap gap-3 mb-5">
+          <div className="flex flex-wrap gap-3 mb-3">
             <div>
               <label className="block text-xs font-medium mb-1" style={{ color: "var(--muted)" }}>Mes</label>
               <input type="month" value={reportMonth} onChange={e => setReportMonth(e.target.value)}
@@ -319,7 +495,50 @@ export default function AsistenciaPage() {
               </button>
             </div>
           </div>
-          <p className="text-xs" style={{ color: "var(--muted)" }}>P = Presente · T = Tarde · F = Ausente · celda vacía = sin marcar ese día.</p>
+          <p className="text-xs mb-8" style={{ color: "var(--muted)" }}>A = Asistió · T = Tarde · F = Falta · celda vacía = sin marcar ese día.</p>
+
+          <div className="rounded-xl border p-5" style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
+            <h3 className="text-sm font-bold mb-1" style={{ color: "var(--fg)" }}>Cargar tu plantilla de asistencia</h3>
+            <p className="text-sm mb-4" style={{ color: "var(--muted)" }}>
+              Sube un Excel con tu propio formato (como &quot;REGISTRO ASISTENCIA-2026 CR.xlsx&quot;). Detecta automáticamente todos los meses que tenga la hoja y registra la asistencia de cada alumno del aula que elijas.
+            </p>
+            <div className="flex flex-wrap gap-3 items-end mb-3">
+              <div>
+                <label className="block text-xs font-medium mb-1" style={{ color: "var(--muted)" }}>Aula destino</label>
+                <select value={uploadSectionId} onChange={e => setUploadSectionId(e.target.value)}
+                  className="px-3 py-2 rounded-lg border text-sm outline-none focus:ring-2 focus:ring-primary-500"
+                  style={{ background: "var(--bg)", borderColor: "var(--border)", color: "var(--fg)" }}>
+                  <option value="">Selecciona...</option>
+                  {sections.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium mb-1" style={{ color: "var(--muted)" }}>Año (si tu plantilla no lo indica)</label>
+                <input type="number" value={uploadYear} onChange={e => setUploadYear(parseInt(e.target.value) || uploadYear)}
+                  className="w-24 px-3 py-2 rounded-lg border text-sm outline-none focus:ring-2 focus:ring-primary-500"
+                  style={{ background: "var(--bg)", borderColor: "var(--border)", color: "var(--fg)" }} />
+              </div>
+              <label className={`px-4 py-2 rounded-lg text-sm font-semibold cursor-pointer ${uploading ? "opacity-60 pointer-events-none" : ""}`} style={{ border: "1px solid var(--border)", color: "var(--fg)" }}>
+                {uploading ? "Procesando..." : "Seleccionar archivo"}
+                <input type="file" accept=".xlsx,.xls" onChange={handleUploadFile} className="hidden" disabled={uploading} />
+              </label>
+            </div>
+
+            {uploadResult && (
+              <div className="rounded-lg border p-3 mt-2" style={{ background: "var(--bg)", borderColor: "var(--border)" }}>
+                <p className="text-sm font-semibold text-green-600">✓ {uploadResult.written} registros de asistencia guardados</p>
+                {uploadResult.unmatched.length > 0 && (
+                  <div className="mt-2">
+                    <p className="text-sm font-medium text-amber-600">{uploadResult.unmatched.length} nombres no coincidieron con alumnos de esta aula:</p>
+                    <ul className="text-xs mt-1 space-y-0.5 max-h-32 overflow-y-auto" style={{ color: "var(--muted)" }}>
+                      {uploadResult.unmatched.map((n, i) => <li key={i}>• {n}</li>)}
+                    </ul>
+                    <p className="text-xs mt-1" style={{ color: "var(--muted)" }}>Revisa que el nombre en la plantilla coincida con &quot;Apellidos, Nombres&quot; tal como está registrado el alumno.</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>
