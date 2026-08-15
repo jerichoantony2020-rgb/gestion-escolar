@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react"
 import { QRCodeSVG } from "qrcode.react"
 import dynamic from "next/dynamic"
+import * as XLSX from "xlsx"
 import BackButton from "@/components/BackButton"
 
 const QrScanner = dynamic(() => import("@/components/QrScanner"), { ssr: false })
@@ -18,9 +19,16 @@ const STATUSES = [
 ]
 
 function today() { return new Date().toISOString().slice(0, 10) }
+function thisMonth() { return new Date().toISOString().slice(0, 7) }
+
+const STATUS_ABBR: Record<string, string> = { present: "P", late: "T", absent: "F" }
 
 export default function AsistenciaPage() {
-  const [tab, setTab] = useState<"marcar" | "qr" | "escaneo">("marcar")
+  const [tab, setTab] = useState<"marcar" | "qr" | "escaneo" | "reporte">("marcar")
+  // reporte
+  const [reportMonth, setReportMonth] = useState(thisMonth())
+  const [reportSectionId, setReportSectionId] = useState("all")
+  const [downloading, setDownloading] = useState(false)
   // escaneo
   const [scanInput, setScanInput] = useState("")
   const [scanMode, setScanMode] = useState<"entry" | "exit">("entry")
@@ -83,6 +91,39 @@ export default function AsistenciaPage() {
     absent: rows.filter(r => r.status === "absent").length,
   }
 
+  async function downloadReport() {
+    setDownloading(true)
+    try {
+      const data = await fetch(`/api/asistencia/reporte?month=${reportMonth}&sectionId=${reportSectionId}`).then(r => r.json())
+      const daysInMonth: number = data.daysInMonth
+      const sections: { id: string; name: string; students: { studentName: string; days: Record<string, string>; present: number; late: number; absent: number; marked: number }[] }[] = data.sections ?? []
+
+      if (sections.length === 0) {
+        setToast("No hay alumnos para el filtro seleccionado")
+        setTimeout(() => setToast(""), 2500)
+        return
+      }
+
+      const wb = XLSX.utils.book_new()
+      for (const sec of sections) {
+        const header = ["N°", "Apellidos y Nombres", ...Array.from({ length: daysInMonth }, (_, i) => String(i + 1)), "Presente", "Tarde", "Ausente", "% Asistencia"]
+        const aoa: (string | number)[][] = [header]
+        sec.students.forEach((s, i) => {
+          const dayCells = Array.from({ length: daysInMonth }, (_, d) => STATUS_ABBR[s.days[d + 1]] ?? "")
+          const pct = s.marked > 0 ? Math.round(((s.present + s.late) / s.marked) * 100) : 0
+          aoa.push([i + 1, s.studentName, ...dayCells, s.present, s.late, s.absent, `${pct}%`])
+        })
+        const ws = XLSX.utils.aoa_to_sheet(aoa)
+        ws["!cols"] = [{ wch: 4 }, { wch: 30 }, ...Array.from({ length: daysInMonth }, () => ({ wch: 3 })), { wch: 9 }, { wch: 7 }, { wch: 8 }, { wch: 11 }]
+        const sheetName = sec.name.replace(/[\\/?*[\]:]/g, "").slice(0, 31) || "Aula"
+        XLSX.utils.book_append_sheet(wb, ws, sheetName)
+      }
+      XLSX.writeFile(wb, `asistencia_${reportMonth}.xlsx`)
+    } finally {
+      setDownloading(false)
+    }
+  }
+
   async function doScan(qrData: string) {
     const code = qrData.trim()
     if (!code) return
@@ -104,8 +145,8 @@ export default function AsistenciaPage() {
 
       {/* Tabs */}
       <div className="flex gap-2 mb-5 print:hidden flex-wrap">
-        {[{ k: "marcar", l: "Marcar asistencia" }, { k: "escaneo", l: "Escaneo QR" }, { k: "qr", l: "Códigos QR" }].map(t => (
-          <button key={t.k} onClick={() => setTab(t.k as "marcar" | "qr" | "escaneo")}
+        {[{ k: "marcar", l: "Marcar asistencia" }, { k: "escaneo", l: "Escaneo QR" }, { k: "qr", l: "Códigos QR" }, { k: "reporte", l: "Reporte / Descargar" }].map(t => (
+          <button key={t.k} onClick={() => setTab(t.k as "marcar" | "qr" | "escaneo" | "reporte")}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${tab === t.k ? "bg-primary-500 text-white" : "border"}`}
             style={tab === t.k ? {} : { borderColor: "var(--border)", color: "var(--muted)" }}>
             {t.l}
@@ -114,25 +155,27 @@ export default function AsistenciaPage() {
       </div>
 
       {/* Controls */}
-      <div className="flex flex-wrap gap-3 mb-5 print:hidden">
-        <div>
-          <label className="block text-xs font-medium mb-1" style={{ color: "var(--muted)" }}>Sección</label>
-          <select value={sectionId} onChange={e => setSectionId(e.target.value)}
-            className="px-3 py-2 rounded-lg border text-sm outline-none focus:ring-2 focus:ring-primary-500"
-            style={{ background: "var(--surface)", borderColor: "var(--border)", color: "var(--fg)" }}>
-            {sections.length === 0 && <option value="">Sin secciones</option>}
-            {sections.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-          </select>
-        </div>
-        {tab === "marcar" && (
+      {tab !== "reporte" && (
+        <div className="flex flex-wrap gap-3 mb-5 print:hidden">
           <div>
-            <label className="block text-xs font-medium mb-1" style={{ color: "var(--muted)" }}>Fecha</label>
-            <input type="date" value={date} onChange={e => setDate(e.target.value)}
+            <label className="block text-xs font-medium mb-1" style={{ color: "var(--muted)" }}>Sección</label>
+            <select value={sectionId} onChange={e => setSectionId(e.target.value)}
               className="px-3 py-2 rounded-lg border text-sm outline-none focus:ring-2 focus:ring-primary-500"
-              style={{ background: "var(--surface)", borderColor: "var(--border)", color: "var(--fg)" }} />
+              style={{ background: "var(--surface)", borderColor: "var(--border)", color: "var(--fg)" }}>
+              {sections.length === 0 && <option value="">Sin secciones</option>}
+              {sections.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+            </select>
           </div>
-        )}
-      </div>
+          {tab === "marcar" && (
+            <div>
+              <label className="block text-xs font-medium mb-1" style={{ color: "var(--muted)" }}>Fecha</label>
+              <input type="date" value={date} onChange={e => setDate(e.target.value)}
+                className="px-3 py-2 rounded-lg border text-sm outline-none focus:ring-2 focus:ring-primary-500"
+                style={{ background: "var(--surface)", borderColor: "var(--border)", color: "var(--fg)" }} />
+            </div>
+          )}
+        </div>
+      )}
 
       {/* MARCAR */}
       {tab === "marcar" && (
@@ -246,6 +289,38 @@ export default function AsistenciaPage() {
             ))}
           </div>
         </>
+      )}
+
+      {/* REPORTE */}
+      {tab === "reporte" && (
+        <div>
+          <p className="text-sm mb-4" style={{ color: "var(--muted)" }}>
+            Descarga la asistencia del mes en Excel: una hoja por aula, con cada alumno y su marca (P/T/F) día por día, más el % de asistencia.
+          </p>
+          <div className="flex flex-wrap gap-3 mb-5">
+            <div>
+              <label className="block text-xs font-medium mb-1" style={{ color: "var(--muted)" }}>Mes</label>
+              <input type="month" value={reportMonth} onChange={e => setReportMonth(e.target.value)}
+                className="px-3 py-2 rounded-lg border text-sm outline-none focus:ring-2 focus:ring-primary-500"
+                style={{ background: "var(--surface)", borderColor: "var(--border)", color: "var(--fg)" }} />
+            </div>
+            <div>
+              <label className="block text-xs font-medium mb-1" style={{ color: "var(--muted)" }}>Aula</label>
+              <select value={reportSectionId} onChange={e => setReportSectionId(e.target.value)}
+                className="px-3 py-2 rounded-lg border text-sm outline-none focus:ring-2 focus:ring-primary-500"
+                style={{ background: "var(--surface)", borderColor: "var(--border)", color: "var(--fg)" }}>
+                <option value="all">Todas las aulas</option>
+                {sections.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+              </select>
+            </div>
+            <div className="flex items-end">
+              <button onClick={downloadReport} disabled={downloading} className="px-5 py-2.5 rounded-lg bg-primary-500 text-white text-sm font-semibold hover:bg-primary-600 disabled:opacity-60">
+                {downloading ? "Generando..." : "⬇ Descargar Excel"}
+              </button>
+            </div>
+          </div>
+          <p className="text-xs" style={{ color: "var(--muted)" }}>P = Presente · T = Tarde · F = Ausente · celda vacía = sin marcar ese día.</p>
+        </div>
       )}
     </div>
   )
