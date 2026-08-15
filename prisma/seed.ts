@@ -145,16 +145,8 @@ async function main() {
         data: { institutionId: institution.id, levelId: primariaId, name: gradeName, order: g },
       })
     }
-    const exists = await prisma.section.findFirst({
-      where: { institutionId: institution.id, gradeId: grade.id, name: "A" },
-    })
-    if (!exists) {
-      await prisma.section.create({
-        data: { institutionId: institution.id, gradeId: grade.id, name: "A" },
-      })
-    }
   }
-  console.log(`✅ Grados y secciones de Primaria creados`)
+  console.log(`✅ Grados de Primaria creados`)
 
   // ── BillingConcept: Pensión mensual ────────────────────────────────────────
   let pension = await prisma.billingConcept.findFirst({
