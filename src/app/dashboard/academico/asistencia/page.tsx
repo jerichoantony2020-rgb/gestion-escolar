@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react"
 import { QRCodeSVG } from "qrcode.react"
 import dynamic from "next/dynamic"
 import * as XLSX from "xlsx"
+import type ExcelJS from "exceljs"
 import BackButton from "@/components/BackButton"
 
 const QrScanner = dynamic(() => import("@/components/QrScanner"), { ssr: false })
@@ -22,15 +23,21 @@ function today() { return new Date().toISOString().slice(0, 10) }
 function thisMonth() { return new Date().toISOString().slice(0, 7) }
 
 const STATUS_ABBR: Record<string, string> = { present: "A", late: "T", absent: "F" }
+const STATUS_COLOR: Record<string, string> = { present: "#16a34a", late: "#d97706", absent: "#dc2626" }
 const MESES_ES = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SETIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"]
 const MES_ALIASES: Record<string, number> = {}
 MESES_ES.forEach((m, i) => { MES_ALIASES[m] = i + 1 })
 MES_ALIASES["SEPTIEMBRE"] = 9
-const WEEKDAY_LETTERS = ["L", "M", "M", "J", "V"]
+
+// Colores institucionales para el Excel
+const XL_NAVY = "0D1E3A"
+const XL_BLUE = "1A33CC"
+const XL_LIGHT = "EEF2FF"
+const XL_GREEN = "16A34A"
+const XL_AMBER = "D97706"
+const XL_RED = "DC2626"
 
 type TemplateBlock = { year: number; month: number; days: number[]; students: { name: string; marks: (string | null)[] }[] }
-type ReportSection = { id: string; name: string; students: { studentName: string; days: Record<string, string>; present: number; late: number; absent: number; marked: number }[] }
-type ConsolidadoSection = { id: string; name: string; students: { studentId: string; studentName: string; present: number; late: number; absent: number; marked: number; pct: number }[] }
 
 function parseTemplate(rows: unknown[][], defaultYear: number): TemplateBlock[] {
   const blocks: TemplateBlock[] = []
@@ -89,25 +96,41 @@ function parseTemplate(rows: unknown[][], defaultYear: number): TemplateBlock[] 
   return blocks
 }
 
+// ── Tipos de la vista de historial ──────────────────────────────────────────
+type VistaStudent = { studentId: string; studentName: string; marks: Record<string, string>; present: number; late: number; absent: number; marked: number; pct: number }
+type VistaSection = { id: string; name: string; students: VistaStudent[] }
+type VistaData = { dates: string[]; sections: VistaSection[] }
+
+type BimestreCount = { present: number; late: number; absent: number; marked: number; pct: number }
+type BimestreStudent = { studentId: string; studentName: string; b: BimestreCount[]; total: BimestreCount }
+type BimestreSection = { id: string; name: string; students: BimestreStudent[] }
+type BimestreData = { year: number; labels: string[]; sections: BimestreSection[] }
+
+function fmtDate(iso: string) {
+  const [, m, d] = iso.split("-")
+  return `${d}/${m}`
+}
+
 export default function AsistenciaPage() {
-  const [tab, setTab] = useState<"marcar" | "qr" | "escaneo" | "reporte">("marcar")
-  // reporte
-  const [reportMonth, setReportMonth] = useState(thisMonth())
-  const [reportSectionId, setReportSectionId] = useState("all")
+  const [tab, setTab] = useState<"marcar" | "qr" | "escaneo" | "historial">("marcar")
+
+  // ── historial (semana / mes / bimestre) ──
+  const [scope, setScope] = useState<"semana" | "mes" | "bimestre">("semana")
+  const [histSectionId, setHistSectionId] = useState("all")
+  const [weekAnchor, setWeekAnchor] = useState(today())
+  const [monthAnchor, setMonthAnchor] = useState(thisMonth())
+  const [yearAnchor, setYearAnchor] = useState(new Date().getFullYear())
+  const [vistaData, setVistaData] = useState<VistaData | null>(null)
+  const [bimestreData, setBimestreData] = useState<BimestreData | null>(null)
+  const [loadingHist, setLoadingHist] = useState(false)
   const [downloading, setDownloading] = useState(false)
-  const [reportPreview, setReportPreview] = useState<{ daysInMonth: number; sections: ReportSection[] } | null>(null)
-  const [loadingPreview, setLoadingPreview] = useState(false)
-  // historial / consolidado anual
-  const [consolidadoYear, setConsolidadoYear] = useState(new Date().getFullYear())
-  const [consolidadoSectionId, setConsolidadoSectionId] = useState("all")
-  const [consolidadoData, setConsolidadoData] = useState<{ year: number; sections: ConsolidadoSection[] } | null>(null)
-  const [loadingConsolidado, setLoadingConsolidado] = useState(false)
-  const [downloadingConsolidado, setDownloadingConsolidado] = useState(false)
+
   // cargar plantilla propia
   const [uploadSectionId, setUploadSectionId] = useState("")
   const [uploadYear, setUploadYear] = useState(new Date().getFullYear())
   const [uploading, setUploading] = useState(false)
   const [uploadResult, setUploadResult] = useState<{ written: number; unmatched: string[] } | null>(null)
+
   // escaneo
   const [scanInput, setScanInput] = useState("")
   const [scanMode, setScanMode] = useState<"entry" | "exit">("entry")
@@ -146,6 +169,26 @@ export default function AsistenciaPage() {
   useEffect(() => { if (tab === "marcar") loadMarcar() }, [tab, loadMarcar])
   useEffect(() => { if (tab === "qr") loadQr() }, [tab, loadQr])
 
+  const loadHistorial = useCallback(async () => {
+    setLoadingHist(true)
+    try {
+      if (scope === "bimestre") {
+        const data = await fetch(`/api/asistencia/bimestre?year=${yearAnchor}&sectionId=${histSectionId}`).then(r => r.json())
+        setBimestreData(data)
+        setVistaData(null)
+      } else {
+        const start = scope === "semana" ? weekAnchor : `${monthAnchor}-01`
+        const data = await fetch(`/api/asistencia/vista?scope=${scope}&start=${start}&sectionId=${histSectionId}`).then(r => r.json())
+        setVistaData(data)
+        setBimestreData(null)
+      }
+    } finally {
+      setLoadingHist(false)
+    }
+  }, [scope, histSectionId, weekAnchor, monthAnchor, yearAnchor])
+
+  useEffect(() => { if (tab === "historial") loadHistorial() }, [tab, loadHistorial])
+
   function setStatus(studentId: string, status: string) {
     setRows(rs => rs.map(r => r.studentId === studentId ? { ...r, status } : r))
   }
@@ -170,152 +213,187 @@ export default function AsistenciaPage() {
     absent: rows.filter(r => r.status === "absent").length,
   }
 
-  async function loadPreview() {
-    setLoadingPreview(true)
-    try {
-      const data = await fetch(`/api/asistencia/reporte?month=${reportMonth}&sectionId=${reportSectionId}`).then(r => r.json())
-      setReportPreview({ daysInMonth: data.daysInMonth, sections: data.sections ?? [] })
-    } finally {
-      setLoadingPreview(false)
-    }
-  }
-
-  async function loadConsolidado() {
-    setLoadingConsolidado(true)
-    try {
-      const data = await fetch(`/api/asistencia/consolidado?year=${consolidadoYear}&sectionId=${consolidadoSectionId}`).then(r => r.json())
-      setConsolidadoData({ year: data.year, sections: data.sections ?? [] })
-    } finally {
-      setLoadingConsolidado(false)
-    }
-  }
-
-  async function downloadConsolidado() {
-    setDownloadingConsolidado(true)
-    try {
-      const data = consolidadoData ?? await fetch(`/api/asistencia/consolidado?year=${consolidadoYear}&sectionId=${consolidadoSectionId}`).then(r => r.json())
-      const secs: ConsolidadoSection[] = data.sections ?? []
-      if (secs.length === 0) {
-        setToast("No hay alumnos para el filtro seleccionado")
-        setTimeout(() => setToast(""), 2500)
-        return
-      }
-      const wb = XLSX.utils.book_new()
-      for (const sec of secs) {
-        const header = ["N°", "Apellidos y Nombres", "Presente", "Tarde", "Ausente", "% Asistencia"]
-        const aoa: (string | number)[][] = [header]
-        sec.students.forEach((s, i) => aoa.push([i + 1, s.studentName, s.present, s.late, s.absent, `${s.pct}%`]))
-        const ws = XLSX.utils.aoa_to_sheet(aoa)
-        ws["!cols"] = [{ wch: 4 }, { wch: 30 }, { wch: 9 }, { wch: 7 }, { wch: 8 }, { wch: 11 }]
-        const sheetName = sec.name.replace(/[\\/?*[\]:]/g, "").slice(0, 31) || "Aula"
-        XLSX.utils.book_append_sheet(wb, ws, sheetName)
-      }
-      XLSX.writeFile(wb, `consolidado_asistencia_${consolidadoYear}.xlsx`)
-    } finally {
-      setDownloadingConsolidado(false)
-    }
-  }
-
-  async function downloadReport() {
+  async function downloadExcel() {
     setDownloading(true)
     try {
-      const [yearStr, monthStr] = reportMonth.split("-")
-      const year = parseInt(yearStr)
-      const month = parseInt(monthStr)
-      const daysInMonthLocal = new Date(year, month, 0).getDate()
+      const ExcelLib = (await import("exceljs")).default
+      const wb = new ExcelLib.Workbook()
+      wb.creator = "I.E.P. Cristo Reina"
+      wb.created = new Date()
 
-      const data = await fetch(`/api/asistencia/reporte?month=${reportMonth}&sectionId=${reportSectionId}`).then(r => r.json())
-      const sections: ReportSection[] = data.sections ?? []
-
-      if (sections.length === 0) {
-        setToast("No hay alumnos para el filtro seleccionado")
-        setTimeout(() => setToast(""), 2500)
-        return
-      }
-
-      // Agrupa los días hábiles (lun-vie) del mes en semanas de 5
-      const weeks: number[][] = []
-      let current: number[] = []
-      for (let d = 1; d <= daysInMonthLocal; d++) {
-        const dow = new Date(year, month - 1, d).getDay() // 0=dom..6=sab
-        if (dow >= 1 && dow <= 5) {
-          current.push(d)
-          if (current.length === 5) { weeks.push(current); current = [] }
+      if (scope === "bimestre") {
+        if (!bimestreData || bimestreData.sections.length === 0) {
+          setToast("No hay alumnos para el filtro seleccionado")
+          setTimeout(() => setToast(""), 2500)
+          return
         }
+        for (const sec of bimestreData.sections) buildBimestreSheet(wb, sec, bimestreData)
+        wb.xlsx.writeBuffer().then(buf => downloadBlob(buf, `consolidado_bimestral_${bimestreData.year}.xlsx`))
+      } else {
+        if (!vistaData || vistaData.sections.length === 0) {
+          setToast("No hay alumnos para el filtro seleccionado")
+          setTimeout(() => setToast(""), 2500)
+          return
+        }
+        const label = scope === "semana" ? `semana del ${fmtDate(vistaData.dates[0])}` : monthAnchor
+        for (const sec of vistaData.sections) buildVistaSheet(wb, sec, vistaData.dates, scope, label)
+        wb.xlsx.writeBuffer().then(buf => downloadBlob(buf, `asistencia_${scope}_${scope === "semana" ? weekAnchor : monthAnchor}.xlsx`))
       }
-      if (current.length > 0) weeks.push(current)
-      const totalSlots = weeks.length * 5
-      const dayCol0 = 2 // columna C (0-indexed)
-      const summaryCol0 = dayCol0 + totalSlots
-
-      const wb = XLSX.utils.book_new()
-      for (const sec of sections) {
-        const aoa: (string | number)[][] = Array.from({ length: 7 }, () => [])
-        const merges: { s: { r: number; c: number }; e: { r: number; c: number } }[] = []
-
-        // Fila 1 (0): vacía
-        aoa[0] = []
-        // Fila 2 (1): título + encabezados de resumen
-        aoa[1] = new Array(summaryCol0 + 6).fill("")
-        aoa[1][2] = `REGISTRO DE ASISTENCIA ${year}`
-        ;["ASISTENCIA", "TARDANZAS", "T.JUSTIFICADA", "FALTAS", "F.JUSTIFICADA", "% ASISTENCIA"].forEach((h, i) => { aoa[1][summaryCol0 + i] = h })
-        merges.push({ s: { r: 1, c: 2 }, e: { r: 1, c: dayCol0 + totalSlots - 1 } })
-        for (let i = 0; i < 6; i++) merges.push({ s: { r: 1, c: summaryCol0 + i }, e: { r: 6, c: summaryCol0 + i } })
-
-        // Fila 3 (2): nivel / aula
-        aoa[2] = []
-        aoa[2][2] = ` NIVEL:                                                                    AULA: ${sec.name} `
-        // Fila 4 (3): tutor
-        aoa[3] = []
-        aoa[3][2] = "TUTOR (A):  "
-        // Fila 5 (4): "MES : X" + "SEMANA n"
-        aoa[4] = []
-        aoa[4][0] = `MES :  ${MESES_ES[month - 1]}`
-        weeks.forEach((_, wi) => {
-          const c0 = dayCol0 + wi * 5
-          aoa[4][c0] = `SEMANA ${wi + 1}`
-          merges.push({ s: { r: 4, c: c0 }, e: { r: 4, c: c0 + 4 } })
-        })
-        // Fila 6 (5): letras L M M J V
-        aoa[5] = []
-        weeks.forEach((week, wi) => {
-          week.forEach((_, di) => { aoa[5][dayCol0 + wi * 5 + di] = WEEKDAY_LETTERS[di] })
-        })
-        // Fila 7 (6): N° / Apellidos y Nombres / números de día
-        aoa[6] = []
-        aoa[6][0] = "N°"
-        aoa[6][1] = "APELLIDOS Y NOMBRES"
-        weeks.forEach((week, wi) => {
-          week.forEach((d, di) => { aoa[6][dayCol0 + wi * 5 + di] = d })
-        })
-
-        sec.students.forEach((s, i) => {
-          const row: (string | number)[] = []
-          row[0] = i + 1
-          row[1] = s.studentName
-          weeks.forEach((week, wi) => {
-            week.forEach((d, di) => { row[dayCol0 + wi * 5 + di] = STATUS_ABBR[s.days[d]] ?? "" })
-          })
-          const pct = s.marked > 0 ? Math.round(((s.present + s.late) / s.marked) * 100) : 0
-          row[summaryCol0] = s.present
-          row[summaryCol0 + 1] = s.late
-          row[summaryCol0 + 2] = 0
-          row[summaryCol0 + 3] = s.absent
-          row[summaryCol0 + 4] = 0
-          row[summaryCol0 + 5] = `${pct}%`
-          aoa.push(row)
-        })
-
-        const ws = XLSX.utils.aoa_to_sheet(aoa)
-        ws["!merges"] = merges
-        ws["!cols"] = [{ wch: 4 }, { wch: 30 }, ...Array.from({ length: totalSlots }, () => ({ wch: 3 })), { wch: 9 }, { wch: 9 }, { wch: 12 }, { wch: 7 }, { wch: 12 }, { wch: 11 }]
-        const sheetName = sec.name.replace(/[\\/?*[\]:]/g, "").slice(0, 31) || "Aula"
-        XLSX.utils.book_append_sheet(wb, ws, sheetName)
-      }
-      XLSX.writeFile(wb, `asistencia_${reportMonth}.xlsx`)
     } finally {
       setDownloading(false)
     }
+  }
+
+  function downloadBlob(buf: BlobPart, filename: string) {
+    const blob = new Blob([buf], { type: "application/octet-stream" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url; a.download = filename
+    document.body.appendChild(a); a.click(); a.remove()
+    URL.revokeObjectURL(url)
+  }
+
+  function buildVistaSheet(wb: ExcelJS.Workbook, sec: VistaSection, dates: string[], scope: "semana" | "mes", label: string) {
+    const sheetName = sec.name.replace(/[\\/?*[\]:]/g, "").slice(0, 31) || "Aula"
+    const ws = wb.addWorksheet(sheetName, { views: [{ state: "frozen", xSplit: 2, ySplit: 4 }] })
+    const nCols = 2 + dates.length + 4
+
+    ws.mergeCells(1, 1, 1, nCols)
+    const title = ws.getCell(1, 1)
+    title.value = `I.E.P. CRISTO REINA — ASISTENCIA (${scope === "semana" ? "SEMANAL" : "MENSUAL"})`
+    title.font = { bold: true, size: 13, color: { argb: "FFFFFFFF" } }
+    title.alignment = { horizontal: "center", vertical: "middle" }
+    ws.getRow(1).height = 26
+    for (let c = 1; c <= nCols; c++) ws.getCell(1, c).fill = { type: "pattern", pattern: "solid", fgColor: { argb: `FF${XL_NAVY}` } }
+
+    ws.mergeCells(2, 1, 2, nCols)
+    const sub = ws.getCell(2, 1)
+    sub.value = `Aula: ${sec.name}   ·   ${label}`
+    sub.font = { italic: true, size: 10, color: { argb: `FF${XL_NAVY}` } }
+    sub.alignment = { horizontal: "center" }
+    for (let c = 1; c <= nCols; c++) ws.getCell(2, c).fill = { type: "pattern", pattern: "solid", fgColor: { argb: `FF${XL_LIGHT}` } }
+    ws.getRow(3).height = 4
+
+    const headerRow = 4
+    const header = ["N°", "Apellidos y nombres", ...dates.map(fmtDate), "P", "T", "F", "%"]
+    header.forEach((h, i) => {
+      const cell = ws.getCell(headerRow, i + 1)
+      cell.value = h
+      cell.font = { bold: true, size: 9, color: { argb: "FFFFFFFF" } }
+      cell.alignment = { horizontal: "center", vertical: "middle" }
+      cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: `FF${XL_BLUE}` } }
+    })
+    ws.getRow(headerRow).height = 20
+
+    sec.students.forEach((s, i) => {
+      const r = headerRow + 1 + i
+      const rowVals: (string | number)[] = [i + 1, s.studentName]
+      dates.forEach(d => rowVals.push(STATUS_ABBR[s.marks[d]] ?? ""))
+      rowVals.push(s.present, s.late, s.absent, `${s.pct}%`)
+      ws.getRow(r).values = rowVals
+      const zebra = i % 2 === 1
+      for (let c = 1; c <= nCols; c++) {
+        const cell = ws.getCell(r, c)
+        cell.border = { top: { style: "thin", color: { argb: "FFE5E7EB" } }, bottom: { style: "thin", color: { argb: "FFE5E7EB" } }, left: { style: "thin", color: { argb: "FFE5E7EB" } }, right: { style: "thin", color: { argb: "FFE5E7EB" } } }
+        if (zebra) cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF8FAFC" } }
+        if (c === 1 || c > 2 + dates.length) cell.alignment = { horizontal: "center" }
+      }
+      dates.forEach((d, di) => {
+        const st = s.marks[d]
+        if (st) {
+          const cell = ws.getCell(r, 3 + di)
+          cell.font = { bold: true, color: { argb: `FF${STATUS_COLOR[st].replace("#", "").toUpperCase()}` } }
+        }
+      })
+      ws.getCell(r, 2 + dates.length + 4).font = { bold: true }
+    })
+
+    ws.getColumn(1).width = 5
+    ws.getColumn(2).width = 30
+    for (let i = 0; i < dates.length; i++) ws.getColumn(3 + i).width = 4.5
+    ws.getColumn(3 + dates.length).width = 6
+    ws.getColumn(4 + dates.length).width = 6
+    ws.getColumn(5 + dates.length).width = 6
+    ws.getColumn(6 + dates.length).width = 7
+    ws.autoFilter = { from: { row: headerRow, column: 1 }, to: { row: headerRow, column: nCols } }
+  }
+
+  function buildBimestreSheet(wb: ExcelJS.Workbook, sec: BimestreSection, data: BimestreData) {
+    const sheetName = sec.name.replace(/[\\/?*[\]:]/g, "").slice(0, 31) || "Aula"
+    const ws = wb.addWorksheet(sheetName, { views: [{ state: "frozen", xSplit: 2, ySplit: 5 }] })
+    const nBim = data.labels.length
+    const nCols = 2 + nBim * 4 + 1
+
+    ws.mergeCells(1, 1, 1, nCols)
+    const title = ws.getCell(1, 1)
+    title.value = `I.E.P. CRISTO REINA — CONSOLIDADO BIMESTRAL ${data.year}`
+    title.font = { bold: true, size: 13, color: { argb: "FFFFFFFF" } }
+    title.alignment = { horizontal: "center", vertical: "middle" }
+    ws.getRow(1).height = 26
+    for (let c = 1; c <= nCols; c++) ws.getCell(1, c).fill = { type: "pattern", pattern: "solid", fgColor: { argb: `FF${XL_NAVY}` } }
+
+    ws.mergeCells(2, 1, 2, nCols)
+    const sub = ws.getCell(2, 1)
+    sub.value = `Aula: ${sec.name}`
+    sub.font = { italic: true, size: 10, color: { argb: `FF${XL_NAVY}` } }
+    sub.alignment = { horizontal: "center" }
+    for (let c = 1; c <= nCols; c++) ws.getCell(2, c).fill = { type: "pattern", pattern: "solid", fgColor: { argb: `FF${XL_LIGHT}` } }
+    ws.getRow(3).height = 4
+
+    // Fila de labels de bimestre (merge de 4 columnas cada uno)
+    const bimRow = 4
+    ws.mergeCells(bimRow, 1, bimRow + 1, 1)
+    ws.getCell(bimRow, 1).value = "N°"
+    ws.mergeCells(bimRow, 2, bimRow + 1, 2)
+    ws.getCell(bimRow, 2).value = "Apellidos y nombres"
+    data.labels.forEach((label, bi) => {
+      const c0 = 3 + bi * 4
+      ws.mergeCells(bimRow, c0, bimRow, c0 + 3)
+      ws.getCell(bimRow, c0).value = label
+      const subHeaders = ["P", "T", "F", "%"]
+      subHeaders.forEach((h, hi) => { ws.getCell(bimRow + 1, c0 + hi).value = h })
+    })
+    ws.mergeCells(bimRow, nCols, bimRow + 1, nCols)
+    ws.getCell(bimRow, nCols).value = "% Total"
+
+    for (let r = bimRow; r <= bimRow + 1; r++) {
+      for (let c = 1; c <= nCols; c++) {
+        const cell = ws.getCell(r, c)
+        cell.font = { bold: true, size: 9, color: { argb: "FFFFFFFF" } }
+        cell.alignment = { horizontal: "center", vertical: "middle" }
+        cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: `FF${XL_BLUE}` } }
+      }
+    }
+    ws.getRow(bimRow).height = 18
+    ws.getRow(bimRow + 1).height = 18
+
+    sec.students.forEach((s, i) => {
+      const r = bimRow + 2 + i
+      ws.getCell(r, 1).value = i + 1
+      ws.getCell(r, 2).value = s.studentName
+      s.b.forEach((bc, bi) => {
+        const c0 = 3 + bi * 4
+        ws.getCell(r, c0).value = bc.present
+        ws.getCell(r, c0 + 1).value = bc.late
+        ws.getCell(r, c0 + 2).value = bc.absent
+        ws.getCell(r, c0 + 3).value = `${bc.pct}%`
+      })
+      ws.getCell(r, nCols).value = `${s.total.pct}%`
+      ws.getCell(r, nCols).font = { bold: true }
+
+      const zebra = i % 2 === 1
+      for (let c = 1; c <= nCols; c++) {
+        const cell = ws.getCell(r, c)
+        cell.border = { top: { style: "thin", color: { argb: "FFE5E7EB" } }, bottom: { style: "thin", color: { argb: "FFE5E7EB" } }, left: { style: "thin", color: { argb: "FFE5E7EB" } }, right: { style: "thin", color: { argb: "FFE5E7EB" } } }
+        if (zebra) cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF8FAFC" } }
+        if (c > 2) cell.alignment = { horizontal: "center" }
+      }
+    })
+
+    ws.getColumn(1).width = 5
+    ws.getColumn(2).width = 30
+    for (let i = 0; i < nBim * 4; i++) ws.getColumn(3 + i).width = 5.5
+    ws.getColumn(nCols).width = 9
   }
 
   function handleUploadFile(e: React.ChangeEvent<HTMLInputElement>) {
@@ -377,8 +455,8 @@ export default function AsistenciaPage() {
 
       {/* Tabs */}
       <div className="flex gap-2 mb-5 print:hidden flex-wrap">
-        {[{ k: "marcar", l: "Marcar asistencia" }, { k: "escaneo", l: "Escaneo QR" }, { k: "qr", l: "Códigos QR" }, { k: "reporte", l: "Reporte / Descargar" }].map(t => (
-          <button key={t.k} onClick={() => setTab(t.k as "marcar" | "qr" | "escaneo" | "reporte")}
+        {[{ k: "marcar", l: "Marcar asistencia" }, { k: "escaneo", l: "Escaneo QR" }, { k: "qr", l: "Códigos QR" }, { k: "historial", l: "Historial" }].map(t => (
+          <button key={t.k} onClick={() => setTab(t.k as "marcar" | "qr" | "escaneo" | "historial")}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${tab === t.k ? "bg-primary-500 text-white" : "border"}`}
             style={tab === t.k ? {} : { borderColor: "var(--border)", color: "var(--muted)" }}>
             {t.l}
@@ -387,7 +465,7 @@ export default function AsistenciaPage() {
       </div>
 
       {/* Controls */}
-      {tab !== "reporte" && (
+      {(tab === "marcar" || tab === "escaneo" || tab === "qr") && (
         <div className="flex flex-wrap gap-3 mb-5 print:hidden">
           <div>
             <label className="block text-xs font-medium mb-1" style={{ color: "var(--muted)" }}>Sección</label>
@@ -523,45 +601,66 @@ export default function AsistenciaPage() {
         </>
       )}
 
-      {/* REPORTE */}
-      {tab === "reporte" && (
+      {/* HISTORIAL */}
+      {tab === "historial" && (
         <div>
-          <p className="text-sm mb-4" style={{ color: "var(--muted)" }}>
-            Descarga la asistencia del mes en Excel con tu mismo formato: semanas, días L-M-M-J-V y columnas de resumen, una hoja por aula.
-          </p>
-          <div className="flex flex-wrap gap-3 mb-3">
-            <div>
-              <label className="block text-xs font-medium mb-1" style={{ color: "var(--muted)" }}>Mes</label>
-              <input type="month" value={reportMonth} onChange={e => setReportMonth(e.target.value)}
-                className="px-3 py-2 rounded-lg border text-sm outline-none focus:ring-2 focus:ring-primary-500"
-                style={{ background: "var(--surface)", borderColor: "var(--border)", color: "var(--fg)" }} />
-            </div>
+          {/* Selector de vista */}
+          <div className="flex gap-2 mb-4">
+            {[{ k: "semana", l: "Semana" }, { k: "mes", l: "Mes" }, { k: "bimestre", l: "Bimestre" }].map(o => (
+              <button key={o.k} onClick={() => setScope(o.k as "semana" | "mes" | "bimestre")}
+                className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-colors ${scope === o.k ? "bg-primary-500 text-white" : "border"}`}
+                style={scope === o.k ? {} : { borderColor: "var(--border)", color: "var(--muted)" }}>
+                {o.l}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex flex-wrap gap-3 items-end mb-5">
             <div>
               <label className="block text-xs font-medium mb-1" style={{ color: "var(--muted)" }}>Aula</label>
-              <select value={reportSectionId} onChange={e => setReportSectionId(e.target.value)}
+              <select value={histSectionId} onChange={e => setHistSectionId(e.target.value)}
                 className="px-3 py-2 rounded-lg border text-sm outline-none focus:ring-2 focus:ring-primary-500"
                 style={{ background: "var(--surface)", borderColor: "var(--border)", color: "var(--fg)" }}>
                 <option value="all">Todas las aulas</option>
                 {sections.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
               </select>
             </div>
-            <div className="flex items-end gap-2">
-              <button onClick={loadPreview} disabled={loadingPreview} className="px-4 py-2.5 rounded-lg border text-sm font-semibold hover:bg-primary-50 hover:text-primary-600 transition-colors disabled:opacity-60" style={{ borderColor: "var(--border)", color: "var(--fg)" }}>
-                {loadingPreview ? "Cargando..." : "👁 Ver en pantalla"}
-              </button>
-              <button onClick={downloadReport} disabled={downloading} className="px-5 py-2.5 rounded-lg bg-primary-500 text-white text-sm font-semibold hover:bg-primary-600 disabled:opacity-60">
-                {downloading ? "Generando..." : "⬇ Descargar Excel"}
-              </button>
-            </div>
+            {scope === "semana" && (
+              <div>
+                <label className="block text-xs font-medium mb-1" style={{ color: "var(--muted)" }}>Cualquier día de la semana</label>
+                <input type="date" value={weekAnchor} onChange={e => setWeekAnchor(e.target.value)}
+                  className="px-3 py-2 rounded-lg border text-sm outline-none focus:ring-2 focus:ring-primary-500"
+                  style={{ background: "var(--surface)", borderColor: "var(--border)", color: "var(--fg)" }} />
+              </div>
+            )}
+            {scope === "mes" && (
+              <div>
+                <label className="block text-xs font-medium mb-1" style={{ color: "var(--muted)" }}>Mes</label>
+                <input type="month" value={monthAnchor} onChange={e => setMonthAnchor(e.target.value)}
+                  className="px-3 py-2 rounded-lg border text-sm outline-none focus:ring-2 focus:ring-primary-500"
+                  style={{ background: "var(--surface)", borderColor: "var(--border)", color: "var(--fg)" }} />
+              </div>
+            )}
+            {scope === "bimestre" && (
+              <div>
+                <label className="block text-xs font-medium mb-1" style={{ color: "var(--muted)" }}>Año</label>
+                <input type="number" value={yearAnchor} onChange={e => setYearAnchor(parseInt(e.target.value) || yearAnchor)}
+                  className="w-24 px-3 py-2 rounded-lg border text-sm outline-none focus:ring-2 focus:ring-primary-500"
+                  style={{ background: "var(--surface)", borderColor: "var(--border)", color: "var(--fg)" }} />
+              </div>
+            )}
+            <button onClick={downloadExcel} disabled={downloading} className="px-5 py-2.5 rounded-lg bg-primary-500 text-white text-sm font-semibold hover:bg-primary-600 disabled:opacity-60">
+              {downloading ? "Generando..." : "⬇ Descargar Excel"}
+            </button>
           </div>
-          <p className="text-xs mb-4" style={{ color: "var(--muted)" }}>A = Asistió · T = Tarde · F = Falta · celda vacía = sin marcar ese día.</p>
 
-          {reportPreview && (
-            <div className="mb-8 space-y-6">
-              {reportPreview.sections.length === 0 && (
-                <p className="text-sm" style={{ color: "var(--muted)" }}>No hay alumnos para el filtro seleccionado.</p>
-              )}
-              {reportPreview.sections.map(sec => (
+          {loadingHist && <p className="text-center py-10 text-sm" style={{ color: "var(--muted)" }}>Cargando...</p>}
+
+          {/* Vista Semana / Mes */}
+          {!loadingHist && scope !== "bimestre" && vistaData && (
+            <div className="space-y-6">
+              {vistaData.sections.length === 0 && <p className="text-sm" style={{ color: "var(--muted)" }}>No hay alumnos para el filtro seleccionado.</p>}
+              {vistaData.sections.map(sec => (
                 <div key={sec.id} className="rounded-xl border overflow-hidden" style={{ borderColor: "var(--border)" }}>
                   <div className="px-4 py-2 text-sm font-bold" style={{ background: "var(--surface)", color: "var(--fg)" }}>{sec.name}</div>
                   <div className="overflow-x-auto">
@@ -569,28 +668,71 @@ export default function AsistenciaPage() {
                       <thead>
                         <tr style={{ background: "var(--surface)" }}>
                           <th className="px-2 py-1.5 text-left" style={{ color: "var(--muted)" }}>Alumno</th>
-                          {Array.from({ length: reportPreview.daysInMonth }, (_, i) => (
-                            <th key={i} className="px-1 py-1.5 text-center" style={{ color: "var(--muted)" }}>{i + 1}</th>
-                          ))}
+                          {vistaData.dates.map(d => <th key={d} className="px-1 py-1.5 text-center" style={{ color: "var(--muted)" }}>{fmtDate(d)}</th>)}
                           <th className="px-2 py-1.5 text-center" style={{ color: "var(--muted)" }}>%</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {sec.students.map((s, i) => {
-                          const pct = s.marked > 0 ? Math.round(((s.present + s.late) / s.marked) * 100) : 0
-                          return (
-                            <tr key={i} className="border-t" style={{ borderColor: "var(--border)" }}>
-                              <td className="px-2 py-1 whitespace-nowrap" style={{ color: "var(--fg)" }}>{s.studentName}</td>
-                              {Array.from({ length: reportPreview.daysInMonth }, (_, d) => {
-                                const st = s.days[d + 1]
-                                const abbr = STATUS_ABBR[st] ?? ""
-                                const color = st === "absent" ? "#dc2626" : st === "late" ? "#d97706" : st === "present" ? "#16a34a" : "var(--muted)"
-                                return <td key={d} className="px-1 py-1 text-center font-medium" style={{ color }}>{abbr}</td>
-                              })}
-                              <td className="px-2 py-1 text-center font-semibold" style={{ color: "var(--fg)" }}>{pct}%</td>
-                            </tr>
-                          )
-                        })}
+                        {sec.students.map((s) => (
+                          <tr key={s.studentId} className="border-t" style={{ borderColor: "var(--border)" }}>
+                            <td className="px-2 py-1 whitespace-nowrap" style={{ color: "var(--fg)" }}>{s.studentName}</td>
+                            {vistaData.dates.map(d => {
+                              const st = s.marks[d]
+                              return <td key={d} className="px-1 py-1 text-center font-medium" style={{ color: st ? STATUS_COLOR[st] : "var(--muted)" }}>{STATUS_ABBR[st] ?? ""}</td>
+                            })}
+                            <td className="px-2 py-1 text-center font-semibold" style={{ color: "var(--fg)" }}>{s.pct}%</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              ))}
+              <p className="text-xs" style={{ color: "var(--muted)" }}>A = Asistió · T = Tarde · F = Falta · celda vacía = sin marcar ese día.</p>
+            </div>
+          )}
+
+          {/* Vista Bimestre */}
+          {!loadingHist && scope === "bimestre" && bimestreData && (
+            <div className="space-y-6">
+              {bimestreData.sections.length === 0 && <p className="text-sm" style={{ color: "var(--muted)" }}>No hay alumnos para el filtro seleccionado.</p>}
+              {bimestreData.sections.map(sec => (
+                <div key={sec.id} className="rounded-xl border overflow-hidden" style={{ borderColor: "var(--border)" }}>
+                  <div className="px-4 py-2 text-sm font-bold" style={{ background: "var(--surface)", color: "var(--fg)" }}>{sec.name}</div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs">
+                      <thead>
+                        <tr style={{ background: "var(--surface)" }}>
+                          <th className="px-2 py-1.5 text-left" style={{ color: "var(--muted)" }} rowSpan={2}>Alumno</th>
+                          {bimestreData.labels.map(l => <th key={l} className="px-2 py-1 text-center border-l" style={{ color: "var(--muted)", borderColor: "var(--border)" }} colSpan={4}>{l}</th>)}
+                          <th className="px-2 py-1.5 text-center border-l" style={{ color: "var(--muted)", borderColor: "var(--border)" }} rowSpan={2}>% Total</th>
+                        </tr>
+                        <tr style={{ background: "var(--surface)" }}>
+                          {bimestreData.labels.map(l => (
+                            <>
+                              <th key={l + "p"} className="px-1 py-1 text-center border-l text-green-600" style={{ borderColor: "var(--border)" }}>P</th>
+                              <th key={l + "t"} className="px-1 py-1 text-center text-amber-600">T</th>
+                              <th key={l + "f"} className="px-1 py-1 text-center text-red-600">F</th>
+                              <th key={l + "%"} className="px-1 py-1 text-center" style={{ color: "var(--muted)" }}>%</th>
+                            </>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {sec.students.map((s) => (
+                          <tr key={s.studentId} className="border-t" style={{ borderColor: "var(--border)" }}>
+                            <td className="px-2 py-1 whitespace-nowrap" style={{ color: "var(--fg)" }}>{s.studentName}</td>
+                            {s.b.map((bc, bi) => (
+                              <>
+                                <td key={bi + "p"} className="px-1 py-1 text-center border-l text-green-600 font-medium" style={{ borderColor: "var(--border)" }}>{bc.present}</td>
+                                <td key={bi + "t"} className="px-1 py-1 text-center text-amber-600 font-medium">{bc.late}</td>
+                                <td key={bi + "f"} className="px-1 py-1 text-center text-red-600 font-medium">{bc.absent}</td>
+                                <td key={bi + "%"} className="px-1 py-1 text-center" style={{ color: "var(--muted)" }}>{bc.pct}%</td>
+                              </>
+                            ))}
+                            <td className="px-2 py-1 text-center font-bold border-l" style={{ color: "var(--fg)", borderColor: "var(--border)" }}>{s.total.pct}%</td>
+                          </tr>
+                        ))}
                       </tbody>
                     </table>
                   </div>
@@ -599,77 +741,10 @@ export default function AsistenciaPage() {
             </div>
           )}
 
-          <div className="rounded-xl border p-5 mb-6" style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
-            <h3 className="text-sm font-bold mb-1" style={{ color: "var(--fg)" }}>Historial / Consolidado anual</h3>
-            <p className="text-sm mb-4" style={{ color: "var(--muted)" }}>
-              Totales de asistencia del año completo por alumno — para ver el historial acumulado en cualquier momento, sin depender del Excel.
-            </p>
-            <div className="flex flex-wrap gap-3 items-end mb-3">
-              <div>
-                <label className="block text-xs font-medium mb-1" style={{ color: "var(--muted)" }}>Año</label>
-                <input type="number" value={consolidadoYear} onChange={e => setConsolidadoYear(parseInt(e.target.value) || consolidadoYear)}
-                  className="w-24 px-3 py-2 rounded-lg border text-sm outline-none focus:ring-2 focus:ring-primary-500"
-                  style={{ background: "var(--bg)", borderColor: "var(--border)", color: "var(--fg)" }} />
-              </div>
-              <div>
-                <label className="block text-xs font-medium mb-1" style={{ color: "var(--muted)" }}>Aula</label>
-                <select value={consolidadoSectionId} onChange={e => setConsolidadoSectionId(e.target.value)}
-                  className="px-3 py-2 rounded-lg border text-sm outline-none focus:ring-2 focus:ring-primary-500"
-                  style={{ background: "var(--bg)", borderColor: "var(--border)", color: "var(--fg)" }}>
-                  <option value="all">Todas las aulas</option>
-                  {sections.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                </select>
-              </div>
-              <button onClick={loadConsolidado} disabled={loadingConsolidado} className="px-4 py-2.5 rounded-lg border text-sm font-semibold hover:bg-primary-50 hover:text-primary-600 transition-colors disabled:opacity-60" style={{ borderColor: "var(--border)", color: "var(--fg)" }}>
-                {loadingConsolidado ? "Cargando..." : "👁 Ver consolidado"}
-              </button>
-              <button onClick={downloadConsolidado} disabled={downloadingConsolidado} className="px-4 py-2.5 rounded-lg bg-primary-500 text-white text-sm font-semibold hover:bg-primary-600 disabled:opacity-60">
-                {downloadingConsolidado ? "Generando..." : "⬇ Descargar Excel"}
-              </button>
-            </div>
-
-            {consolidadoData && (
-              <div className="space-y-6 mt-4">
-                {consolidadoData.sections.length === 0 && (
-                  <p className="text-sm" style={{ color: "var(--muted)" }}>No hay alumnos para el filtro seleccionado.</p>
-                )}
-                {consolidadoData.sections.map(sec => (
-                  <div key={sec.id} className="rounded-xl border overflow-hidden" style={{ borderColor: "var(--border)" }}>
-                    <div className="px-4 py-2 text-sm font-bold" style={{ background: "var(--bg)", color: "var(--fg)" }}>{sec.name}</div>
-                    <table className="w-full text-xs">
-                      <thead>
-                        <tr style={{ background: "var(--bg)" }}>
-                          <th className="px-3 py-1.5 text-left" style={{ color: "var(--muted)" }}>#</th>
-                          <th className="px-3 py-1.5 text-left" style={{ color: "var(--muted)" }}>Alumno</th>
-                          <th className="px-3 py-1.5 text-center text-green-600">Presente</th>
-                          <th className="px-3 py-1.5 text-center text-amber-600">Tarde</th>
-                          <th className="px-3 py-1.5 text-center text-red-600">Ausente</th>
-                          <th className="px-3 py-1.5 text-center" style={{ color: "var(--muted)" }}>% Asistencia</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {sec.students.map((s, i) => (
-                          <tr key={s.studentId} className="border-t" style={{ borderColor: "var(--border)" }}>
-                            <td className="px-3 py-1.5" style={{ color: "var(--muted)" }}>{i + 1}</td>
-                            <td className="px-3 py-1.5" style={{ color: "var(--fg)" }}>{s.studentName}</td>
-                            <td className="px-3 py-1.5 text-center font-semibold text-green-600">{s.present}</td>
-                            <td className="px-3 py-1.5 text-center font-semibold text-amber-600">{s.late}</td>
-                            <td className="px-3 py-1.5 text-center font-semibold text-red-600">{s.absent}</td>
-                            <td className="px-3 py-1.5 text-center font-bold" style={{ color: "var(--fg)" }}>{s.pct}%</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className="rounded-xl border p-5" style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
+          <div className="rounded-xl border p-5 mt-8" style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
             <h3 className="text-sm font-bold mb-1" style={{ color: "var(--fg)" }}>Cargar tu plantilla de asistencia</h3>
             <p className="text-sm mb-4" style={{ color: "var(--muted)" }}>
-              Sube un Excel con tu propio formato (como &quot;REGISTRO ASISTENCIA-2026 CR.xlsx&quot;). Detecta automáticamente todos los meses que tenga la hoja y registra la asistencia de cada alumno del aula que elijas.
+              Sube un Excel con tu propio formato. Detecta automáticamente todos los meses que tenga la hoja y registra la asistencia de cada alumno del aula que elijas.
             </p>
             <div className="flex flex-wrap gap-3 items-end mb-3">
               <div>
