@@ -450,8 +450,8 @@ export default function AsistenciaPage() {
       {toast && <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-lg bg-green-500 text-white text-sm font-medium shadow-lg">{toast}</div>}
 
       <div className="print:hidden"><BackButton href="/dashboard/academico" /></div>
-      <h1 className="text-2xl font-bold mb-2" style={{ color: "var(--fg)" }}>Asistencia</h1>
-      <p className="text-sm mb-5" style={{ color: "var(--muted)" }}>Control diario, escaneo QR con ingreso/salida y notificación al apoderado</p>
+      <h1 className="text-2xl font-bold mb-2 print:hidden" style={{ color: "var(--fg)" }}>Asistencia</h1>
+      <p className="text-sm mb-5 print:hidden" style={{ color: "var(--muted)" }}>Control diario, escaneo QR con ingreso/salida y notificación al apoderado</p>
 
       {/* Tabs */}
       <div className="flex gap-2 mb-5 print:hidden flex-wrap">
@@ -590,9 +590,9 @@ export default function AsistenciaPage() {
               Imprimir
             </button>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 print:grid-cols-3 gap-4 print:gap-2">
             {qrRows.map(q => (
-              <div key={q.studentId} className="rounded-xl border p-3 flex flex-col items-center text-center" style={{ background: "white", borderColor: "var(--border)" }}>
+              <div key={q.studentId} className="rounded-xl border p-3 flex flex-col items-center text-center print:border-0 print:break-inside-avoid" style={{ background: "white", borderColor: "var(--border)" }}>
                 <QRCodeSVG value={q.qrData} size={110} level="M" />
                 <p className="text-xs font-medium mt-2 text-black">{q.studentName}</p>
               </div>

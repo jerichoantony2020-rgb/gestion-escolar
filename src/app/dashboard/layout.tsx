@@ -11,9 +11,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
   return (
     <SessionProvider session={session}>
       <div className="dash-bg">
-        <Dock />
+        <div className="print:hidden"><Dock /></div>
         {/* Offset: mobile top bar + bottom dock; desktop top nav */}
-        <div className="pt-12 pb-24 md:pt-14 md:pb-0">
+        <div className="pt-12 pb-24 md:pt-14 md:pb-0 print:pt-0 print:pb-0">
           {children}
         </div>
       </div>

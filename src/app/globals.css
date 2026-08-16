@@ -62,6 +62,13 @@
   min-height: 100vh;
 }
 
+/* ── Impresión: solo el contenido marcado para imprimir, sin fondos ni sombras ── */
+@media print {
+  @page { margin: 10mm; }
+  .dash-bg { background: none; min-height: 0; }
+  * { box-shadow: none !important; }
+}
+
 html {
   scroll-behavior: smooth;
 }
