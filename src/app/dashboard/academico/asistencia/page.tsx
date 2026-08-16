@@ -590,11 +590,11 @@ export default function AsistenciaPage() {
               Imprimir
             </button>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 print:grid-cols-3 gap-4 print:gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-3 print:grid-cols-2 gap-4 print:gap-3">
             {qrRows.map(q => (
-              <div key={q.studentId} className="rounded-xl border p-3 flex flex-col items-center text-center print:border-0 print:break-inside-avoid" style={{ background: "white", borderColor: "var(--border)" }}>
-                <QRCodeSVG value={q.qrData} size={110} level="M" />
-                <p className="text-xs font-medium mt-2 text-black">{q.studentName}</p>
+              <div key={q.studentId} className="rounded-xl border p-4 flex flex-col items-center text-center print:border-0 print:break-inside-avoid" style={{ background: "white", borderColor: "var(--border)" }}>
+                <QRCodeSVG value={q.qrData} size={180} level="M" />
+                <p className="text-sm font-semibold mt-2 text-black">{q.studentName}</p>
               </div>
             ))}
           </div>
