@@ -83,10 +83,13 @@ export default function DirectorDashboard({ session }: { session: Session | null
           background: "radial-gradient(circle at 88% 18%, rgba(240,200,0,.14), transparent 45%), radial-gradient(circle at 70% 120%, rgba(71,181,232,.16), transparent 50%)",
         }} />
         <div style={{ position: "relative" }}>
-          <h1 style={{ fontSize: "clamp(24px,3.2vw,34px)", fontWeight: 800, color: "#FFFFFF", margin: "0 0 8px", lineHeight: 1.1, letterSpacing: "-0.02em" }}>
+          {/* El saludo y la fecha dependen de la hora local: el servidor (UTC) y el
+              navegador (Perú) producen textos distintos, así que se marcan como
+              contenido que sólo el cliente resuelve. */}
+          <h1 suppressHydrationWarning style={{ fontSize: "clamp(24px,3.2vw,34px)", fontWeight: 800, color: "#FFFFFF", margin: "0 0 8px", lineHeight: 1.1, letterSpacing: "-0.02em" }}>
             {greeting()}, {name}
           </h1>
-          <p style={{ fontSize: 14, color: "rgba(255,255,255,0.68)", margin: 0 }}>
+          <p suppressHydrationWarning style={{ fontSize: 14, color: "rgba(255,255,255,0.68)", margin: 0 }}>
             {new Date().toLocaleDateString("es-PE", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
           </p>
         </div>
