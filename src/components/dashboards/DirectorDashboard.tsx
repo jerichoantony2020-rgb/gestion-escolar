@@ -2,6 +2,7 @@
 
 import type { Session } from "next-auth"
 import Link from "next/link"
+import ModulesOrbit from "./ModulesOrbit"
 
 const stats = [
   { label: "Estudiantes",    icon: "👩‍🎓", href: "/dashboard/admin/alumnos",            accent: "#1A33CC", bg: "#EEF2FF" },
@@ -14,6 +15,7 @@ const modules = [
   { href: "/dashboard/academico",  label: "Académico",   icon: "📚", desc: "Notas, asistencia y conducta", accent: "#1A33CC", bg: "#EEF2FF",   border: "#C7D2FE" },
   { href: "/dashboard/finanzas",   label: "Finanzas",    icon: "💰", desc: "Pagos y recaudación",          accent: "#B45309", bg: "#FFFBEB",   border: "#FDE68A", requirePayments: true },
   { href: "/dashboard/medico",     label: "Médico",      icon: "🏥", desc: "Fichas de salud",              accent: "#0369A1", bg: "#E0F2FE",   border: "#BAE6FD" },
+  { href: "/dashboard/psicologia", label: "Psicología",  icon: "🧠", desc: "Casos y seguimiento",           accent: "#BE185D", bg: "#FCE7F3",   border: "#FBCFE8" },
   { href: "/dashboard/biblioteca", label: "Biblioteca",  icon: "📖", desc: "Plan lector",                  accent: "#6D28D9", bg: "#EDE9FE",   border: "#DDD6FE" },
   { href: "/dashboard/admin",      label: "Administrar", icon: "⚙️", desc: "Usuarios, grados y config",   accent: "#0D1E3A", bg: "#F1F5F9",   border: "#CBD5E1" },
   { href: "/dashboard/analitica",  label: "Analítica",   icon: "📊", desc: "Reportes e indicadores",       accent: "#15803D", bg: "#DCFCE7",   border: "#A7F3D0" },
@@ -106,45 +108,10 @@ export default function DirectorDashboard({ session }: { session: Session | null
 
       {/* ── Módulos ── */}
       <div>
-        <h2 style={{ fontSize:11, fontWeight:700, letterSpacing:"0.18em", color:"#8A9ABB", textTransform:"uppercase", marginBottom:16 }}>
+        <h2 style={{ fontSize:11, fontWeight:700, letterSpacing:"0.18em", color:"#8A9ABB", textTransform:"uppercase", marginBottom:16, textAlign:"center" }}>
           Módulos del sistema
         </h2>
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(240px,1fr))", gap:16 }}>
-          {modules
-            .filter((m) => !m.requirePayments || canViewPayments)
-            .map((m) => (
-              <Link key={m.href} href={m.href} style={{ textDecoration:"none" }}>
-                <div style={{
-                  background: "#FFFFFF",
-                  borderRadius: 16,
-                  padding: "24px",
-                  border: `1px solid ${m.border}`,
-                  boxShadow: "0 1px 4px rgba(13,30,58,0.05), 0 4px 12px rgba(13,30,58,0.04)",
-                  transition: "transform .18s, box-shadow .18s",
-                  cursor: "pointer",
-                  position:"relative",
-                  overflow:"hidden",
-                }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(-3px)"; (e.currentTarget as HTMLElement).style.boxShadow = `0 8px 28px rgba(13,30,58,0.13)` }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = ""; (e.currentTarget as HTMLElement).style.boxShadow = "0 1px 4px rgba(13,30,58,0.05), 0 4px 12px rgba(13,30,58,0.04)" }}
-                >
-                  {/* Color top bar */}
-                  <div style={{ position:"absolute", top:0, left:0, right:0, height:4, background:m.accent, borderRadius:"16px 16px 0 0" }} />
-
-                  <div style={{ width:44, height:44, borderRadius:12, background:m.bg, display:"flex", alignItems:"center", justifyContent:"center", fontSize:22, marginBottom:16 }}>
-                    {m.icon}
-                  </div>
-                  <div style={{ fontWeight:700, fontSize:15, color:"#0D1E3A", marginBottom:6 }}>{m.label}</div>
-                  <div style={{ fontSize:12, color:"#8A9ABB", lineHeight:1.5 }}>{m.desc}</div>
-
-                  {/* Arrow */}
-                  <div style={{ position:"absolute", bottom:20, right:20, width:28, height:28, borderRadius:8, background:m.bg, display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, color:m.accent, fontWeight:700 }}>
-                    →
-                  </div>
-                </div>
-              </Link>
-            ))}
-        </div>
+        <ModulesOrbit modules={modules.filter((m) => !m.requirePayments || canViewPayments)} />
       </div>
 
       {/* ── Acceso rápido ── */}

@@ -69,6 +69,38 @@
   * { box-shadow: none !important; }
 }
 
+/* ── Órbita de módulos (dashboard) ── */
+@keyframes orbit-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.orbit-ring-spin { animation: orbit-spin 70s linear infinite; }
+
+@keyframes orbit-fade { from { opacity: 0; } to { opacity: 1; } }
+.orbit-fade-in { animation: orbit-fade .6s ease both; }
+
+@keyframes orbit-pop { from { opacity: 0; transform: scale(.5); } to { opacity: 1; transform: scale(1); } }
+.orbit-node-in { animation: orbit-pop .5s cubic-bezier(.22,1,.36,1) both; }
+
+.orbit-node {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  width: clamp(84px, 10vw, 112px);
+}
+.orbit-node-circle {
+  width: clamp(64px, 7.5vw, 84px);
+  height: clamp(64px, 7.5vw, 84px);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  transition: transform .25s ease, box-shadow .25s ease;
+}
+.orbit-node-label {
+  font-size: 12px; font-weight: 700; text-align: center; line-height: 1.25;
+  opacity: .82; transition: opacity .2s ease;
+}
+.orbit-node:hover .orbit-node-circle { transform: translateY(-5px) scale(1.08); box-shadow: 0 12px 28px rgba(13,30,58,0.2) !important; }
+.orbit-node:hover .orbit-node-label { opacity: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  .orbit-ring-spin, .orbit-fade-in, .orbit-node-in { animation: none !important; }
+}
+
 html {
   scroll-behavior: smooth;
 }
