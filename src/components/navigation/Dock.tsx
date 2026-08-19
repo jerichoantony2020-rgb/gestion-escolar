@@ -3,24 +3,25 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useSession, signOut } from "next-auth/react"
+import { MODULE_ICONS, type IconName } from "@/components/icons"
 
 interface DockItem {
   href: string
   label: string
-  icon: string
+  icon: IconName
   roles?: string[]
   requirePayments?: boolean
 }
 
 const items: DockItem[] = [
-  { href: "/dashboard",            label: "Inicio",      icon: "🏠" },
-  { href: "/dashboard/academico",  label: "Académico",   icon: "📚", roles: ["director", "docente", "coordinador"] },
-  { href: "/dashboard/portal",     label: "Portal",      icon: "👨‍👩‍👧", roles: ["padre"] },
-  { href: "/dashboard/finanzas",   label: "Finanzas",    icon: "💰", requirePayments: true },
-  { href: "/dashboard/medico",      label: "Médico",      icon: "🏥", roles: ["director", "coordinador", "enfermera"] },
-  { href: "/dashboard/psicologia", label: "Psicología",  icon: "🧠", roles: ["director", "coordinador", "psicologo", "docente"] },
-  { href: "/dashboard/biblioteca", label: "Biblioteca",  icon: "📖", roles: ["director", "coordinador", "docente", "enfermera", "admin"] },
-  { href: "/dashboard/admin",      label: "Admin",       icon: "⚙️", roles: ["director", "admin"] },
+  { href: "/dashboard",            label: "Inicio",      icon: "inicio" },
+  { href: "/dashboard/academico",  label: "Académico",   icon: "academico",  roles: ["director", "docente", "coordinador"] },
+  { href: "/dashboard/portal",     label: "Portal",      icon: "portal",     roles: ["padre"] },
+  { href: "/dashboard/finanzas",   label: "Finanzas",    icon: "finanzas",   requirePayments: true },
+  { href: "/dashboard/medico",     label: "Médico",      icon: "medico",     roles: ["director", "coordinador", "enfermera"] },
+  { href: "/dashboard/psicologia", label: "Psicología",  icon: "psicologia", roles: ["director", "coordinador", "psicologo", "docente"] },
+  { href: "/dashboard/biblioteca", label: "Biblioteca",  icon: "biblioteca", roles: ["director", "coordinador", "docente", "enfermera", "admin"] },
+  { href: "/dashboard/admin",      label: "Admin",       icon: "admin",      roles: ["director", "admin"] },
 ]
 
 export default function Dock() {
@@ -68,10 +69,12 @@ export default function Dock() {
 
         {visible.map((item) => {
           const active = pathname === item.href || pathname.startsWith(item.href + "/")
+          const Icon = MODULE_ICONS[item.icon]
           return (
             <Link
               key={item.href}
               href={item.href}
+              aria-current={active ? "page" : undefined}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all"
               style={active
                 ? { background: "#0D1E3A", color: "#FFFFFF", boxShadow: "0 2px 8px rgba(13,30,58,0.25)" }
@@ -80,7 +83,7 @@ export default function Dock() {
               onMouseEnter={e => { if (!active) (e.currentTarget as HTMLElement).style.background = "#EEF2FF" }}
               onMouseLeave={e => { if (!active) (e.currentTarget as HTMLElement).style.background = "" }}
             >
-              <span className="text-base leading-none">{item.icon}</span>
+              <Icon size={17} />
               <span>{item.label}</span>
             </Link>
           )
@@ -149,17 +152,19 @@ export default function Dock() {
       >
         {visible.slice(0, 5).map((item) => {
           const active = pathname === item.href || pathname.startsWith(item.href + "/")
+          const Icon = MODULE_ICONS[item.icon]
           return (
             <Link
               key={item.href}
               href={item.href}
-              className="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all"
+              aria-current={active ? "page" : undefined}
+              className="flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl transition-all"
               style={active
                 ? { background: "#EEF2FF", color: "#1A33CC" }
                 : { color: "#8A9ABB" }
               }
             >
-              <span className="text-xl leading-none">{item.icon}</span>
+              <Icon size={21} />
               <span style={{ fontSize: 10, fontWeight: 600 }}>{item.label}</span>
             </Link>
           )

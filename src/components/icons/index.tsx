@@ -138,6 +138,22 @@ export const IconActividad = (p: IconProps) => (
   </Svg>
 )
 
+export const IconInicio = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M3.5 10.4 12 3.5l8.5 6.9v8.4a1.6 1.6 0 0 1-1.6 1.6H5.1a1.6 1.6 0 0 1-1.6-1.6Z" />
+    <path d="M9.5 20.4v-6.1h5v6.1" />
+  </Svg>
+)
+
+export const IconPortal = (p: IconProps) => (
+  <Svg {...p}>
+    <rect x="3" y="4.6" width="18" height="14.8" rx="2.4" />
+    <circle cx="9" cy="10.6" r="2.2" />
+    <path d="M5.4 16.4a4 4 0 0 1 7.2 0" />
+    <path d="M15.6 9.6H19M15.6 13.2H19" />
+  </Svg>
+)
+
 export const IconGlobo = (p: IconProps) => (
   <Svg {...p}>
     <circle cx="12" cy="12" r="8.5" />
@@ -152,6 +168,7 @@ export type IconName =
   | "academico" | "finanzas" | "medico" | "psicologia" | "biblioteca"
   | "admin" | "analitica" | "estudiantes" | "docentes" | "secciones"
   | "asistencia" | "tomarAsistencia" | "noticia" | "actividad" | "globo"
+  | "inicio" | "portal"
 
 export const MODULE_ICONS: Record<IconName, IconComponent> = {
   academico: IconAcademico,
@@ -169,4 +186,6 @@ export const MODULE_ICONS: Record<IconName, IconComponent> = {
   noticia: IconNoticia,
   actividad: IconActividad,
   globo: IconGlobo,
+  inicio: IconInicio,
+  portal: IconPortal,
 }

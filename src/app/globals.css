@@ -130,13 +130,15 @@
 .orbit-slot { position: absolute; top: 50%; left: 50%; transform-origin: 0 0; z-index: 3; }
 .orbit-enter { animation: orbit-enter .5s cubic-bezier(.22,1,.36,1) both; }
 
+/* La caja del nodo es exactamente el círculo, para que el centrado
+   translate(-50%,-50%) lo deje sobre la circunferencia real. La etiqueta
+   cuelga por fuera del flujo y no desplaza ese centro. */
 .orbit-node {
-  display: flex; flex-direction: column; align-items: center; gap: 9px;
-  width: clamp(92px, 11vw, 120px);
-  text-decoration: none; outline: none;
+  position: relative; display: block; outline: none; text-decoration: none;
+  width: clamp(60px, 7vw, 78px); height: clamp(60px, 7vw, 78px);
 }
 .orbit-node-circle {
-  width: clamp(60px, 7vw, 78px); height: clamp(60px, 7vw, 78px);
+  width: 100%; height: 100%;
   border-radius: 50%; display: grid; place-items: center;
   color: var(--accent);
   background: linear-gradient(160deg, #FFFFFF 0%, var(--soft) 135%);
@@ -148,6 +150,8 @@
 }
 .orbit-node-icon { width: clamp(25px, 2.8vw, 31px); height: clamp(25px, 2.8vw, 31px); }
 .orbit-node-label {
+  position: absolute; top: calc(100% + 9px); left: 50%; transform: translateX(-50%);
+  width: clamp(96px, 11vw, 124px);
   font-size: 12.5px; font-weight: 650; line-height: 1.25; text-align: center;
   letter-spacing: -.005em; color: #31406B;
   transition: color .2s ease;
