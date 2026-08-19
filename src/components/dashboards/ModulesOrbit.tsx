@@ -76,30 +76,33 @@ export default function ModulesOrbit({ modules }: { modules: OrbitModule[] }) {
         {modules.map((m, i) => {
           const angle = (360 / n) * i - 90
           return (
+            // Capa 1: posiciona el nodo en la órbita (rotar + empujar hacia afuera). Sin animación aquí.
             <div
               key={m.href}
-              className="orbit-node-in"
               style={{
                 position: "absolute", top: "50%", left: "50%",
                 transformOrigin: "0 0",
                 transform: `rotate(${angle}deg) translateX(var(--r))`,
-                animationDelay: `${i * 70}ms`,
                 zIndex: 3,
               }}
             >
+              {/* Capa 2: contrarrota para que el contenido quede derecho, y centra sobre el punto. */}
               <div style={{ transform: `translate(-50%,-50%) rotate(${-angle}deg)` }}>
-                <Link href={m.href} className="orbit-node group" style={{ textDecoration: "none" }}>
-                  <div
-                    className="orbit-node-circle"
-                    style={{
-                      background: `linear-gradient(155deg, #FFFFFF 0%, ${m.bg} 100%)`,
-                      boxShadow: `0 2px 8px rgba(13,30,58,0.08), 0 0 0 1px ${m.accent}22`,
-                    }}
-                  >
-                    <span style={{ fontSize: "clamp(20px,2.4vw,26px)" }}>{m.icon}</span>
-                  </div>
-                  <span className="orbit-node-label" style={{ color: "#0D1E3A" }}>{m.label}</span>
-                </Link>
+                {/* Capa 3: animación de aparición (scale/opacity) — separada para no pisar las capas 1-2. */}
+                <div className="orbit-node-in" style={{ animationDelay: `${i * 70}ms` }}>
+                  <Link href={m.href} className="orbit-node group" style={{ textDecoration: "none" }}>
+                    <div
+                      className="orbit-node-circle"
+                      style={{
+                        background: `linear-gradient(155deg, #FFFFFF 0%, ${m.bg} 100%)`,
+                        boxShadow: `0 2px 8px rgba(13,30,58,0.08), 0 0 0 1px ${m.accent}22`,
+                      }}
+                    >
+                      <span style={{ fontSize: "clamp(20px,2.4vw,26px)" }}>{m.icon}</span>
+                    </div>
+                    <span className="orbit-node-label" style={{ color: "#0D1E3A" }}>{m.label}</span>
+                  </Link>
+                </div>
               </div>
             </div>
           )
