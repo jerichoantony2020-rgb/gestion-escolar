@@ -69,36 +69,165 @@
   * { box-shadow: none !important; }
 }
 
-/* ── Órbita de módulos (dashboard) ── */
+/* ── Superficies del navegador: que también lleven el diseño ── */
+::selection { background: rgba(26,51,204,0.16); color: #0D1E3A; }
+
+/* ── Órbita de módulos (dashboard) ─────────────────────────────────────────
+   Un dial de instrumento: marcas finas en el borde, radios que salen del
+   núcleo y los módulos posados sobre la circunferencia.                    */
+
 @keyframes orbit-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-.orbit-ring-spin { animation: orbit-spin 70s linear infinite; }
-
 @keyframes orbit-fade { from { opacity: 0; } to { opacity: 1; } }
-.orbit-fade-in { animation: orbit-fade .6s ease both; }
+@keyframes orbit-enter { from { opacity: 0; transform: scale(.72); } to { opacity: 1; transform: none; } }
 
-@keyframes orbit-pop { from { opacity: 0; transform: scale(.5); } to { opacity: 1; transform: scale(1); } }
-.orbit-node-in { animation: orbit-pop .5s cubic-bezier(.22,1,.36,1) both; }
+.orbit-stage { animation: orbit-fade .55s ease both; }
+
+/* Halo suave que despega la órbita del fondo */
+.orbit-stage::before {
+  content: ""; position: absolute; inset: 6%; border-radius: 50%;
+  background: radial-gradient(circle at 50% 46%, rgba(255,255,255,.92), rgba(255,255,255,0) 68%);
+  pointer-events: none;
+}
+
+/* Dial: 60 marcas finas sobre el borde exterior */
+.orbit-dial {
+  position: absolute; inset: 0; border-radius: 50%;
+  background: repeating-conic-gradient(from -90deg,
+    rgba(26,51,204,.32) 0deg .3deg, rgba(26,51,204,0) .3deg 6deg);
+  -webkit-mask: radial-gradient(closest-side, transparent calc(100% - 9px), #000 calc(100% - 9px));
+  mask: radial-gradient(closest-side, transparent calc(100% - 9px), #000 calc(100% - 9px));
+  animation: orbit-spin 120s linear infinite;
+  pointer-events: none;
+}
+
+.orbit-inner-ring {
+  position: absolute; inset: 15%; border-radius: 50%;
+  border: 1px solid rgba(26,51,204,.10);
+  pointer-events: none;
+}
+
+.orbit-spoke {
+  position: absolute; top: 50%; left: 50%;
+  width: var(--r); height: 1px;
+  transform-origin: 0 0;
+  pointer-events: none;
+}
+
+.orbit-hub {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+  width: clamp(100px, 12vw, 132px); height: clamp(100px, 12vw, 132px);
+  border-radius: 50%; display: grid; place-items: center; z-index: 2;
+  background: radial-gradient(circle, rgba(26,51,204,.12), rgba(26,51,204,0) 70%);
+}
+.orbit-hub-core {
+  width: 76%; height: 76%; border-radius: 50%;
+  background: linear-gradient(150deg, #16306B 0%, #0D1E3A 45%, #1A33CC 100%);
+  display: grid; place-items: center;
+  box-shadow: 0 10px 30px rgba(13,30,58,.30), inset 0 1px 0 rgba(255,255,255,.18);
+}
+.orbit-hub-logo { width: 52%; height: 52%; object-fit: contain; }
+
+.orbit-slot { position: absolute; top: 50%; left: 50%; transform-origin: 0 0; z-index: 3; }
+.orbit-enter { animation: orbit-enter .5s cubic-bezier(.22,1,.36,1) both; }
 
 .orbit-node {
-  display: flex; flex-direction: column; align-items: center; gap: 8px;
-  width: clamp(84px, 10vw, 112px);
+  display: flex; flex-direction: column; align-items: center; gap: 9px;
+  width: clamp(92px, 11vw, 120px);
+  text-decoration: none; outline: none;
 }
 .orbit-node-circle {
-  width: clamp(64px, 7.5vw, 84px);
-  height: clamp(64px, 7.5vw, 84px);
-  border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  transition: transform .25s ease, box-shadow .25s ease;
+  width: clamp(60px, 7vw, 78px); height: clamp(60px, 7vw, 78px);
+  border-radius: 50%; display: grid; place-items: center;
+  color: var(--accent);
+  background: linear-gradient(160deg, #FFFFFF 0%, var(--soft) 135%);
+  box-shadow:
+    0 1px 2px rgba(13,30,58,.10),
+    0 6px 18px rgba(13,30,58,.10),
+    inset 0 0 0 1px var(--ring);
+  transition: transform .28s cubic-bezier(.22,1,.36,1), box-shadow .28s ease;
 }
+.orbit-node-icon { width: clamp(25px, 2.8vw, 31px); height: clamp(25px, 2.8vw, 31px); }
 .orbit-node-label {
-  font-size: 12px; font-weight: 700; text-align: center; line-height: 1.25;
-  opacity: .82; transition: opacity .2s ease;
+  font-size: 12.5px; font-weight: 650; line-height: 1.25; text-align: center;
+  letter-spacing: -.005em; color: #31406B;
+  transition: color .2s ease;
 }
-.orbit-node:hover .orbit-node-circle { transform: translateY(-5px) scale(1.08); box-shadow: 0 12px 28px rgba(13,30,58,0.2) !important; }
-.orbit-node:hover .orbit-node-label { opacity: 1; }
+.orbit-node:hover .orbit-node-circle,
+.orbit-node:focus-visible .orbit-node-circle {
+  transform: translateY(-6px);
+  box-shadow:
+    0 2px 4px rgba(13,30,58,.10),
+    0 16px 34px var(--glow),
+    inset 0 0 0 1.5px var(--accent);
+}
+.orbit-node:hover .orbit-node-label,
+.orbit-node:focus-visible .orbit-node-label { color: #0D1E3A; }
+.orbit-node:focus-visible .orbit-node-circle { outline: 2px solid var(--accent); outline-offset: 4px; }
+.orbit-node:active .orbit-node-circle { transform: translateY(-2px) scale(.97); }
+
+/* Móvil */
+.orbit-tile {
+  display: flex; flex-direction: column; gap: 6px;
+  padding: 14px; border-radius: 16px; background: #FFFFFF;
+  border: 1px solid var(--ring); text-decoration: none;
+  box-shadow: 0 1px 3px rgba(13,30,58,.06);
+  transition: transform .15s ease;
+}
+.orbit-tile:active { transform: scale(.985); }
+.orbit-tile-icon {
+  width: 38px; height: 38px; border-radius: 50%;
+  background: var(--soft); color: var(--accent);
+  display: grid; place-items: center; margin-bottom: 2px;
+}
+.orbit-tile-label { font-size: 14px; font-weight: 700; color: #0D1E3A; }
+.orbit-tile-desc { font-size: 11.5px; color: #5A6A8A; line-height: 1.35; }
 
 @media (prefers-reduced-motion: reduce) {
-  .orbit-ring-spin, .orbit-fade-in, .orbit-node-in { animation: none !important; }
+  .orbit-stage, .orbit-dial, .orbit-enter { animation: none !important; }
+}
+
+/* ── Panel de indicadores ── */
+.stat-cell {
+  display: flex; align-items: center; gap: 13px;
+  padding: 18px 20px; background: #FFFFFF; text-decoration: none;
+  transition: background .16s ease;
+}
+.stat-cell:hover { background: #F7F9FF; }
+.stat-cell:focus-visible { outline: 2px solid #1A33CC; outline-offset: -2px; }
+.stat-icon {
+  width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0;
+  background: #EEF2FF; color: #1A33CC;
+  display: grid; place-items: center;
+}
+.stat-value {
+  display: block; font-size: 23px; font-weight: 800; line-height: 1.05;
+  color: #0D1E3A; letter-spacing: -.02em; font-variant-numeric: tabular-nums;
+}
+.stat-label { display: block; font-size: 12px; color: #5A6A8A; font-weight: 500; margin-top: 4px; }
+
+@keyframes stat-shimmer { 0%,100% { opacity: .45; } 50% { opacity: .8; } }
+.stat-skeleton {
+  display: inline-block; width: 34px; height: 17px; border-radius: 5px;
+  background: #DDE3F0; animation: stat-shimmer 1.4s ease-in-out infinite;
+}
+
+/* ── Acceso rápido ── */
+.quick-link {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 9px 15px; border-radius: 11px;
+  background: #FFFFFF; border: 1px solid #DDE3F0;
+  color: #31406B; font-size: 13px; font-weight: 600; text-decoration: none;
+  transition: color .16s ease, border-color .16s ease, background .16s ease, transform .16s ease;
+}
+.quick-link:hover {
+  color: #1A33CC; border-color: #B9C6EE; background: #F7F9FF;
+  transform: translateY(-1px);
+}
+.quick-link:focus-visible { outline: 2px solid #1A33CC; outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .stat-skeleton { animation: none; }
+  .quick-link:hover { transform: none; }
 }
 
 html {
