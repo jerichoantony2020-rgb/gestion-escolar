@@ -120,7 +120,7 @@ export default function Dock() {
           boxShadow: "0 1px 8px rgba(13,30,58,0.07)",
         }}
       >
-        <Link href="/dashboard" className="flex items-center gap-2">
+        <Link href="/dashboard" className="flex items-center gap-2 pr-2" style={{ minHeight: 40 }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/logo-cr.png" alt="" width={22} height={28} style={{ objectFit: "contain", width: 22, height: 28 }} />
           <span style={{ fontSize: 13, fontWeight: 800, color: "#0D1E3A" }}>
@@ -130,7 +130,8 @@ export default function Dock() {
         <button
           onClick={() => signOut({ callbackUrl: "/login" })}
           style={{
-            padding: "5px 12px", borderRadius: 8, fontSize: 11, fontWeight: 600,
+            display: "inline-flex", alignItems: "center", minHeight: 40,
+            padding: "0 14px", borderRadius: 10, fontSize: 12, fontWeight: 600,
             border: "1px solid #DDE3F0", color: "#5A6A8A", background: "transparent", cursor: "pointer",
           }}
         >
