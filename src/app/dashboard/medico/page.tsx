@@ -68,9 +68,13 @@ export default function MedicoPage() {
                       {r.hasAllergy && <span className="ml-2 text-[10px] px-1.5 py-0.5 rounded bg-red-100 text-red-600 font-medium">Alergia</span>}
                     </td>
                     <td className="px-4 py-2.5" style={{ color: "var(--muted)" }}>{r.aula}</td>
-                    <td className="px-4 py-2.5" style={{ color: "var(--muted)" }}>{r.bloodType ?? "—"}</td>
                     <td className="px-4 py-2.5">
-                      {r.hasRecord ? <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">Completa</span> : <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">Pendiente</span>}
+                      {r.bloodType
+                        ? <span className="text-xs font-bold px-2 py-0.5 rounded bg-rose-50 text-rose-700" style={{ fontVariantNumeric: "tabular-nums" }}>{r.bloodType}</span>
+                        : <span style={{ color: "var(--muted)" }}>—</span>}
+                    </td>
+                    <td className="px-4 py-2.5">
+                      {r.hasRecord ? <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">Completa</span> : <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 font-medium">Pendiente</span>}
                     </td>
                     <td className="px-4 py-2.5 text-right">
                       <button onClick={() => openEdit(r)} className="text-xs px-3 py-1 rounded border hover:bg-primary-50 hover:text-primary-600 transition-colors" style={{ borderColor: "var(--border)", color: "var(--muted)" }}>{r.hasRecord ? "Editar" : "Llenar"}</button>
@@ -100,7 +104,9 @@ export default function MedicoPage() {
                   </select>
                 </div>
               </div>
-              <FT label="Alergias" value={form.allergies ?? ""} onChange={v => set("allergies", v)} />
+              {/* La etiqueta refleja la pregunta que respondieron los apoderados en el
+                  registro, porque varias respuestas son condiciones y no alergias. */}
+              <FT label="Alergias o condiciones médicas importantes" value={form.allergies ?? ""} onChange={v => set("allergies", v)} />
               <FT label="Medicación habitual" value={form.medications ?? ""} onChange={v => set("medications", v)} />
               <FT label="Condiciones / antecedentes" value={form.conditions ?? ""} onChange={v => set("conditions", v)} />
               <F label="Seguro / EsSalud / SIS" value={form.insurance ?? ""} onChange={v => set("insurance", v)} />

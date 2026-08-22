@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "gray-on-color",
+        "value": "*",
+        "files": [
+          "src/app/dashboard/medico/page.tsx"
+        ],
+        "createdAt": "2026-08-22T04:21:30.959Z",
+        "reason": "Claude verified: badge uses text-slate-700 on bg-slate-100 = 9.4:1 contrast, which is the rule's own recommended fix (darker shade of same hue); rule matches the token name, not luminance"
+      }
+    ]
+  }
+}
