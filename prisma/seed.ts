@@ -289,13 +289,16 @@ async function main() {
   const areaSeed: AreaSeed[] = [
     // ── SECUNDARIA (calcado del Informe de Progreso oficial) ──
     { level: "Secundaria", area: "Comunicación", competencias: [
-      { name: "Se comunica oralmente en su lengua materna", course: "COMUNICACIÓN" },
-      { name: "Lee diversos tipos de textos escritos", course: "COMUNICACIÓN" },
-      { name: "Escribe diversos tipos de textos", course: "COMUNICACIÓN" },
-      { name: "Razonamiento Verbal", course: "COMUNICACIÓN" },
+      // Secundaria no tiene curso "Comunicación": el mismo docente dicta
+      // Lenguaje, Literatura y Razonamiento Verbal como un solo bloque, así
+      // que las 4 competencias se califican desde el curso "Lenguaje".
+      { name: "Se comunica oralmente en su lengua materna", course: "LENGUAJE" },
+      { name: "Lee diversos tipos de textos escritos", course: "LENGUAJE" },
+      { name: "Escribe diversos tipos de textos", course: "LENGUAJE" },
+      { name: "Razonamiento Verbal", course: "LENGUAJE" },
     ] },
     { level: "Secundaria", area: "Matemática", competencias: [
-      { name: "Resuelve problemas de cantidad", course: "MATEMÁTICA" },
+      { name: "Resuelve problemas de cantidad", course: "ARITMÉTICA" },
       { name: "Resuelve problemas de regularidad, equivalencia y cambio", course: "ÁLGEBRA" },
       { name: "Resuelve problemas de movimiento, forma y localización", course: "GEOMETRÍA" },
       { name: "Resuelve problemas de gestión de datos e incertidumbre", course: "ARITMÉTICA" },
