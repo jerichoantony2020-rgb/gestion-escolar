@@ -75,7 +75,8 @@ export async function GET(req: NextRequest) {
   const grades = await prisma.competenciaGrade.findMany({
     where: { institutionId: instId, studentId, competenciaId: { in: competenciaIds } },
   })
-  const gradeMap = new Map(grades.map(g => [`${g.competenciaId}|${g.periodId}`, g.level]))
+  const gradeMap = new Map(grades.map(g => [`${g.competenciaId}|${g.periodId}`, g]))
+  const levelOf = (compId: string, periodId: string) => gradeMap.get(`${compId}|${periodId}`)?.level ?? ""
 
   const areasOut = areas.map(a => ({
     id: a.id,
@@ -83,10 +84,14 @@ export async function GET(req: NextRequest) {
     competencias: a.competencias.map(c => ({
       id: c.id,
       name: c.name,
-      levels: periods.map(p => gradeMap.get(`${c.id}|${p.id}`) ?? ""),
+      levels: periods.map(p => levelOf(c.id, p.id)),
+      scores: periods.map(p => {
+        const g = gradeMap.get(`${c.id}|${p.id}`)
+        return g ? { scores: JSON.parse(g.scores) as (number | string)[], finalScore: g.finalScore } : { scores: [], finalScore: null }
+      }),
     })),
     nivelPorBimestre: periods.map(p =>
-      nivelDeLogro(a.competencias.map(c => gradeMap.get(`${c.id}|${p.id}`) ?? ""))
+      nivelDeLogro(a.competencias.map(c => levelOf(c.id, p.id)))
     ),
   }))
 

@@ -393,6 +393,12 @@ model CompetenciaGrade {
   studentId     String
   competenciaId String
   periodId      String
+  // El docente registra notas numéricas (0-20) por evaluación; el nivel
+  // AD/A/B/C se deriva automáticamente del promedio y es lo único que
+  // aparece en el Informe de Progreso (libreta). Los padres ven el detalle
+  // numérico en "Registro de actividades".
+  scores        String         @default("[]")
+  finalScore    Float?
   level         String
   staffId       String?
   updatedAt     DateTime       @updatedAt

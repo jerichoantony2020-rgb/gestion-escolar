@@ -67,6 +67,10 @@ export default function PortalClient() {
       {/* NOTAS */}
       {tab === "notas" && (
         <>
+        <a href={`/dashboard/academico/actividades/${c.studentId}`} className="block mb-3 rounded-xl border p-4 hover:border-primary-400 transition-colors" style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
+          <p className="text-sm font-semibold text-primary-500">Ver Registro de Actividades →</p>
+          <p className="text-xs mt-0.5" style={{ color: "var(--muted)" }}>Notas numéricas (0–20) de cada evaluación registrada por los docentes</p>
+        </a>
         <a href={`/dashboard/academico/informe/${c.studentId}`} className="block mb-4 rounded-xl border p-4 hover:border-primary-400 transition-colors" style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
           <p className="text-sm font-semibold text-primary-500">Ver Informe de Progreso completo →</p>
           <p className="text-xs mt-0.5" style={{ color: "var(--muted)" }}>Notas por competencia (AD/A/B/C), asistencia y conducta del bimestre</p>

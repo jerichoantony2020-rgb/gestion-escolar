@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { scoreToLevel, avgScores } from "@/lib/notas"
 
 // GET /api/notas/area?courseId=&sectionId=&periodId=
 // → competencias del curso + nivel (AD/A/B/C) de cada alumno de la sección en ese bimestre.
@@ -33,12 +34,16 @@ export async function GET(req: NextRequest) {
   const grades = await prisma.competenciaGrade.findMany({
     where: { institutionId: instId, periodId, competenciaId: { in: competencias.map(c => c.id) }, studentId: { in: students.map(s => s.id) } },
   })
-  const gradeMap = new Map(grades.map(g => [`${g.studentId}|${g.competenciaId}`, g.level]))
+  const gradeMap = new Map(grades.map(g => [`${g.studentId}|${g.competenciaId}`, g]))
 
   const rows = students.map(s => ({
     studentId: s.id,
     studentName: `${s.lastName}, ${s.firstName}`,
-    levels: competencias.map(c => gradeMap.get(`${s.id}|${c.id}`) ?? ""),
+    scores: competencias.map(c => {
+      const g = gradeMap.get(`${s.id}|${c.id}`)
+      return g ? JSON.parse(g.scores) : []
+    }),
+    levels: competencias.map(c => gradeMap.get(`${s.id}|${c.id}`)?.level ?? ""),
   }))
 
   return NextResponse.json({
@@ -48,27 +53,34 @@ export async function GET(req: NextRequest) {
   })
 }
 
-// POST { courseId, sectionId, periodId, records: [{ studentId, competenciaId, level }] }
+// POST { courseId, sectionId, periodId, records: [{ studentId, competenciaId, scores: (number|string)[] }] }
+// El docente registra notas numéricas (0-20) por evaluación; el nivel AD/A/B/C
+// se calcula automáticamente del promedio y es lo que se muestra en la libreta.
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions)
   if (!session) return NextResponse.json({ error: "No autorizado" }, { status: 401 })
   const instId = session.user.institutionId
 
   const body = await req.json()
-  const { periodId, records } = body as { periodId: string; records: { studentId: string; competenciaId: string; level: string }[] }
+  const { periodId, records } = body as { periodId: string; records: { studentId: string; competenciaId: string; scores: (number | string)[] }[] }
   if (!periodId || !Array.isArray(records)) return NextResponse.json({ error: "Datos inválidos" }, { status: 400 })
 
   const staff = await prisma.staff.findFirst({ where: { userId: session.user.id } })
 
   for (const r of records) {
-    if (!r.level) {
+    const cleanScores = (r.scores ?? []).filter(v => String(v).trim() !== "")
+    if (cleanScores.length === 0) {
       await prisma.competenciaGrade.deleteMany({ where: { institutionId: instId, studentId: r.studentId, competenciaId: r.competenciaId, periodId } })
       continue
     }
+    const avg = avgScores(cleanScores)
+    if (avg == null) continue
+    const level = scoreToLevel(avg)
+    const scoresJson = JSON.stringify(cleanScores)
     await prisma.competenciaGrade.upsert({
       where: { studentId_competenciaId_periodId: { studentId: r.studentId, competenciaId: r.competenciaId, periodId } },
-      update: { level: r.level, staffId: staff?.id },
-      create: { institutionId: instId, studentId: r.studentId, competenciaId: r.competenciaId, periodId, level: r.level, staffId: staff?.id },
+      update: { scores: scoresJson, finalScore: avg, level, staffId: staff?.id },
+      create: { institutionId: instId, studentId: r.studentId, competenciaId: r.competenciaId, periodId, scores: scoresJson, finalScore: avg, level, staffId: staff?.id },
     })
   }
 

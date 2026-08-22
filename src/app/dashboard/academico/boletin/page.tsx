@@ -54,9 +54,14 @@ export default function BoletinPage() {
       </div>
 
       {studentId && (
-        <a href={`/dashboard/academico/informe/${studentId}`} className="inline-block mb-4 text-sm font-semibold text-primary-500 hover:underline">
-          Ver Informe de Progreso completo (formato MINEDU) →
-        </a>
+        <div className="flex flex-wrap gap-4 mb-4">
+          <a href={`/dashboard/academico/informe/${studentId}`} className="text-sm font-semibold text-primary-500 hover:underline">
+            Ver Informe de Progreso completo (formato MINEDU) →
+          </a>
+          <a href={`/dashboard/academico/actividades/${studentId}`} className="text-sm font-semibold text-primary-500 hover:underline">
+            Ver Registro de Actividades (notas numéricas) →
+          </a>
+        </div>
       )}
 
       {loading && <p className="text-sm" style={{ color: "var(--muted)" }}>Cargando...</p>}
