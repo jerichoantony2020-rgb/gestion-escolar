@@ -307,7 +307,6 @@ async function main() {
       { name: "Resuelve problemas de regularidad, equivalencia y cambio", course: "MATEMÁTICA" },
       { name: "Resuelve problemas de movimiento, forma y localización", course: "MATEMÁTICA" },
       { name: "Resuelve problemas de gestión de datos e incertidumbre", course: "MATEMÁTICA" },
-      { name: "Razonamiento Matemático", course: "MATEMÁTICA" },
     ] },
     { level: "Secundaria", area: "Desarrollo Personal, Ciud. y Cívica", competencias: [
       { name: "Construye su identidad", course: "DPCC" },
@@ -360,7 +359,6 @@ async function main() {
       { name: "Resuelve problemas de regularidad, equivalencia y cambio", course: "MATEMÁTICA" },
       { name: "Resuelve problemas de movimiento, forma y localización", course: "MATEMÁTICA" },
       { name: "Resuelve problemas de gestión de datos e incertidumbre", course: "MATEMÁTICA" },
-      { name: "Razonamiento Matemático", course: "MATEMÁTICA" },
     ] },
     { level: "Primaria", area: "Personal Social", competencias: [
       { name: "Construye su identidad", course: "PERSONAL SOCIAL" },
