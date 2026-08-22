@@ -23,7 +23,7 @@ export async function GET() {
     const staff = await prisma.staff.findFirst({ where: { userId: session.user.id } })
     const assignments = staff
       ? await prisma.courseAssignment.findMany({
-          where: { staffId: staff.id, yearId: year?.id },
+          where: { staffId: staff.id, yearId: year?.id, course: { active: true } },
           include: { course: true, section: { include: { grade: true } } },
         })
       : []

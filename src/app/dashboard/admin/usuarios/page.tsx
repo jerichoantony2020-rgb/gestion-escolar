@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 
 type User = { id: string; name: string; email: string; role: string; canViewPayments: boolean; active: boolean }
-type Section = { id: string; name: string; levelName: string }
+type Section = { id: string; name: string; levelId: string | null; levelName: string }
 type Course = { id: string; name: string; levelId: string | null; levelName: string }
 type Assignment = { id: string; sectionId: string; sectionName: string; courseId: string; courseName: string }
 
@@ -217,16 +217,18 @@ export default function UsuariosPage() {
             <form onSubmit={addAssignment} className="flex flex-wrap gap-2 items-end p-3 rounded-lg" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
               <div className="flex-1 min-w-[140px]">
                 <label className="block text-xs font-medium mb-1" style={{ color: "var(--fg)" }}>Aula</label>
-                <select required value={newAssign.sectionId} onChange={e => setNewAssign(f => ({ ...f, sectionId: e.target.value }))} className="w-full px-3 py-2 rounded-lg border text-sm outline-none" style={{ background: "var(--bg)", borderColor: "var(--border)", color: "var(--fg)" }}>
+                <select required value={newAssign.sectionId} onChange={e => setNewAssign({ sectionId: e.target.value, courseId: "" })} className="w-full px-3 py-2 rounded-lg border text-sm outline-none" style={{ background: "var(--bg)", borderColor: "var(--border)", color: "var(--fg)" }}>
                   <option value="">Seleccionar...</option>
                   {sections.map(s => <option key={s.id} value={s.id}>{s.levelName} — {s.name}</option>)}
                 </select>
               </div>
               <div className="flex-1 min-w-[140px]">
                 <label className="block text-xs font-medium mb-1" style={{ color: "var(--fg)" }}>Curso</label>
-                <select required value={newAssign.courseId} onChange={e => setNewAssign(f => ({ ...f, courseId: e.target.value }))} className="w-full px-3 py-2 rounded-lg border text-sm outline-none" style={{ background: "var(--bg)", borderColor: "var(--border)", color: "var(--fg)" }}>
-                  <option value="">Seleccionar...</option>
-                  {courses.map(c => <option key={c.id} value={c.id}>{c.name}{c.levelName ? ` (${c.levelName})` : ""}</option>)}
+                <select required disabled={!newAssign.sectionId} value={newAssign.courseId} onChange={e => setNewAssign(f => ({ ...f, courseId: e.target.value }))} className="w-full px-3 py-2 rounded-lg border text-sm outline-none disabled:opacity-50" style={{ background: "var(--bg)", borderColor: "var(--border)", color: "var(--fg)" }}>
+                  <option value="">{newAssign.sectionId ? "Seleccionar..." : "Elige un aula primero"}</option>
+                  {courses
+                    .filter(c => !c.levelId || c.levelId === sections.find(s => s.id === newAssign.sectionId)?.levelId)
+                    .map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
               </div>
               <button type="submit" disabled={assignSaving} className="px-4 py-2 rounded-lg bg-primary-500 text-white text-sm font-semibold hover:bg-primary-600 disabled:opacity-60">
