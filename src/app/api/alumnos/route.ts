@@ -17,6 +17,7 @@ export async function GET() {
         orderBy: { id: "desc" },
       },
       parents: { take: 1, orderBy: { id: "desc" } },
+      healthRecord: { select: { bloodType: true, allergies: true } },
     },
     orderBy: [{ lastName: "asc" }, { firstName: "asc" }],
   })

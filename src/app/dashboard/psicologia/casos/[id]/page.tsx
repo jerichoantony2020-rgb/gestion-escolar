@@ -8,7 +8,15 @@ type Parent = { name: string; phone: string | null; relationship: string }
 type GradeRecord = { course: { name: string }; period: { name: string; number: number }; finalGrade: number | null; qualitative: string | null }
 type Incident = { id: string; date: string; title: string | null; description: string; severity: string; type: string }
 type Enrollment = { section: { name: string }; grade: { name: string } }
-type Student = { firstName: string; lastName: string; parents: Parent[]; enrollments: Enrollment[]; gradeRecords: GradeRecord[]; incidents: Incident[] }
+type HealthRecord = { bloodType: string | null; allergies: string | null; conditions: string | null; medications: string | null }
+type Student = { firstName: string; lastName: string; parents: Parent[]; enrollments: Enrollment[]; gradeRecords: GradeRecord[]; incidents: Incident[]; healthRecord?: HealthRecord | null }
+
+/** "Ninguna" y variantes no son una nota médica que valga mostrar. */
+function hasHealthNote(v: string | null | undefined): v is string {
+  if (!v) return false
+  const n = v.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").trim()
+  return !["ninguna", "ninguno", "ninguna conocida", "no tiene", "nada", "-", "no"].includes(n)
+}
 type PsychoSession = { id: string; date: string; type: string; summary: string; nextDate: string | null }
 type Plan = { objectives: string; strategies: string; status: string } | null
 type Contact = { id: string; channel: string; summary: string; contactedAt: string }
@@ -268,6 +276,27 @@ export default function CasoDetalle({ params }: { params: Promise<{ id: string }
               <button onClick={() => setShowSession(true)} style={btnPrimary}>+ Registrar sesión</button>
             )}
           </div>
+
+          {/* Salud — contexto clínico relevante para el seguimiento */}
+          {student.healthRecord && (student.healthRecord.bloodType || hasHealthNote(student.healthRecord.allergies) || hasHealthNote(student.healthRecord.conditions) || hasHealthNote(student.healthRecord.medications)) && (
+            <div style={{ background: "#fff1f2", border: "1px solid #fecdd3", borderRadius: 12, padding: "12px 16px", marginBottom: 20 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: "#9f1239", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.06em" }}>Salud</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 16, fontSize: 13, color: "#374151" }}>
+                {student.healthRecord.bloodType && (
+                  <div><span style={{ color: "#9f1239", fontWeight: 600 }}>Sangre:</span> {student.healthRecord.bloodType}</div>
+                )}
+                {hasHealthNote(student.healthRecord.allergies) && (
+                  <div><span style={{ color: "#9f1239", fontWeight: 600 }}>Alergias / condiciones:</span> {student.healthRecord.allergies}</div>
+                )}
+                {hasHealthNote(student.healthRecord.conditions) && (
+                  <div><span style={{ color: "#9f1239", fontWeight: 600 }}>Antecedentes:</span> {student.healthRecord.conditions}</div>
+                )}
+                {hasHealthNote(student.healthRecord.medications) && (
+                  <div><span style={{ color: "#9f1239", fontWeight: 600 }}>Medicación:</span> {student.healthRecord.medications}</div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Grades quick view */}
           {student.gradeRecords.length > 0 && (

@@ -30,6 +30,9 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
             orderBy: { period: { number: "asc" } },
           },
           incidents: { orderBy: { date: "desc" }, take: 10 },
+          // Condiciones como asma, TEA o alergias a medicamentos son contexto
+          // clínico relevante para el seguimiento psicológico.
+          healthRecord: { select: { bloodType: true, allergies: true, conditions: true, medications: true } },
         },
       },
       sessions: { orderBy: { date: "desc" } },

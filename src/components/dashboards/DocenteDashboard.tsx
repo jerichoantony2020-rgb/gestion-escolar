@@ -1,50 +1,61 @@
 "use client"
 
 import type { Session } from "next-auth"
-import Link from "next/link"
+import ModulesOrbit, { type OrbitModule } from "./ModulesOrbit"
+
+const modules: OrbitModule[] = [
+  { href: "/dashboard/academico/notas",      label: "Notas",      icon: "notas",           desc: "Registrar calificaciones", accent: "#1A33CC", bg: "#EEF2FF" },
+  { href: "/dashboard/academico/asistencia", label: "Asistencia", icon: "tomarAsistencia", desc: "Marcar y consultar",       accent: "#15803D", bg: "#DCFCE7" },
+  { href: "/dashboard/academico/conducta",   label: "Conducta",   icon: "conducta",        desc: "Incidencias del aula",     accent: "#B45309", bg: "#FFFBEB" },
+  { href: "/dashboard/psicologia",           label: "Psicología", icon: "psicologia",      desc: "Derivar un alumno",        accent: "#BE185D", bg: "#FCE7F3" },
+  { href: "/dashboard/biblioteca",           label: "Plan lector", icon: "biblioteca",     desc: "Lecturas y avances",       accent: "#6D28D9", bg: "#EDE9FE" },
+]
+
+function greeting() {
+  const h = new Date().getHours()
+  if (h < 12) return "Buenos días"
+  if (h < 19) return "Buenas tardes"
+  return "Buenas noches"
+}
 
 export default function DocenteDashboard({ session }: { session: Session | null }) {
   const name = session?.user?.name?.split(" ")[0] ?? "Docente"
 
-  const quickLinks = [
-    { href: "/dashboard/academico/notas",      label: "Registrar notas",      icon: "📝" },
-    { href: "/dashboard/academico/asistencia", label: "Tomar asistencia",     icon: "✅" },
-    { href: "/dashboard/academico/conducta",   label: "Conducta",             icon: "📋" },
-    { href: "/dashboard/biblioteca",           label: "Plan lector",          icon: "📖" },
-  ]
-
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8 space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold" style={{ color: "var(--fg)" }}>
-          Hola, {name}
-        </h1>
-        <p className="text-sm mt-1" style={{ color: "var(--muted)" }}>
-          Panel docente — {new Date().toLocaleDateString("es-PE", { weekday: "long", day: "numeric", month: "long" })}
-        </p>
-      </div>
+    <div style={{ maxWidth: 1080, margin: "0 auto", padding: "28px 20px 48px" }}>
 
-      <div className="grid grid-cols-2 gap-4">
-        {quickLinks.map((l) => (
-          <Link
-            key={l.href}
-            href={l.href}
-            className="rounded-xl border p-5 hover:border-primary-400 transition-all group"
-            style={{ background: "var(--surface)", borderColor: "var(--border)" }}
-          >
-            <div className="text-3xl mb-3">{l.icon}</div>
-            <p className="font-semibold text-sm group-hover:text-primary-500 transition-colors" style={{ color: "var(--fg)" }}>
-              {l.label}
-            </p>
-          </Link>
-        ))}
-      </div>
+      <header style={{
+        borderRadius: 22,
+        background: "linear-gradient(135deg, #0D1E3A 0%, #16306B 58%, #1A33CC 100%)",
+        padding: "clamp(26px,4vw,38px) clamp(24px,4vw,40px)",
+        marginBottom: 36,
+        display: "flex", alignItems: "center", justifyContent: "space-between", gap: 24,
+        boxShadow: "0 2px 6px rgba(13,30,58,0.10), 0 18px 40px rgba(13,30,58,0.20)",
+        position: "relative", overflow: "hidden",
+      }}>
+        <div aria-hidden="true" style={{
+          position: "absolute", inset: 0,
+          background: "radial-gradient(circle at 88% 18%, rgba(240,200,0,.14), transparent 45%), radial-gradient(circle at 70% 120%, rgba(71,181,232,.16), transparent 50%)",
+        }} />
+        <div style={{ position: "relative" }}>
+          <h1 suppressHydrationWarning style={{ fontSize: "clamp(24px,3.2vw,34px)", fontWeight: 800, color: "#FFFFFF", margin: "0 0 8px", lineHeight: 1.1, letterSpacing: "-0.02em" }}>
+            {greeting()}, {name}
+          </h1>
+          <p suppressHydrationWarning style={{ fontSize: 14, color: "rgba(255,255,255,0.68)", margin: 0 }}>
+            {new Date().toLocaleDateString("es-PE", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
+          </p>
+        </div>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/logo-cr.png" alt="" style={{ position: "relative", width: 74, height: 90, objectFit: "contain", flexShrink: 0, filter: "drop-shadow(0 6px 18px rgba(240,200,0,0.22))" }} />
+      </header>
 
-      {/* Anuncios placeholder */}
-      <div className="rounded-xl border p-5" style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
-        <h2 className="font-semibold text-sm mb-3" style={{ color: "var(--fg)" }}>Anuncios recientes</h2>
-        <p className="text-sm" style={{ color: "var(--muted)" }}>Sin anuncios por ahora.</p>
-      </div>
+      <section>
+        <h2 style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.18em", color: "#8A9ABB", textTransform: "uppercase", margin: "0 0 8px", textAlign: "center" }}>
+          Tus herramientas
+        </h2>
+        <ModulesOrbit modules={modules} />
+      </section>
+
     </div>
   )
 }

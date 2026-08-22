@@ -4,6 +4,14 @@ import { useState, useEffect } from "react"
 import ImportarAlumnos from "./ImportarAlumnos"
 
 type Parent = { name: string; phone: string | null; monthlyFee: number | null }
+type HealthRecord = { bloodType: string | null; allergies: string | null }
+
+/** "Ninguna" y variantes no ameritan una alerta médica. */
+function hasHealthNote(v: string | null | undefined): v is string {
+  if (!v) return false
+  const n = v.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").trim()
+  return !["ninguna", "ninguno", "ninguna conocida", "no tiene", "nada", "-", "no"].includes(n)
+}
 type Enrollment = { section: { id: string; name: string; grade: { name: string; level: { name: string } } } }
 type Student = {
   id: string
@@ -14,6 +22,7 @@ type Student = {
   active: boolean
   enrollments: Enrollment[]
   parents: Parent[]
+  healthRecord?: HealthRecord | null
 }
 type Grade = { id: string; name: string; level: { name: string }; sections: { id: string; name: string }[] }
 
@@ -110,14 +119,14 @@ export default function AlumnosPage() {
         <table className="w-full text-sm">
           <thead>
             <tr style={{ background: "var(--surface)" }}>
-              {["Apellidos y nombres", "DNI", "Grado/Sección", "Apoderado", "Teléfono", ""].map(h => (
+              {["Apellidos y nombres", "DNI", "Grado/Sección", "Salud", "Apoderado", "Teléfono", ""].map(h => (
                 <th key={h} className="text-left px-4 py-3 font-semibold text-xs uppercase tracking-wider" style={{ color: "var(--muted)" }}>{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {filtered.length === 0 && (
-              <tr><td colSpan={6} className="text-center py-12 text-sm" style={{ color: "var(--muted)" }}>Sin alumnos registrados</td></tr>
+              <tr><td colSpan={7} className="text-center py-12 text-sm" style={{ color: "var(--muted)" }}>Sin alumnos registrados</td></tr>
             )}
             {filtered.map((s, i) => {
               const enroll = s.enrollments[0]
@@ -130,6 +139,19 @@ export default function AlumnosPage() {
                   </td>
                   <td className="px-4 py-3" style={{ color: "var(--muted)" }}>{s.dni ?? "—"}</td>
                   <td className="px-4 py-3" style={{ color: "var(--muted)" }}>{section}</td>
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    {s.healthRecord?.bloodType && (
+                      <span className="text-xs font-bold px-2 py-0.5 rounded bg-rose-50 text-rose-700">{s.healthRecord.bloodType}</span>
+                    )}
+                    {hasHealthNote(s.healthRecord?.allergies) && (
+                      <span className="ml-1.5 text-xs px-2 py-0.5 rounded bg-amber-50 text-amber-800 font-medium" title={s.healthRecord!.allergies!}>
+                        Alerta
+                      </span>
+                    )}
+                    {!s.healthRecord?.bloodType && !hasHealthNote(s.healthRecord?.allergies) && (
+                      <span style={{ color: "var(--muted)" }}>—</span>
+                    )}
+                  </td>
                   <td className="px-4 py-3" style={{ color: "var(--muted)" }}>{parent?.name ?? "—"}</td>
                   <td className="px-4 py-3" style={{ color: "var(--muted)" }}>{parent?.phone ?? "—"}</td>
                   <td className="px-4 py-3">

@@ -138,6 +138,21 @@ export const IconActividad = (p: IconProps) => (
   </Svg>
 )
 
+export const IconNotas = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M14.3 3.5H7A1.5 1.5 0 0 0 5.5 5v14A1.5 1.5 0 0 0 7 20.5h10a1.5 1.5 0 0 0 1.5-1.5V7.7Z" />
+    <path d="M14.3 3.5v4.2h4.2" />
+    <path d="M8.8 12.4h6.4M8.8 15.9h4.2" />
+  </Svg>
+)
+
+export const IconConducta = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M5.6 21.5V3.5" />
+    <path d="M5.6 4.6h10.9a.6.6 0 0 1 .52.9l-1.6 2.85a.6.6 0 0 0 0 .6l1.6 2.85a.6.6 0 0 1-.52.9H5.6" />
+  </Svg>
+)
+
 export const IconInicio = (p: IconProps) => (
   <Svg {...p}>
     <path d="M3.5 10.4 12 3.5l8.5 6.9v8.4a1.6 1.6 0 0 1-1.6 1.6H5.1a1.6 1.6 0 0 1-1.6-1.6Z" />
@@ -168,7 +183,7 @@ export type IconName =
   | "academico" | "finanzas" | "medico" | "psicologia" | "biblioteca"
   | "admin" | "analitica" | "estudiantes" | "docentes" | "secciones"
   | "asistencia" | "tomarAsistencia" | "noticia" | "actividad" | "globo"
-  | "inicio" | "portal"
+  | "inicio" | "portal" | "notas" | "conducta"
 
 export const MODULE_ICONS: Record<IconName, IconComponent> = {
   academico: IconAcademico,
@@ -188,4 +203,6 @@ export const MODULE_ICONS: Record<IconName, IconComponent> = {
   globo: IconGlobo,
   inicio: IconInicio,
   portal: IconPortal,
+  notas: IconNotas,
+  conducta: IconConducta,
 }
