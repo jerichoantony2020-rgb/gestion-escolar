@@ -46,6 +46,7 @@ export async function POST(req: NextRequest) {
   if (!session) return NextResponse.json({ error: "No autorizado" }, { status: 401 })
   const instId = session.user.institutionId
   const b = await req.json()
+  if (!b.studentId) return NextResponse.json({ error: "Falta el alumno" }, { status: 400 })
 
   let title = b.title || null
   let description = b.description || ""
