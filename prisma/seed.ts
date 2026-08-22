@@ -301,7 +301,6 @@ async function main() {
       { name: "Se comunica oralmente en su lengua materna", course: "COMUNICACIÓN" },
       { name: "Lee diversos tipos de textos escritos", course: "COMUNICACIÓN" },
       { name: "Escribe diversos tipos de textos", course: "COMUNICACIÓN" },
-      { name: "Razonamiento Verbal", course: "COMUNICACIÓN" },
     ] },
     { level: "Secundaria", area: "Matemática", competencias: [
       { name: "Resuelve problemas de cantidad", course: "MATEMÁTICA" },
@@ -355,7 +354,6 @@ async function main() {
       { name: "Se comunica oralmente en su lengua materna", course: "COMUNICACIÓN" },
       { name: "Lee diversos tipos de textos escritos", course: "COMUNICACIÓN" },
       { name: "Escribe diversos tipos de textos", course: "COMUNICACIÓN" },
-      { name: "Razonamiento Verbal", course: "COMUNICACIÓN" },
     ] },
     { level: "Primaria", area: "Matemática", competencias: [
       { name: "Resuelve problemas de cantidad", course: "MATEMÁTICA" },

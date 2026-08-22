@@ -26,6 +26,17 @@ export default function CompetenciasPage() {
     setChanges(ch => ({ ...ch, [competenciaId]: courseId || null }))
   }
 
+  async function removeCompetencia(c: Competencia) {
+    if (!confirm(`¿Quitar "${c.name}" de la libreta? Se borrará cualquier nota ya registrada para esta competencia.`)) return
+    await fetch("/api/admin/competencias", {
+      method: "DELETE", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ competenciaId: c.id }),
+    })
+    setLevels(ls => ls.map(l => ({ ...l, areas: l.areas.map(a => ({ ...a, competencias: a.competencias.filter(x => x.id !== c.id) })) })))
+    setToast("Competencia eliminada ✓")
+    setTimeout(() => setToast(""), 2500)
+  }
+
   async function save() {
     const updates = Object.entries(changes).map(([competenciaId, courseId]) => ({ competenciaId, courseId }))
     if (updates.length === 0) return
@@ -56,8 +67,8 @@ export default function CompetenciasPage() {
         (el que tenga ese curso asignado en su aula, en Admin → Usuarios).
       </p>
       <p className="text-sm mb-6" style={{ color: "var(--muted)" }}>
-        Si un mismo docente dicta varias competencias juntas (por ejemplo, Comunicación y Razonamiento Verbal),
-        ponles el mismo curso y las verá todas en una sola pantalla al calificar.
+        Si un mismo docente dicta varias competencias juntas, ponles el mismo curso y las verá todas en una sola
+        pantalla al calificar. Si alguna fila no debería estar en la libreta (no es oficial del MINEDU), quítala con "Eliminar".
       </p>
 
       <div className="flex gap-2 mb-6">
@@ -84,6 +95,7 @@ export default function CompetenciasPage() {
                     <option value="">— sin curso asignado —</option>
                     {level.courses.map(co => <option key={co.id} value={co.id}>{co.name}</option>)}
                   </select>
+                  <button onClick={() => removeCompetencia(c)} className="text-xs px-2 py-1.5 rounded-lg border hover:bg-red-50 hover:text-red-600 transition-colors whitespace-nowrap" style={{ borderColor: "var(--border)", color: "var(--muted)" }}>Eliminar</button>
                 </div>
               )
             })}

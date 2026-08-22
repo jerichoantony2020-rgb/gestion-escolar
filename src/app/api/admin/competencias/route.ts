@@ -51,3 +51,16 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({ ok: true })
 }
+
+// DELETE { competenciaId } → quita una competencia del área (ej. una que no es oficial del MINEDU).
+export async function DELETE(req: NextRequest) {
+  const session = await getServerSession(authOptions)
+  if (!session) return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+  if (!CAN_MANAGE.has(session.user.role)) return NextResponse.json({ error: "No autorizado" }, { status: 403 })
+
+  const { competenciaId } = await req.json()
+  if (!competenciaId) return NextResponse.json({ error: "Falta competenciaId" }, { status: 400 })
+
+  await prisma.competencia.delete({ where: { id: competenciaId } })
+  return NextResponse.json({ ok: true })
+}
