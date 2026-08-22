@@ -43,10 +43,14 @@ export async function GET() {
     courses = [...courseMap.values()]
     sections = [...sectionMap.values()]
   } else {
-    const cs = await prisma.course.findMany({ where: { institutionId: instId, active: true, id: { in: [...validCourseIds] } }, orderBy: { name: "asc" } })
-    const ss = await prisma.section.findMany({ where: { institutionId: instId }, include: { grade: true }, orderBy: { grade: { order: "asc" } } })
-    courses = cs.map(c => ({ id: c.id, name: c.name }))
-    sections = ss.map(s => ({ id: s.id, name: `${s.grade?.name ?? ""} "${s.name}"` }))
+    const cs = await prisma.course.findMany({
+      where: { institutionId: instId, active: true, id: { in: [...validCourseIds] } },
+      include: { level: true },
+      orderBy: [{ level: { order: "asc" } }, { name: "asc" }],
+    })
+    const ss = await prisma.section.findMany({ where: { institutionId: instId }, include: { grade: true, level: true }, orderBy: { grade: { order: "asc" } } })
+    courses = cs.map(c => ({ id: c.id, name: c.level ? `${c.name} (${c.level.name})` : c.name }))
+    sections = ss.map(s => ({ id: s.id, name: `${s.level?.name ?? ""} ${s.grade?.name ?? ""} "${s.name}"`.replace(/\s+/g, " ").trim() }))
   }
 
   return NextResponse.json({
