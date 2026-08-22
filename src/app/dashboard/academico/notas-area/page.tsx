@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, Fragment } from "react"
 
 type Ctx = {
   courses: { id: string; name: string }[]
@@ -11,7 +11,7 @@ type Ctx = {
 type Row = { studentId: string; studentName: string; scores: (number | string)[][] }
 
 const LEVEL_COLOR: Record<string, string> = { AD: "#16a34a", A: "#0ea5e9", B: "#f59e0b", C: "#ef4444" }
-const CRITERIA = ["Cuaderno", "Libro", "Evaluación Mensual", "Actividades", "Evaluación Bimestral"]
+const DEFAULT_ACT_COUNT = 3
 
 function avg(scores: (number | string)[]): number | null {
   const nums = scores.map(v => parseFloat(String(v))).filter(n => !isNaN(n))
@@ -33,6 +33,7 @@ export default function NotasAreaPage() {
   const [periodId, setPeriodId] = useState("")
   const [areaName, setAreaName] = useState("")
   const [competencias, setCompetencias] = useState<{ id: string; name: string }[]>([])
+  const [actCounts, setActCounts] = useState<number[]>([])
   const [rows, setRows] = useState<Row[]>([])
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -53,21 +54,50 @@ export default function NotasAreaPage() {
     const data = await fetch(`/api/notas/area?courseId=${courseId}&sectionId=${sectionId}&periodId=${periodId}`).then(r => r.json())
     setAreaName(data.areaName)
     setCompetencias(data.competencias)
+    // scores por competencia = [...actividades, Evaluación Mensual, Evaluación Bimestral]
+    // el número de actividades se detecta de lo ya guardado (largo - 2), o 3 por defecto.
+    const counts = data.competencias.map((_: unknown, i: number) => {
+      const maxLen = Math.max(0, ...data.rows.map((r: { scores: unknown[][] }) => (r.scores[i]?.length ?? 0)))
+      return Math.max(DEFAULT_ACT_COUNT, maxLen - 2)
+    })
+    setActCounts(counts)
     setRows(data.rows.map((r: { studentId: string; studentName: string; scores: (number | string)[][] }) => ({
       ...r,
-      scores: r.scores.map(s => CRITERIA.map((_, i) => s[i] ?? "")),
+      scores: r.scores.map((s, i) => {
+        const total = counts[i] + 2
+        return Array.from({ length: total }, (_, j) => s[j] ?? "")
+      }),
     })))
     setLoading(false)
   }, [courseId, sectionId, periodId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => { load() }, [load])
 
-  function setScore(studentId: string, compIdx: number, evalIdx: number, value: string) {
+  function setScore(studentId: string, compIdx: number, colIdx: number, value: string) {
     setRows(rs => rs.map(r => {
       if (r.studentId !== studentId) return r
       const scores = r.scores.map(s => [...s])
-      while (scores[compIdx].length <= evalIdx) scores[compIdx].push("")
-      scores[compIdx][evalIdx] = value
+      scores[compIdx][colIdx] = value
+      return { ...r, scores }
+    }))
+  }
+
+  function changeActCount(compIdx: number, delta: number) {
+    setActCounts(counts => {
+      const next = [...counts]
+      next[compIdx] = Math.max(1, Math.min(8, next[compIdx] + delta))
+      return next
+    })
+    setRows(rs => rs.map(r => {
+      const scores = r.scores.map(s => [...s])
+      const comp = scores[compIdx]
+      const newActCount = Math.max(1, Math.min(8, actCounts[compIdx] + delta))
+      const mensual = comp[comp.length - 2] ?? ""
+      const bimestral = comp[comp.length - 1] ?? ""
+      const acts = comp.slice(0, comp.length - 2)
+      while (acts.length < newActCount) acts.push("")
+      acts.length = newActCount
+      scores[compIdx] = [...acts, mensual, bimestral]
       return { ...r, scores }
     }))
   }
@@ -87,6 +117,8 @@ export default function NotasAreaPage() {
     await load()
   }
 
+  const totalCols = actCounts.reduce((sum, n) => sum + n + 4, 0) // +4 = mensual, bimestral, prom, nivel
+
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
       {toast && (
@@ -95,7 +127,7 @@ export default function NotasAreaPage() {
 
       <h1 className="text-2xl font-bold mb-2" style={{ color: "var(--fg)" }}>Registro de Notas por Competencia</h1>
       <p className="text-sm mb-6" style={{ color: "var(--muted)" }}>
-        Ingresa notas numéricas (0–20) por criterio de evaluación · el sistema calcula el promedio y el nivel de logro (AD/A/B/C) que verán los padres en la libreta
+        Notas numéricas (0–20) por competencia · Actividades + Evaluación Mensual + Evaluación Bimestral · el promedio calcula el nivel (AD/A/B/C) de la libreta
       </p>
 
       <div className="flex flex-wrap gap-3 mb-5 items-end">
@@ -114,51 +146,73 @@ export default function NotasAreaPage() {
         <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "var(--muted)" }}>Área: {areaName}</p>
       )}
 
-      {!loading && ctx && ctx.courses.length > 0 && competencias.map((comp, compIdx) => (
-        <div key={comp.id} className="mb-6">
-          <p className="text-sm font-semibold mb-2" style={{ color: "var(--fg)" }}>{comp.name}</p>
-          <div className="rounded-xl border overflow-x-auto" style={{ borderColor: "var(--border)" }}>
-            <table className="w-full text-sm">
-              <thead>
-                <tr style={{ background: "var(--surface)" }}>
-                  <th className="text-left px-4 py-3 font-semibold text-xs uppercase tracking-wider sticky left-0" style={{ color: "var(--muted)", background: "var(--surface)" }}>Alumno</th>
-                  {CRITERIA.map((label, i) => <th key={i} className="px-2 py-3 font-semibold text-xs whitespace-nowrap" style={{ color: "var(--muted)" }}>{label}</th>)}
-                  <th className="px-3 py-3 font-semibold text-xs uppercase" style={{ color: "var(--muted)" }}>Prom.</th>
-                  <th className="px-3 py-3 font-semibold text-xs uppercase" style={{ color: "var(--muted)" }}>Nivel</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.length === 0 && <tr><td colSpan={CRITERIA.length + 3} className="text-center py-8 text-sm" style={{ color: "var(--muted)" }}>No hay alumnos en esta sección</td></tr>}
-                {rows.map(r => {
-                  const compScores = r.scores[compIdx] ?? []
-                  const a = avg(compScores)
-                  const lv = levelOf(a)
-                  return (
-                    <tr key={r.studentId} className="border-t" style={{ borderColor: "var(--border)" }}>
-                      <td className="px-4 py-2 font-medium whitespace-nowrap sticky left-0" style={{ color: "var(--fg)", background: "var(--bg)" }}>{r.studentName}</td>
-                      {CRITERIA.map((_, i) => (
-                        <td key={i} className="px-1 py-2">
-                          <input type="number" min={0} max={20} value={String(compScores[i] ?? "")}
-                            onChange={e => setScore(r.studentId, compIdx, i, e.target.value)}
-                            className="w-14 px-1 py-1.5 rounded border text-sm text-center outline-none focus:ring-2 focus:ring-primary-500"
-                            style={{ background: "var(--bg)", borderColor: "var(--border)", color: "var(--fg)" }} />
-                        </td>
-                      ))}
-                      <td className="px-3 py-2 text-center font-bold" style={{ color: a == null ? "var(--muted)" : "var(--fg)" }}>{a ?? "—"}</td>
-                      <td className="px-3 py-2 text-center font-bold" style={{ color: lv ? LEVEL_COLOR[lv] : "var(--muted)" }}>{lv || "—"}</td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      ))}
-
       {loading && <p className="text-sm text-center py-8" style={{ color: "var(--muted)" }}>Cargando...</p>}
 
+      {!loading && ctx && ctx.courses.length > 0 && competencias.length > 0 && (
+        <div className="rounded-xl border overflow-x-auto" style={{ borderColor: "var(--border)" }}>
+          <table className="text-sm border-collapse">
+            <thead>
+              <tr>
+                <th rowSpan={2} className="text-left px-4 py-2 font-semibold text-xs uppercase tracking-wider sticky left-0 border-r" style={{ color: "var(--muted)", background: "var(--surface)", borderColor: "var(--border)" }}>Alumno</th>
+                {competencias.map((comp, i) => (
+                  <th key={comp.id} colSpan={actCounts[i] + 4} className="px-2 py-2 font-semibold text-xs border-r border-b" style={{ color: "var(--fg)", background: "var(--surface)", borderColor: "var(--border)" }}>
+                    <div className="flex items-center justify-center gap-2">
+                      <span>{comp.name}</span>
+                      <span className="flex items-center gap-0.5">
+                        <button type="button" onClick={() => changeActCount(i, -1)} className="w-5 h-5 rounded border text-xs leading-none" style={{ borderColor: "var(--border)", color: "var(--muted)" }}>−</button>
+                        <button type="button" onClick={() => changeActCount(i, 1)} className="w-5 h-5 rounded border text-xs leading-none" style={{ borderColor: "var(--border)", color: "var(--muted)" }}>+</button>
+                      </span>
+                    </div>
+                  </th>
+                ))}
+              </tr>
+              <tr>
+                {competencias.map((comp, i) => (
+                  <Fragment key={comp.id}>
+                    {Array.from({ length: actCounts[i] }, (_, j) => (
+                      <th key={`${comp.id}-act${j}`} className="px-1 py-2 font-medium text-[11px] whitespace-nowrap" style={{ color: "var(--muted)", background: "var(--surface)" }}>Act. {j + 1}</th>
+                    ))}
+                    <th className="px-1 py-2 font-medium text-[11px] whitespace-nowrap" style={{ color: "var(--muted)", background: "var(--surface)" }}>Ev. Mensual</th>
+                    <th className="px-1 py-2 font-medium text-[11px] whitespace-nowrap border-r" style={{ color: "var(--muted)", background: "var(--surface)", borderColor: "var(--border)" }}>Ev. Bimestral</th>
+                    <th className="px-2 py-2 font-semibold text-[11px] uppercase whitespace-nowrap" style={{ color: "var(--muted)", background: "var(--surface)" }}>Prom.</th>
+                    <th className="px-2 py-2 font-semibold text-[11px] uppercase whitespace-nowrap border-r" style={{ color: "var(--muted)", background: "var(--surface)", borderColor: "var(--border)" }}>Nivel</th>
+                  </Fragment>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {rows.length === 0 && <tr><td colSpan={totalCols + 1} className="text-center py-8 text-sm" style={{ color: "var(--muted)" }}>No hay alumnos en esta sección</td></tr>}
+              {rows.map(r => (
+                <tr key={r.studentId} className="border-t" style={{ borderColor: "var(--border)" }}>
+                  <td className="px-4 py-2 font-medium whitespace-nowrap sticky left-0 border-r" style={{ color: "var(--fg)", background: "var(--bg)", borderColor: "var(--border)" }}>{r.studentName}</td>
+                  {competencias.map((comp, compIdx) => {
+                    const compScores = r.scores[compIdx] ?? []
+                    const a = avg(compScores)
+                    const lv = levelOf(a)
+                    return (
+                      <Fragment key={comp.id}>
+                        {compScores.map((v, colIdx) => (
+                          <td key={`${comp.id}-${colIdx}`} className="px-1 py-1.5">
+                            <input type="number" min={0} max={20} value={String(v ?? "")}
+                              onChange={e => setScore(r.studentId, compIdx, colIdx, e.target.value)}
+                              className="w-12 px-1 py-1 rounded border text-xs text-center outline-none focus:ring-2 focus:ring-primary-500"
+                              style={{ background: "var(--bg)", borderColor: "var(--border)", color: "var(--fg)" }} />
+                          </td>
+                        ))}
+                        <td className="px-2 py-1.5 text-center font-bold text-xs" style={{ color: a == null ? "var(--muted)" : "var(--fg)" }}>{a ?? "—"}</td>
+                        <td className="px-2 py-1.5 text-center font-bold text-xs border-r" style={{ color: lv ? LEVEL_COLOR[lv] : "var(--muted)", borderColor: "var(--border)" }}>{lv || "—"}</td>
+                      </Fragment>
+                    )
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
       {rows.length > 0 && (
-        <div className="flex justify-end mt-2">
+        <div className="flex justify-end mt-4">
           <button onClick={save} disabled={saving} className="px-6 py-2.5 rounded-lg bg-primary-500 text-white font-semibold text-sm hover:bg-primary-600 disabled:opacity-60">
             {saving ? "Guardando..." : "Guardar notas"}
           </button>
