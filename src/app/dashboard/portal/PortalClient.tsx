@@ -66,7 +66,12 @@ export default function PortalClient() {
 
       {/* NOTAS */}
       {tab === "notas" && (
-        c.grades.length === 0 ? <Empty text="Sin notas registradas aún" /> : (
+        <>
+        <a href={`/dashboard/academico/informe/${c.studentId}`} className="block mb-4 rounded-xl border p-4 hover:border-primary-400 transition-colors" style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
+          <p className="text-sm font-semibold text-primary-500">Ver Informe de Progreso completo →</p>
+          <p className="text-xs mt-0.5" style={{ color: "var(--muted)" }}>Notas por competencia (AD/A/B/C), asistencia y conducta del bimestre</p>
+        </a>
+        {c.grades.length === 0 ? <Empty text="Sin notas registradas aún" /> : (
           <div className="rounded-xl border overflow-hidden" style={{ borderColor: "var(--border)" }}>
             <table className="w-full text-sm">
               <thead><tr style={{ background: "var(--surface)" }}>{["Curso", "Bimestre", "Nota"].map(h => <th key={h} className="text-left px-4 py-2 font-semibold text-xs uppercase" style={{ color: "var(--muted)" }}>{h}</th>)}</tr></thead>
@@ -81,7 +86,8 @@ export default function PortalClient() {
               </tbody>
             </table>
           </div>
-        )
+        )}
+        </>
       )}
 
       {/* CONDUCTA */}

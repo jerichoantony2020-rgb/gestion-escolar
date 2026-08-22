@@ -56,6 +56,23 @@ async function main() {
   }
   console.log(`✅ Año académico 2026 (id: ${year.id})`)
 
+  // ── Bimestres (I–IV) ────────────────────────────────────────────────────────
+  const bimestreDefs = [
+    { number: 1, name: "I Bimestre", startDate: new Date(2026, 2, 1),  endDate: new Date(2026, 4, 31) },
+    { number: 2, name: "II Bimestre", startDate: new Date(2026, 5, 1),  endDate: new Date(2026, 6, 31) },
+    { number: 3, name: "III Bimestre", startDate: new Date(2026, 7, 1),  endDate: new Date(2026, 8, 30) },
+    { number: 4, name: "IV Bimestre", startDate: new Date(2026, 9, 1),  endDate: new Date(2026, 11, 31) },
+  ]
+  const periodsMap: Record<number, string> = {}
+  for (const bd of bimestreDefs) {
+    let period = await prisma.academicPeriod.findFirst({ where: { yearId: year.id, number: bd.number } })
+    if (!period) {
+      period = await prisma.academicPeriod.create({ data: { institutionId: institution.id, yearId: year.id, ...bd } })
+    }
+    periodsMap[bd.number] = period.id
+  }
+  console.log(`✅ Bimestres del año 2026 creados`)
+
   // ── Roles (global, not per-institution) ───────────────────────────────────
   const roleDefs: { name: string; label: string }[] = [
     { name: "director",     label: "Director" },
@@ -237,6 +254,191 @@ async function main() {
     }
   }
   console.log(`✅ Catálogo de conducta: ${conductCount} códigos`)
+
+  // ── Cursos faltantes del catálogo (Educación Física / Ed. para el Trabajo) ──
+  const extraCourseDefs = [
+    { level: "Inicial",    name: "PSICOMOTRICIDAD" }, // ya existía en algunos casos; upsert es no-op si ya está
+    { level: "Inicial",    name: "EDUCACIÓN FÍSICA" },
+    { level: "Primaria",   name: "EDUCACIÓN FÍSICA" },
+    { level: "Secundaria", name: "EDUCACIÓN FÍSICA" },
+    { level: "Secundaria", name: "EDUCACIÓN PARA EL TRABAJO" },
+  ]
+  const courseIdByLevelName: Record<string, string> = {}
+  for (const cd of extraCourseDefs) {
+    const lvlId = levelsMap[cd.level]
+    let course = await prisma.course.findFirst({ where: { institutionId: institution.id, levelId: lvlId, name: cd.name } })
+    if (!course) {
+      course = await prisma.course.create({ data: { institutionId: institution.id, levelId: lvlId, name: cd.name, gradeType: "qualitative", active: true } })
+    }
+    courseIdByLevelName[`${cd.level}|${cd.name}`] = course.id
+  }
+  // Precarga de todos los cursos existentes para poder mapear Competencia → Course por nombre.
+  const allCourses = await prisma.course.findMany({ where: { institutionId: institution.id }, include: { level: true } })
+  for (const c of allCourses) {
+    if (c.level) courseIdByLevelName[`${c.level.name}|${c.name.trim().toUpperCase()}`] = c.id
+  }
+  function courseId(level: string, name: string): string | undefined {
+    return courseIdByLevelName[`${level}|${name.trim().toUpperCase()}`]
+  }
+  console.log(`✅ Cursos faltantes verificados`)
+
+  // ── Áreas curriculares y Competencias (formato MINEDU: AD/A/B/C) ───────────
+  type CompSeed = { name: string; course?: string }
+  type AreaSeed = { level: string; area: string; competencias: CompSeed[] }
+
+  const areaSeed: AreaSeed[] = [
+    // ── SECUNDARIA (calcado del Informe de Progreso oficial) ──
+    { level: "Secundaria", area: "Comunicación", competencias: [
+      { name: "Se comunica oralmente en su lengua materna", course: "COMUNICACIÓN" },
+      { name: "Lee diversos tipos de textos escritos", course: "COMUNICACIÓN" },
+      { name: "Escribe diversos tipos de textos", course: "COMUNICACIÓN" },
+      { name: "Razonamiento Verbal", course: "RAZONAMIENTO VERBAL" },
+    ] },
+    { level: "Secundaria", area: "Matemática", competencias: [
+      { name: "Resuelve problemas de cantidad", course: "MATEMÁTICA" },
+      { name: "Resuelve problemas de regularidad, equivalencia y cambio", course: "ÁLGEBRA" },
+      { name: "Resuelve problemas de movimiento, forma y localización", course: "GEOMETRÍA" },
+      { name: "Resuelve problemas de gestión de datos e incertidumbre", course: "ARITMÉTICA" },
+      { name: "Razonamiento Matemático", course: "RAZONAMIENTO MATEMÁTICO" },
+    ] },
+    { level: "Secundaria", area: "Desarrollo Personal, Ciud. y Cívica", competencias: [
+      { name: "Construye su identidad", course: "DPCC" },
+      { name: "Convive y participa democráticamente", course: "DPCC" },
+    ] },
+    { level: "Secundaria", area: "Ciencias Sociales", competencias: [
+      { name: "Construye interpretaciones históricas", course: "HISTORIA" },
+      { name: "Gestiona responsablemente el espacio y ambiente", course: "GEOGRAFÍA" },
+      { name: "Gestiona responsablemente los recursos económicos", course: "GEOGRAFÍA" },
+    ] },
+    { level: "Secundaria", area: "Ciencia y Tecnología", competencias: [
+      { name: "Indaga mediante métodos científicos para construir conocimientos", course: "BIOLOGÍA" },
+      { name: "Explica el mundo físico basándose en conocimientos sobre seres vivos, materia y energía, biodiversidad, Tierra y Universo", course: "FÍSICA" },
+      { name: "Diseña y construye soluciones tecnológicas para resolver problemas de su entorno", course: "COMPUTACIÓN" },
+    ] },
+    { level: "Secundaria", area: "Educación Religiosa", competencias: [
+      { name: "Construye su identidad como persona humana, amada por Dios, digna, libre y trascendente", course: "RELIGIÓN" },
+      { name: "Asume la experiencia del encuentro personal y comunitario con Dios en su proyecto de vida", course: "RELIGIÓN" },
+    ] },
+    { level: "Secundaria", area: "Educación Física", competencias: [
+      { name: "Se desenvuelve de manera autónoma a través de su motricidad", course: "EDUCACIÓN FÍSICA" },
+      { name: "Asume una vida saludable", course: "EDUCACIÓN FÍSICA" },
+      { name: "Interactúa a través de sus habilidades sociomotrices", course: "EDUCACIÓN FÍSICA" },
+    ] },
+    { level: "Secundaria", area: "Arte y Cultura", competencias: [
+      { name: "Aprecia de manera crítica manifestaciones artístico-culturales", course: "ARTE" },
+      { name: "Crea proyectos desde los lenguajes artísticos", course: "ARTE" },
+    ] },
+    { level: "Secundaria", area: "Inglés", competencias: [
+      { name: "Se comunica oralmente en inglés como lengua extranjera", course: "INGLÉS" },
+      { name: "Lee diversos tipos de textos en inglés como lengua extranjera", course: "INGLÉS" },
+      { name: "Escribe diversos tipos de textos en inglés como lengua extranjera", course: "INGLÉS" },
+    ] },
+    { level: "Secundaria", area: "Educación para el Trabajo", competencias: [
+      { name: "Gestiona proyectos de emprendimiento económico y social", course: "EDUCACIÓN PARA EL TRABAJO" },
+    ] },
+    { level: "Secundaria", area: "Competencias Transversales", competencias: [
+      { name: "Se desenvuelve en los entornos virtuales generados por las TIC", course: "COMPUTACIÓN" },
+      { name: "Gestiona su aprendizaje de manera autónoma", course: "PLAN LECTOR" },
+    ] },
+
+    // ── PRIMARIA ──
+    { level: "Primaria", area: "Comunicación", competencias: [
+      { name: "Se comunica oralmente en su lengua materna", course: "COMUNICACIÓN" },
+      { name: "Lee diversos tipos de textos escritos", course: "COMUNICACIÓN" },
+      { name: "Escribe diversos tipos de textos", course: "COMUNICACIÓN" },
+      { name: "Razonamiento Verbal", course: "RAZONAMIENTO VERBAL" },
+    ] },
+    { level: "Primaria", area: "Matemática", competencias: [
+      { name: "Resuelve problemas de cantidad", course: "MATEMÁTICA" },
+      { name: "Resuelve problemas de regularidad, equivalencia y cambio", course: "MATEMÁTICA" },
+      { name: "Resuelve problemas de movimiento, forma y localización", course: "MATEMÁTICA" },
+      { name: "Resuelve problemas de gestión de datos e incertidumbre", course: "MATEMÁTICA" },
+      { name: "Razonamiento Matemático", course: "RAZONAMIENTO MATEMÁTICO" },
+    ] },
+    { level: "Primaria", area: "Personal Social", competencias: [
+      { name: "Construye su identidad", course: "PERSONAL SOCIAL" },
+      { name: "Convive y participa democráticamente", course: "PERSONAL SOCIAL" },
+      { name: "Gestiona responsablemente el espacio y el ambiente", course: "PERSONAL SOCIAL" },
+    ] },
+    { level: "Primaria", area: "Ciencia y Tecnología", competencias: [
+      { name: "Indaga mediante métodos científicos para construir conocimientos", course: "CIENCIA Y AMBIENTE" },
+      { name: "Explica el mundo físico basándose en conocimientos científicos", course: "CIENCIA Y AMBIENTE" },
+      { name: "Diseña y construye soluciones tecnológicas para resolver problemas de su entorno", course: "CIENCIA Y AMBIENTE" },
+    ] },
+    { level: "Primaria", area: "Educación Religiosa", competencias: [
+      { name: "Construye su identidad como persona humana, amada por Dios, digna, libre y trascendente", course: "RELIGIÓN" },
+      { name: "Asume la experiencia del encuentro personal y comunitario con Dios en su proyecto de vida", course: "RELIGIÓN" },
+    ] },
+    { level: "Primaria", area: "Educación Física", competencias: [
+      { name: "Se desenvuelve de manera autónoma a través de su motricidad", course: "EDUCACIÓN FÍSICA" },
+      { name: "Asume una vida saludable", course: "EDUCACIÓN FÍSICA" },
+      { name: "Interactúa a través de sus habilidades sociomotrices", course: "EDUCACIÓN FÍSICA" },
+    ] },
+    { level: "Primaria", area: "Arte y Cultura", competencias: [
+      { name: "Aprecia de manera crítica manifestaciones artístico-culturales", course: "ARTE" },
+      { name: "Crea proyectos desde los lenguajes artísticos", course: "ARTE" },
+    ] },
+    { level: "Primaria", area: "Inglés", competencias: [
+      { name: "Se comunica oralmente en inglés como lengua extranjera", course: "INGLÉS" },
+      { name: "Lee diversos tipos de textos en inglés como lengua extranjera", course: "INGLÉS" },
+      { name: "Escribe diversos tipos de textos en inglés como lengua extranjera", course: "INGLÉS" },
+    ] },
+    { level: "Primaria", area: "Competencias Transversales", competencias: [
+      { name: "Se desenvuelve en los entornos virtuales generados por las TIC", course: "COMPUTACIÓN" },
+      { name: "Gestiona su aprendizaje de manera autónoma", course: "PLAN LECTOR" },
+    ] },
+
+    // ── INICIAL ──
+    { level: "Inicial", area: "Comunicación", competencias: [
+      { name: "Se comunica oralmente en su lengua materna", course: "COMUNICACIÓN" },
+      { name: "Lee diversos tipos de textos escritos en su lengua materna", course: "COMUNICACIÓN" },
+      { name: "Escribe diversos tipos de textos en su lengua materna", course: "COMUNICACIÓN" },
+    ] },
+    { level: "Inicial", area: "Matemática", competencias: [
+      { name: "Resuelve problemas de cantidad", course: "MATEMÁTICA" },
+      { name: "Resuelve problemas de forma, movimiento y localización", course: "MATEMÁTICA" },
+    ] },
+    { level: "Inicial", area: "Personal Social", competencias: [
+      { name: "Construye su identidad", course: "PERSONAL SOCIAL" },
+      { name: "Convive y participa democráticamente", course: "PERSONAL SOCIAL" },
+    ] },
+    { level: "Inicial", area: "Psicomotricidad", competencias: [
+      { name: "Se desenvuelve de manera autónoma a través de su motricidad", course: "PSICOMOTRICIDAD" },
+    ] },
+    { level: "Inicial", area: "Educación Religiosa", competencias: [
+      { name: "Construye su identidad como persona humana, amada por Dios, digna, libre y trascendente", course: "RELIGIÓN" },
+      { name: "Asume la experiencia del encuentro personal y comunitario con Dios en su proyecto de vida", course: "RELIGIÓN" },
+    ] },
+    { level: "Inicial", area: "Arte y Cultura", competencias: [
+      { name: "Aprecia de manera crítica manifestaciones artístico-culturales", course: "ARTE" },
+      { name: "Crea proyectos desde los lenguajes artísticos", course: "ARTE" },
+    ] },
+    { level: "Inicial", area: "Inglés", competencias: [
+      { name: "Se comunica oralmente en inglés como lengua extranjera", course: "INGLÉS" },
+    ] },
+  ]
+
+  let areaCount = 0, compCount = 0
+  for (const a of areaSeed) {
+    const lvlId = levelsMap[a.level]
+    let area = await prisma.area.findFirst({ where: { institutionId: institution.id, levelId: lvlId, name: a.area } })
+    if (!area) {
+      area = await prisma.area.create({ data: { institutionId: institution.id, levelId: lvlId, name: a.area, order: areaCount } })
+      areaCount++
+    }
+    for (let i = 0; i < a.competencias.length; i++) {
+      const comp = a.competencias[i]
+      const existing = await prisma.competencia.findFirst({ where: { areaId: area.id, name: comp.name } })
+      const cId = comp.course ? courseId(a.level, comp.course) : undefined
+      if (!existing) {
+        await prisma.competencia.create({ data: { areaId: area.id, courseId: cId, name: comp.name, order: i } })
+        compCount++
+      } else if (cId && existing.courseId !== cId) {
+        await prisma.competencia.update({ where: { id: existing.id }, data: { courseId: cId } })
+      }
+    }
+  }
+  console.log(`✅ Áreas curriculares: ${areaSeed.length} definidas, ${compCount} competencias nuevas`)
 
   console.log("\n🎉 Seed completado exitosamente!")
   console.log("\n📋 Credenciales de acceso:")

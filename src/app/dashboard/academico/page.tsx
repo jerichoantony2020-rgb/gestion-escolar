@@ -7,6 +7,7 @@ export default function AcademicoPage() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
           { href: "/dashboard/academico/notas",      icon: "📝", label: "Registro de notas",    desc: "Ingresa y consulta calificaciones por periodo" },
+          { href: "/dashboard/academico/notas-area", icon: "🧭", label: "Notas por competencia", desc: "Registro MINEDU: AD / A / B / C por competencia" },
           { href: "/dashboard/academico/asistencia", icon: "✅", label: "Asistencia",            desc: "Control diario con código QR" },
           { href: "/dashboard/academico/conducta",   icon: "📋", label: "Conducta",              desc: "Registro de incidencias y logros" },
           { href: "/dashboard/academico/boletin",    icon: "🎓", label: "Boletín de notas",      desc: "Consulta calificaciones por alumno" },

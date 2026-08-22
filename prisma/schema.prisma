@@ -47,6 +47,9 @@ model Institution {
   psychoCases        PsychologicalCase[]
   derivations        PsychologicalDerivation[]
   conductCodes       ConductCode[]
+  areas              Area[]
+  competenciaGrades  CompetenciaGrade[]
+  tutorNotes         TutorNote[]
 
   @@map("institutions")
 }
@@ -91,7 +94,9 @@ model AcademicPeriod {
   institution   Institution     @relation(fields: [institutionId], references: [id], onDelete: Cascade)
   year          InstitutionYear @relation(fields: [yearId], references: [id], onDelete: Cascade)
 
-  gradeRecords GradeRecord[]
+  gradeRecords      GradeRecord[]
+  competenciaGrades CompetenciaGrade[]
+  tutorNotes        TutorNote[]
 
   @@map("academic_periods")
 }
@@ -158,6 +163,7 @@ model Level {
   grades   Grade[]
   courses  Course[]
   sections Section[]
+  areas    Area[]
 
   @@map("levels")
 }
@@ -232,6 +238,8 @@ model Student {
   readingProgress ReadingProgress[]
   psychoCases     PsychologicalCase[]
   derivations     PsychologicalDerivation[]
+  competenciaGrades CompetenciaGrade[]
+  tutorNotes        TutorNote[]
 
   @@map("students")
 }
@@ -301,6 +309,7 @@ model Course {
   assignments  CourseAssignment[]
   gradeRecords GradeRecord[]
   readingPlans ReadingPlan[]
+  competencias Competencia[]
 
   @@map("courses")
 }
@@ -345,6 +354,72 @@ model GradeRecord {
 
   @@unique([studentId, courseId, periodId])
   @@map("grade_records")
+}
+
+// ─── NOTAS POR COMPETENCIA (formato MINEDU: Área → Competencia → AD/A/B/C) ────
+
+model Area {
+  id            String      @id @default(cuid())
+  institutionId String
+  levelId       String
+  name          String
+  order         Int         @default(0)
+  institution   Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  level         Level       @relation(fields: [levelId], references: [id])
+
+  competencias Competencia[]
+
+  @@unique([institutionId, levelId, name])
+  @@map("areas")
+}
+
+model Competencia {
+  id       String  @id @default(cuid())
+  areaId   String
+  courseId String?
+  name     String
+  order    Int     @default(0)
+  area     Area    @relation(fields: [areaId], references: [id], onDelete: Cascade)
+  course   Course? @relation(fields: [courseId], references: [id])
+
+  grades CompetenciaGrade[]
+
+  @@map("competencias")
+}
+
+model CompetenciaGrade {
+  id            String         @id @default(cuid())
+  institutionId String
+  studentId     String
+  competenciaId String
+  periodId      String
+  level         String
+  staffId       String?
+  updatedAt     DateTime       @updatedAt
+  institution   Institution    @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  student       Student        @relation(fields: [studentId], references: [id])
+  competencia   Competencia    @relation(fields: [competenciaId], references: [id], onDelete: Cascade)
+  period        AcademicPeriod @relation(fields: [periodId], references: [id])
+
+  @@unique([studentId, competenciaId, periodId])
+  @@map("competencia_grades")
+}
+
+// Conclusión descriptiva del tutor por bimestre (texto libre del "Informe de Progreso").
+model TutorNote {
+  id            String         @id @default(cuid())
+  institutionId String
+  studentId     String
+  periodId      String
+  text          String
+  staffId       String?
+  updatedAt     DateTime       @updatedAt
+  institution   Institution    @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  student       Student        @relation(fields: [studentId], references: [id])
+  period        AcademicPeriod @relation(fields: [periodId], references: [id])
+
+  @@unique([studentId, periodId])
+  @@map("tutor_notes")
 }
 
 // ─── ASISTENCIA ──────────────────────────────────────────────────────────────

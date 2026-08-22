@@ -53,6 +53,12 @@ export default function BoletinPage() {
         </div>
       </div>
 
+      {studentId && (
+        <a href={`/dashboard/academico/informe/${studentId}`} className="inline-block mb-4 text-sm font-semibold text-primary-500 hover:underline">
+          Ver Informe de Progreso completo (formato MINEDU) →
+        </a>
+      )}
+
       {loading && <p className="text-sm" style={{ color: "var(--muted)" }}>Cargando...</p>}
 
       {boletin && !loading && (
