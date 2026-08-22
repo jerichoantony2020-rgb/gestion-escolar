@@ -256,12 +256,21 @@ async function main() {
   console.log(`✅ Catálogo de conducta: ${conductCount} códigos`)
 
   // ── Cursos faltantes del catálogo (Educación Física / Ed. para el Trabajo) ──
+  // En Secundaria el horario reparte Comunicación/Matemática/Ciencias Sociales/
+  // Ciencia y Tecnología en varios bloques (Lenguaje, Literatura, Aritmética,
+  // Álgebra, Historia, Geografía, etc.), pero para NOTAS es un solo docente
+  // por área, un solo registro. Se crea un curso "paraguas" por área para que
+  // las competencias de cada una se califiquen juntas en una sola pantalla.
   const extraCourseDefs = [
     { level: "Inicial",    name: "PSICOMOTRICIDAD" }, // ya existía en algunos casos; upsert es no-op si ya está
     { level: "Inicial",    name: "EDUCACIÓN FÍSICA" },
     { level: "Primaria",   name: "EDUCACIÓN FÍSICA" },
     { level: "Secundaria", name: "EDUCACIÓN FÍSICA" },
     { level: "Secundaria", name: "EDUCACIÓN PARA EL TRABAJO" },
+    { level: "Secundaria", name: "COMUNICACIÓN" },
+    { level: "Secundaria", name: "MATEMÁTICA" },
+    { level: "Secundaria", name: "CIENCIAS SOCIALES" },
+    { level: "Secundaria", name: "CIENCIA Y TECNOLOGÍA" },
   ]
   const courseIdByLevelName: Record<string, string> = {}
   for (const cd of extraCourseDefs) {
@@ -289,34 +298,31 @@ async function main() {
   const areaSeed: AreaSeed[] = [
     // ── SECUNDARIA (calcado del Informe de Progreso oficial) ──
     { level: "Secundaria", area: "Comunicación", competencias: [
-      // Secundaria no tiene curso "Comunicación": el mismo docente dicta
-      // Lenguaje, Literatura y Razonamiento Verbal como un solo bloque, así
-      // que las 4 competencias se califican desde el curso "Lenguaje".
-      { name: "Se comunica oralmente en su lengua materna", course: "LENGUAJE" },
-      { name: "Lee diversos tipos de textos escritos", course: "LENGUAJE" },
-      { name: "Escribe diversos tipos de textos", course: "LENGUAJE" },
-      { name: "Razonamiento Verbal", course: "LENGUAJE" },
+      { name: "Se comunica oralmente en su lengua materna", course: "COMUNICACIÓN" },
+      { name: "Lee diversos tipos de textos escritos", course: "COMUNICACIÓN" },
+      { name: "Escribe diversos tipos de textos", course: "COMUNICACIÓN" },
+      { name: "Razonamiento Verbal", course: "COMUNICACIÓN" },
     ] },
     { level: "Secundaria", area: "Matemática", competencias: [
-      { name: "Resuelve problemas de cantidad", course: "ARITMÉTICA" },
-      { name: "Resuelve problemas de regularidad, equivalencia y cambio", course: "ÁLGEBRA" },
-      { name: "Resuelve problemas de movimiento, forma y localización", course: "GEOMETRÍA" },
-      { name: "Resuelve problemas de gestión de datos e incertidumbre", course: "ARITMÉTICA" },
-      { name: "Razonamiento Matemático", course: "RAZONAMIENTO MATEMÁTICO" },
+      { name: "Resuelve problemas de cantidad", course: "MATEMÁTICA" },
+      { name: "Resuelve problemas de regularidad, equivalencia y cambio", course: "MATEMÁTICA" },
+      { name: "Resuelve problemas de movimiento, forma y localización", course: "MATEMÁTICA" },
+      { name: "Resuelve problemas de gestión de datos e incertidumbre", course: "MATEMÁTICA" },
+      { name: "Razonamiento Matemático", course: "MATEMÁTICA" },
     ] },
     { level: "Secundaria", area: "Desarrollo Personal, Ciud. y Cívica", competencias: [
       { name: "Construye su identidad", course: "DPCC" },
       { name: "Convive y participa democráticamente", course: "DPCC" },
     ] },
     { level: "Secundaria", area: "Ciencias Sociales", competencias: [
-      { name: "Construye interpretaciones históricas", course: "HISTORIA" },
-      { name: "Gestiona responsablemente el espacio y ambiente", course: "GEOGRAFÍA" },
-      { name: "Gestiona responsablemente los recursos económicos", course: "GEOGRAFÍA" },
+      { name: "Construye interpretaciones históricas", course: "CIENCIAS SOCIALES" },
+      { name: "Gestiona responsablemente el espacio y ambiente", course: "CIENCIAS SOCIALES" },
+      { name: "Gestiona responsablemente los recursos económicos", course: "CIENCIAS SOCIALES" },
     ] },
     { level: "Secundaria", area: "Ciencia y Tecnología", competencias: [
-      { name: "Indaga mediante métodos científicos para construir conocimientos", course: "BIOLOGÍA" },
-      { name: "Explica el mundo físico basándose en conocimientos sobre seres vivos, materia y energía, biodiversidad, Tierra y Universo", course: "FÍSICA" },
-      { name: "Diseña y construye soluciones tecnológicas para resolver problemas de su entorno", course: "COMPUTACIÓN" },
+      { name: "Indaga mediante métodos científicos para construir conocimientos", course: "CIENCIA Y TECNOLOGÍA" },
+      { name: "Explica el mundo físico basándose en conocimientos sobre seres vivos, materia y energía, biodiversidad, Tierra y Universo", course: "CIENCIA Y TECNOLOGÍA" },
+      { name: "Diseña y construye soluciones tecnológicas para resolver problemas de su entorno", course: "CIENCIA Y TECNOLOGÍA" },
     ] },
     { level: "Secundaria", area: "Educación Religiosa", competencias: [
       { name: "Construye su identidad como persona humana, amada por Dios, digna, libre y trascendente", course: "RELIGIÓN" },
@@ -356,7 +362,7 @@ async function main() {
       { name: "Resuelve problemas de regularidad, equivalencia y cambio", course: "MATEMÁTICA" },
       { name: "Resuelve problemas de movimiento, forma y localización", course: "MATEMÁTICA" },
       { name: "Resuelve problemas de gestión de datos e incertidumbre", course: "MATEMÁTICA" },
-      { name: "Razonamiento Matemático", course: "RAZONAMIENTO MATEMÁTICO" },
+      { name: "Razonamiento Matemático", course: "MATEMÁTICA" },
     ] },
     { level: "Primaria", area: "Personal Social", competencias: [
       { name: "Construye su identidad", course: "PERSONAL SOCIAL" },
