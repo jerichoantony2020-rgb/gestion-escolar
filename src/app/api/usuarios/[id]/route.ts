@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import bcrypt from "bcryptjs"
+import { syncStaffForRole } from "@/lib/staff"
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await getServerSession(authOptions)
@@ -25,6 +26,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         data: { userId: id, roleId: roleRecord.id, institutionId: session.user.institutionId },
       })
     }
+    await syncStaffForRole(session.user.institutionId, id, role)
   }
 
   return NextResponse.json({ ok: true })

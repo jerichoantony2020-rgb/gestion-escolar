@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import bcrypt from "bcryptjs"
+import { syncStaffForRole } from "@/lib/staff"
 
 export async function GET() {
   const session = await getServerSession(authOptions)
@@ -49,6 +50,7 @@ export async function POST(req: NextRequest) {
       data: { userId: user.id, roleId: roleRecord.id, institutionId: session.user.institutionId },
     })
   }
+  await syncStaffForRole(session.user.institutionId, user.id, role ?? "docente")
 
   return NextResponse.json({ id: user.id, name: user.name, email: user.email, role }, { status: 201 })
 }
