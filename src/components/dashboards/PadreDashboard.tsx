@@ -3,13 +3,14 @@
 import { useState, useEffect } from "react"
 import type { Session } from "next-auth"
 import Link from "next/link"
-import { IconAsistencia, IconNotas, IconFinanzas } from "@/components/icons"
+import { IconAsistencia, IconNotas, IconFinanzas, IconConducta } from "@/components/icons"
 
 type Child = {
   studentName: string; section: string; level: string
   attendance: { present: number; late: number; absent: number; total: number }
   grades: { course: string; display: string }[]
   conducta: { id: string }[]
+  conductScore: number
   payments: { month: number; year: number; amount: number; status: string; paid: number }[]
 }
 
@@ -90,8 +91,9 @@ export default function PadreDashboard({ session }: { session: Session | null })
               <p className="font-bold text-base" style={{ color: "var(--fg)" }}>{c.studentName}</p>
               <p className="text-xs mt-0.5" style={{ color: "var(--muted)" }}>{c.level} · {c.section}</p>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 1, background: "#EDF1F9" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 1, background: "#EDF1F9" }}>
               <Mini Icon={IconAsistencia} label="Asistencia" value={pct != null ? `${pct}%` : "—"} tone="#15803D" soft="#DCFCE7" />
+              <Mini Icon={IconConducta} label="Conducta" value={`${c.conductScore}/20`} tone={c.conductScore >= 17 ? "#15803D" : c.conductScore >= 12 ? "#B45309" : "#DC2626"} soft={c.conductScore >= 17 ? "#DCFCE7" : c.conductScore >= 12 ? "#FEF3C7" : "#FEE2E2"} />
               <Mini Icon={IconNotas} label="Cursos con nota" value={c.grades.length} tone="#1A33CC" soft="#EEF2FF" />
               <Mini Icon={IconFinanzas} label="Deuda" value={deuda > 0 ? `S/ ${deuda.toFixed(0)}` : "S/ 0"} tone={deuda > 0 ? "#B91C1C" : "#15803D"} soft={deuda > 0 ? "#FEE2E2" : "#DCFCE7"} />
             </div>

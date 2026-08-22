@@ -8,7 +8,9 @@ type Child = {
   grades: { course: string; period: string; display: string }[]
   attendance: { present: number; late: number; absent: number; total: number }
   attendanceDaily: Daily[]
-  conducta: { id: string; type: string; title: string | null; description: string; severity: string; date: string }[]
+  conducta: { id: string; type: string; title: string | null; description: string; severity: string; code: string | null; points: number | null; date: string }[]
+  conductScore: number
+  conductBimestre: string
   payments: { month: number; year: number; amount: number; status: string; paid: number }[]
 }
 const MESES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"]
@@ -84,23 +86,37 @@ export default function PortalClient() {
 
       {/* CONDUCTA */}
       {tab === "conducta" && (
-        c.conducta.length === 0 ? <Empty text="Sin incidencias ni reconocimientos" /> : (
-          <div className="space-y-2">
-            {c.conducta.map(i => (
-              <div key={i.id} className="rounded-xl border p-3 flex items-start gap-3" style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
-                <div className={`mt-1 w-2 h-2 rounded-full shrink-0 ${i.type === "positive" ? "bg-green-500" : i.severity === "high" ? "bg-red-500" : "bg-amber-500"}`} />
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${i.type === "positive" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>{i.type === "positive" ? "Reconocimiento" : "Incidencia"}</span>
-                    {i.title && <span className="text-sm font-medium" style={{ color: "var(--fg)" }}>{i.title}</span>}
-                  </div>
-                  <p className="text-sm mt-1" style={{ color: "var(--muted)" }}>{i.description}</p>
-                  <p className="text-[11px] mt-1" style={{ color: "var(--muted)" }}>{new Date(i.date).toLocaleDateString("es-PE", { day: "numeric", month: "long" })}</p>
-                </div>
-              </div>
-            ))}
+        <>
+          <div className="rounded-xl border p-4 mb-4 flex items-center justify-between" style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--muted)" }}>Puntaje de conducta · {c.conductBimestre}</p>
+              <p className="text-[11px] mt-0.5" style={{ color: "var(--muted)" }}>Todos parten de 20 puntos; se descuenta por cada falta con código.</p>
+            </div>
+            <span className="text-xl font-bold px-3 py-1.5 rounded-full" style={{
+              background: c.conductScore >= 17 ? "#DCFCE7" : c.conductScore >= 12 ? "#FEF3C7" : "#FEE2E2",
+              color: c.conductScore >= 17 ? "#16A34A" : c.conductScore >= 12 ? "#B45309" : "#DC2626",
+            }}>{c.conductScore}/20</span>
           </div>
-        )
+          {c.conducta.length === 0 ? <Empty text="Sin incidencias ni reconocimientos" /> : (
+            <div className="space-y-2">
+              {c.conducta.map(i => (
+                <div key={i.id} className="rounded-xl border p-3 flex items-start gap-3" style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
+                  <div className={`mt-1 w-2 h-2 rounded-full shrink-0 ${i.type === "positive" ? "bg-green-500" : i.severity === "muy_grave" ? "bg-red-600" : i.severity === "grave" ? "bg-orange-500" : "bg-amber-500"}`} />
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${i.type === "positive" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>{i.type === "positive" ? "Reconocimiento" : "Incidencia"}</span>
+                      {i.code && <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700">{i.code}</span>}
+                      {i.points != null && <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-red-50 text-red-700">{i.points} pts</span>}
+                      {i.title && <span className="text-sm font-medium" style={{ color: "var(--fg)" }}>{i.title}</span>}
+                    </div>
+                    <p className="text-sm mt-1" style={{ color: "var(--muted)" }}>{i.description}</p>
+                    <p className="text-[11px] mt-1" style={{ color: "var(--muted)" }}>{new Date(i.date).toLocaleDateString("es-PE", { day: "numeric", month: "long" })}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
       )}
 
       {/* ASISTENCIA */}

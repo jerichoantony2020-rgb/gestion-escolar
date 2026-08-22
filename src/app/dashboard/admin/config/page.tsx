@@ -94,6 +94,24 @@ export default function ConfigPage() {
           </p>
         </section>
 
+        {/* Notificación de conducta */}
+        <section className="rounded-xl border p-5" style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
+          <h2 className="font-semibold mb-1" style={{ color: "var(--fg)" }}>Notificación de conducta</h2>
+          <p className="text-xs mb-4" style={{ color: "var(--muted)" }}>
+            Al registrar una falta con código se puede avisar al apoderado por WhatsApp. Variables: <code className="bg-gray-100 px-1 rounded">{"{alumno}"}</code> <code className="bg-gray-100 px-1 rounded">{"{codigo}"}</code> <code className="bg-gray-100 px-1 rounded">{"{descripcion}"}</code> <code className="bg-gray-100 px-1 rounded">{"{puntos}"}</code> <code className="bg-gray-100 px-1 rounded">{"{fecha}"}</code>
+          </p>
+          <label className="flex items-center gap-2 cursor-pointer mb-4">
+            <input type="checkbox" checked={config.notifyOnConduct === "true"} onChange={e => set("notifyOnConduct", e.target.checked ? "true" : "false")} />
+            <span className="text-sm" style={{ color: "var(--fg)" }}>Ofrecer avisar por WhatsApp al registrar una falta</span>
+          </label>
+          <div>
+            <label className="block text-sm font-medium mb-1" style={{ color: "var(--fg)" }}>Mensaje de conducta</label>
+            <textarea rows={4} value={config.conductTemplate ?? ""} onChange={e => set("conductTemplate", e.target.value)}
+              placeholder={"📋 Registro de conducta — {alumno}\nCódigo {codigo}: {descripcion}\nPuntos descontados: {puntos}\nFecha: {fecha}"}
+              className="w-full px-3 py-2 rounded-lg border text-sm outline-none focus:ring-2 focus:ring-primary-500 resize-none" style={{ background: "var(--bg)", borderColor: "var(--border)", color: "var(--fg)" }} />
+          </div>
+        </section>
+
         <button type="submit" disabled={saving}
           className="px-6 py-2.5 rounded-lg bg-primary-500 text-white font-semibold text-sm hover:bg-primary-600 disabled:opacity-60 transition-colors">
           {saving ? "Guardando..." : saved ? "✓ Guardado" : "Guardar cambios"}

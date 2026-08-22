@@ -2,6 +2,9 @@ import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { currentBimestre } from "@/lib/bimestre"
+
+const CONDUCT_BASE_SCORE = 20
 
 // GET /api/portal → datos de los hijos del apoderado: notas, conducta, asistencia diaria, pagos
 export async function GET() {
@@ -48,6 +51,12 @@ export async function GET() {
       take: 20,
     })
 
+    const bim = currentBimestre()
+    const bimestreDeducted = incidents
+      .filter(i => i.type === "negative" && i.points != null && i.date >= bim.start && i.date <= bim.end)
+      .reduce((sum, i) => sum + Math.abs(i.points ?? 0), 0)
+    const conductScore = Math.max(0, CONDUCT_BASE_SCORE - bimestreDeducted)
+
     const orders = await prisma.paymentOrder.findMany({
       where: { institutionId: instId, studentId: s.id },
       include: { payments: true },
@@ -65,7 +74,8 @@ export async function GET() {
         date: a.date, status: a.status,
         entryAt: a.entryAt, exitAt: a.exitAt,
       })),
-      conducta: incidents.map(i => ({ id: i.id, type: i.type, title: i.title, description: i.description, severity: i.severity, date: i.date })),
+      conductScore, conductBimestre: bim.label,
+      conducta: incidents.map(i => ({ id: i.id, type: i.type, title: i.title, description: i.description, severity: i.severity, code: i.code, points: i.points, date: i.date })),
       payments: orders.map(o => ({ month: o.month, year: o.year, amount: o.amount, status: o.status, paid: o.payments.reduce((p, x) => p + x.amount, 0) })),
     })
   }

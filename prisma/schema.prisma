@@ -46,6 +46,7 @@ model Institution {
   actividades        Actividad[]
   psychoCases        PsychologicalCase[]
   derivations        PsychologicalDerivation[]
+  conductCodes       ConductCode[]
 
   @@map("institutions")
 }
@@ -390,12 +391,35 @@ model Incident {
   title         String?
   description   String
   severity      String      @default("low")
+  // Código del reglamento (ej. "D14") y los puntos que descontó en ese
+  // momento. Se copian del catálogo al registrar para que si el catálogo
+  // cambia después, el historial no se reescriba solo.
+  code          String?
+  points        Int?
   date          DateTime    @default(now())
   reportedBy    String?
   institution   Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
   student       Student     @relation(fields: [studentId], references: [id])
 
   @@map("incidents")
+}
+
+// Catálogo de faltas y sanciones del reglamento interno (código + puntos que
+// descuenta). La conducta de cada alumno parte de 20 puntos por bimestre.
+model ConductCode {
+  id            String      @id @default(cuid())
+  institutionId String
+  code          String      // "A2", "D14"...
+  category      String      // "A".."E"
+  categoryLabel String      // "Asistencia y Puntualidad"
+  description   String
+  points        Int         // negativo, ej. -2
+  severity      String      // "leve" | "grave" | "muy_grave"
+  order         Int         @default(0)
+  institution   Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+
+  @@unique([institutionId, code])
+  @@map("conduct_codes")
 }
 
 // ─── FINANZAS ─────────────────────────────────────────────────────────────────

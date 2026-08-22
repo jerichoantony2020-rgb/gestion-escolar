@@ -159,6 +159,85 @@ async function main() {
   }
   console.log(`✅ Concepto de pago creado`)
 
+  // ── Catálogo de conducta (reglamento interno) ───────────────────────────────
+  type ConductSeed = { category: string; categoryLabel: string; points: number; severity: string; items: string[] }
+  const conductSeed: ConductSeed[] = [
+    { category: "A", categoryLabel: "Asistencia y Puntualidad", points: -2, severity: "leve", items: [
+      "Inasistencias injustificadas",
+      "Llegar tarde al colegio",
+      "Salida injustificada del aula",
+      "Retraso a clase y/o formación",
+    ] },
+    { category: "B", categoryLabel: "Aseo y Presentación", points: -2, severity: "leve", items: [
+      "Falta de aseo personal (uniforme o cuerpo sucio)",
+      "Presentación incorrecta (uñas largas pintadas, maquillaje, cabello suelto en alumnas, mal vestido, etc.)",
+      "Uniforme o distintivos incompletos (moñera, carmín, cordones, medias, etc.)",
+      "Aditamentos o prendas que alteren el uso correcto del uniforme (joyas u otros)",
+      "Asistir con el uniforme que no corresponda al día de clases",
+      "Deteriorar y/o hacer pintas en el uniforme, buzo, mochila o prendas escolares",
+    ] },
+    { category: "C", categoryLabel: "Obediencia y Responsabilidad", points: -2, severity: "leve", items: [
+      "Retener o no presentar oportunamente la documentación escolar (citaciones, exámenes, agenda, comunicados, etc.)",
+      "No presentar firmada y/o sellada la agenda (comunicados, exámenes y/o citaciones)",
+      "Negarse a presentar la agenda estudiantil a las autoridades del colegio",
+      "No presentar tareas, asignaciones y útiles escolares",
+      "No pegar los comunicados, exámenes mensuales y bimestrales",
+      "Consumir golosinas o similares en horas de clase",
+    ] },
+    { category: "D", categoryLabel: "Comportamiento en el Aula o Dentro del Plantel", points: -3, severity: "grave", items: [
+      "No portar la agenda estudiantil",
+      "Reiteradamente no presentar tareas, cuadernos o libros",
+      "Ser retirado del aula por incumplimiento reiterado de tareas",
+      "Ingresar o salir por puertas que no correspondan en la entrada y/o salida",
+      "Incumplir una orden encomendada por un(a) profesor(a) o autoridad del colegio",
+      "Ingresar a ambientes no autorizados (aulas, oficinas, laboratorios, etc.)",
+      "Tener revistas o publicaciones que atenten contra su buena formación",
+      "Traer objetos no autorizados — serán decomisados (celulares, mp3-4, iPod, juegos, etc.)",
+      "Faltar al colegio el día de actividades programadas (visitas, viajes, olimpiadas, etc.)",
+      "Permanecer en el patio después del timbre, en el salón durante el recreo o en el colegio tras el horario de salida sin autorización",
+      "Falta de respeto a sus compañeros(as)",
+      "Lenguaje incorrecto o soez",
+      "Faltar a la verdad (mentira, injuria, etc.)",
+      "Participar o generar indisciplina y/o desorden dentro o fuera del aula",
+      "Ser retirado del aula por indisciplina reiteradamente",
+      "No asistir a formación",
+    ] },
+    { category: "E", categoryLabel: "Faltas Muy Graves (Consejo Disciplinario)", points: -5, severity: "muy_grave", items: [
+      "No asistir intencionalmente a clases",
+      "Evadirse y/o salir sin autorización del colegio",
+      "Arrancar, adulterar o falsificar documentos oficiales del colegio y/o agenda estudiantil",
+      "Conducta que atente contra la moral y las buenas costumbres",
+      "Faltar a la honradez (robo y/o soborno)",
+      "Intento de copia, fraude o indisciplina en exámenes o evaluaciones (2da vez)",
+      "Insubordinación (acto de rebeldía)",
+      "Presentarse bajo efectos de sustancias nocivas para la salud (etílico, drogado, etc.)",
+      "Promover, introducir o participar en el consumo de sustancias tóxicas (alcohol, drogas, etc.)",
+      "Portar o usar negativamente armas u objetos punzocortantes",
+      "Promover o estar vinculado a grupos que atenten contra la institución y las buenas costumbres",
+      "Deteriorar, pintar o destruir el material educativo, mobiliario o infraestructura del colegio (el padre de familia será responsable de reponer los daños)",
+      "Concurrir a lugares que perturben su formación escolar con uniforme del colegio (play station, discotecas, cabinas de internet, etc.)",
+      "Agredir a compañeros(as) y/o promover riñas o peleas dentro o fuera del colegio",
+      "Participar en acciones que involucren negativamente la imagen institucional del colegio",
+      "Falta de respeto al personal directivo, docentes, administrativo o de servicio",
+      "Incumplimiento de compromisos con el colegio",
+      "Discriminar o faltar el respeto a compañeros(as) o personal por internet: fotos, videos, comentarios — ciberbullying",
+    ] },
+  ]
+
+  let conductCount = 0
+  for (const cat of conductSeed) {
+    for (let i = 0; i < cat.items.length; i++) {
+      const code = `${cat.category}${i + 1}`
+      await prisma.conductCode.upsert({
+        where: { institutionId_code: { institutionId: institution.id, code } },
+        update: { categoryLabel: cat.categoryLabel, description: cat.items[i], points: cat.points, severity: cat.severity, order: i + 1 },
+        create: { institutionId: institution.id, code, category: cat.category, categoryLabel: cat.categoryLabel, description: cat.items[i], points: cat.points, severity: cat.severity, order: i + 1 },
+      })
+      conductCount++
+    }
+  }
+  console.log(`✅ Catálogo de conducta: ${conductCount} códigos`)
+
   console.log("\n🎉 Seed completado exitosamente!")
   console.log("\n📋 Credenciales de acceso:")
   console.log("  Superadmin:    superadmin@gestion.edu.pe     /  SuperAdmin2026!")
