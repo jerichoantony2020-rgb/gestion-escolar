@@ -61,7 +61,7 @@ export default function NotasAreaPage() {
     setSaving(true)
     const records = rows.flatMap(r =>
       r.levels.map((level, i) => ({ studentId: r.studentId, competenciaId: competencias[i].id, level }))
-    ).filter(rec => rec.level)
+    )
     await fetch("/api/notas/area", {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ courseId, sectionId, periodId, records }),

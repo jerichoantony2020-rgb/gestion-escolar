@@ -61,7 +61,10 @@ export async function POST(req: NextRequest) {
   const staff = await prisma.staff.findFirst({ where: { userId: session.user.id } })
 
   for (const r of records) {
-    if (!r.level) continue
+    if (!r.level) {
+      await prisma.competenciaGrade.deleteMany({ where: { institutionId: instId, studentId: r.studentId, competenciaId: r.competenciaId, periodId } })
+      continue
+    }
     await prisma.competenciaGrade.upsert({
       where: { studentId_competenciaId_periodId: { studentId: r.studentId, competenciaId: r.competenciaId, periodId } },
       update: { level: r.level, staffId: staff?.id },
