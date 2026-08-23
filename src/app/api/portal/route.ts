@@ -31,9 +31,11 @@ export async function GET() {
     const s = link.student
     const enroll = s.enrollments[0]
 
-    const grades = await prisma.gradeRecord.findMany({
+    // Notas por competencia (formato MINEDU). El padre ve el área a la que
+    // pertenece cada competencia, con su vigesimal y su literal.
+    const grades = await prisma.competenciaGrade.findMany({
       where: { institutionId: instId, studentId: s.id },
-      include: { course: true, period: true },
+      include: { competencia: { include: { area: true } }, period: true },
       orderBy: { period: { number: "desc" } },
     })
 
@@ -66,9 +68,16 @@ export async function GET() {
     children.push({
       studentId: s.id,
       studentName: `${s.firstName} ${s.lastName}`,
-      level: enroll?.section.level?.name ?? enroll?.section.grade?.level?.name ?? "",
+      level: enroll?.section.level?.name ?? "",
       section: enroll ? (enroll.section.poligrado ? enroll.section.name : `${enroll.section.grade?.name ?? ""} "${enroll.section.name}"`) : "—",
-      grades: grades.map(g => ({ course: g.course.name, period: g.period.name, display: g.course.gradeType === "qualitative" ? (g.qualitative ?? "—") : (g.finalGrade != null ? g.finalGrade.toFixed(1) : "—") })),
+      grades: grades.map(g => ({
+        course: g.competencia.area.name,
+        competencia: g.competencia.name,
+        period: g.period.name,
+        score: g.finalScore,
+        level: g.level,
+        display: g.finalScore != null ? `${g.finalScore} (${g.level})` : (g.level || "—"),
+      })),
       attendance: { present, late, absent, total: att.length },
       attendanceDaily: att.slice(0, 15).map(a => ({
         date: a.date, status: a.status,

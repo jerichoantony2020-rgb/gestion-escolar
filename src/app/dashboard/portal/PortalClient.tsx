@@ -5,7 +5,7 @@ import { useState, useEffect } from "react"
 type Daily = { date: string; status: string; entryAt: string | null; exitAt: string | null }
 type Child = {
   studentId: string; studentName: string; level: string; section: string
-  grades: { course: string; period: string; display: string }[]
+  grades: { course: string; competencia: string; period: string; score: number | null; level: string; display: string }[]
   attendance: { present: number; late: number; absent: number; total: number }
   attendanceDaily: Daily[]
   conducta: { id: string; type: string; title: string | null; description: string; severity: string; code: string | null; points: number | null; date: string }[]
@@ -78,13 +78,16 @@ export default function PortalClient() {
         {c.grades.length === 0 ? <Empty text="Sin notas registradas aún" /> : (
           <div className="rounded-xl border overflow-hidden" style={{ borderColor: "var(--border)" }}>
             <table className="w-full text-sm">
-              <thead><tr style={{ background: "var(--surface)" }}>{["Curso", "Bimestre", "Nota"].map(h => <th key={h} className="text-left px-4 py-2 font-semibold text-xs uppercase" style={{ color: "var(--muted)" }}>{h}</th>)}</tr></thead>
+              <thead><tr style={{ background: "var(--surface)" }}>{["Área / Competencia", "Bimestre", "Nota"].map(h => <th key={h} className="text-left px-4 py-2 font-semibold text-xs uppercase" style={{ color: "var(--muted)" }}>{h}</th>)}</tr></thead>
               <tbody>
                 {c.grades.map((g, i) => (
                   <tr key={i} className="border-t" style={{ borderColor: "var(--border)" }}>
-                    <td className="px-4 py-2" style={{ color: "var(--fg)" }}>{g.course}</td>
+                    <td className="px-4 py-2" style={{ color: "var(--fg)" }}>
+                      {g.course}
+                      <span className="block text-xs" style={{ color: "var(--muted)" }}>{g.competencia}</span>
+                    </td>
                     <td className="px-4 py-2 text-xs" style={{ color: "var(--muted)" }}>{g.period}</td>
-                    <td className="px-4 py-2 text-right font-bold text-primary-500">{g.display}</td>
+                    <td className="px-4 py-2 text-right font-bold text-primary-500 whitespace-nowrap">{g.display}</td>
                   </tr>
                 ))}
               </tbody>
