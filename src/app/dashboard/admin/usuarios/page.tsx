@@ -64,7 +64,7 @@ export default function UsuariosPage() {
       fetch("/api/cursos").then(r => r.json()),
       fetch(`/api/usuarios/${u.id}/asignaciones`).then(r => r.json()),
     ])
-    setSections(aulas.map((a: { id: string; name: string; levelName: string }) => ({ id: a.id, name: a.name, levelName: a.levelName })))
+    setSections(aulas.map((a: { id: string; name: string; levelId: string | null; levelName: string }) => ({ id: a.id, name: a.name, levelId: a.levelId, levelName: a.levelName })))
     setCourses(cursos)
     setAssignments(asigs)
   }
