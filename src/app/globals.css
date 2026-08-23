@@ -34,31 +34,85 @@
   --font-mono: var(--font-geist-mono), monospace;
 }
 
-/* ── Light / Dark tokens ── */
+/* ── Tokens ────────────────────────────────────────────────────────────────
+   El papel es NEUTRO, no azul. El azul institucional es acento (acción, foco,
+   dato destacado); cuando tiñe el fondo, la interfaz envejece. La jerarquía la
+   dan el peso tipográfico y hairlines de 1px, no las sombras difusas.        */
 :root {
-  --bg:      #EEF2FF;
-  --fg:      #0D1E3A;
-  --surface: #FFFFFF;
-  --border:  #D8E0F3;
-  --muted:   #5A6A8A;
-  --card-shadow: 0 1px 4px rgba(13,30,58,0.07), 0 4px 16px rgba(13,30,58,0.05);
+  /* Superficies: gris neutro apenas frío */
+  --bg:        #FBFBFC;
+  --surface:   #FFFFFF;
+  --surface-2: #F5F6F8;   /* cabeceras de tabla, filas alternas, estados hover */
+  --border:    #E6E7EB;   /* hairline por defecto */
+  --border-2:  #D3D5DB;   /* borde de control */
+
+  /* Texto */
+  --fg:        #14161A;   /* títulos y datos */
+  --fg-2:      #3F434D;   /* cuerpo */
+  --muted:     #71757F;   /* etiquetas y metadatos */
+
+  /* Marca: azul del escudo, calibrado para pantalla */
+  --brand:     #1B47D6;
+  --brand-ink: #14349E;   /* texto/acción sobre claro, contraste AA */
+  --brand-bg:  #EEF2FF;   /* relleno tenue: chips, iconos, selección */
+  --brand-line:#C7D3F8;
+  --gold:      #C9971A;   /* solo identidad de marca, nunca estado */
+
+  /* Semánticos: mismo tono en claro y oscuro por rol */
+  --ok:        #15803D;
+  --ok-bg:     #E8F6EC;
+  --warn:      #B45309;
+  --warn-bg:   #FDF3E3;
+  --danger:    #C0341C;
+  --danger-bg: #FCEDE9;
+
+  /* Elevación: casi ninguna. Un solo nivel real. */
+  --shadow-1: 0 1px 2px rgba(20,22,26,.05);
+  --shadow-2: 0 4px 12px rgba(20,22,26,.07), 0 1px 2px rgba(20,22,26,.05);
+  --card-shadow: var(--shadow-1);
+
+  /* Radio: una sola escala */
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
 }
 
 .dark {
-  --bg:      #0f172a;
-  --fg:      #f1f5f9;
-  --surface: #1e293b;
-  --border:  #334155;
-  --muted:   #94a3b8;
-  --card-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  --bg:        #0B0C0E;
+  --surface:   #151719;
+  --surface-2: #1D2023;
+  --border:    #26292E;
+  --border-2:  #383C42;
+
+  --fg:        #F4F5F7;
+  --fg-2:      #C4C7CE;
+  --muted:     #8B8F98;
+
+  --brand:     #6D8DFF;
+  --brand-ink: #A8BCFF;
+  --brand-bg:  #171C33;
+  --brand-line:#2C3763;
+  --gold:      #E0B44A;
+
+  --ok:        #4ADE80;
+  --ok-bg:     #10261A;
+  --warn:      #FBBF24;
+  --warn-bg:   #2A2010;
+  --danger:    #F87171;
+  --danger-bg: #2C1512;
+
+  --shadow-1: 0 1px 2px rgba(0,0,0,.4);
+  --shadow-2: 0 4px 12px rgba(0,0,0,.45), 0 1px 2px rgba(0,0,0,.4);
+  --card-shadow: var(--shadow-1);
 }
 
-/* ── Dashboard decorative background ── */
+/* Los datos se comparan en columna: cifras de ancho fijo. */
+.tnum, table, input[type="number"] { font-variant-numeric: tabular-nums; }
+
+/* Papel plano. Los degradados radiales de colores son el tell del panel
+   genérico; el interés visual lo aporta el contenido, no el fondo. */
 .dash-bg {
   background-color: var(--bg);
-  background-image:
-    radial-gradient(ellipse 80% 40% at 10% -10%, rgba(26,51,204,0.08) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 40% at 90% 100%, rgba(71,181,232,0.07) 0%, transparent 60%);
   min-height: 100vh;
 }
 
@@ -70,7 +124,7 @@
 }
 
 /* ── Superficies del navegador: que también lleven el diseño ── */
-::selection { background: rgba(26,51,204,0.16); color: #0D1E3A; }
+::selection { background: var(--brand-bg); color: var(--brand-ink); }
 
 /* ── Órbita de módulos (dashboard) ─────────────────────────────────────────
    Un dial de instrumento: marcas finas en el borde, radios que salen del
@@ -238,14 +292,8 @@ html {
   scroll-behavior: smooth;
 }
 
-@keyframes floatShield {
-  0%, 100% { transform: translateY(0); }
-  50%       { transform: translateY(-10px); }
-}
-
-.shield-float {
-  animation: floatShield 5s ease-in-out infinite;
-}
+/* El escudo flotando en bucle es un tic de web antigua: se queda quieto. */
+.shield-float { animation: none; }
 
 body {
   background-color: var(--bg);
@@ -255,7 +303,10 @@ body {
 }
 
 /* ── Scrollbar ── */
-::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
-.dark ::-webkit-scrollbar-thumb { background: #475569; }
+::-webkit-scrollbar-thumb {
+  background: var(--border-2); border-radius: 9999px;
+  border: 3px solid transparent; background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--muted); background-clip: content-box; }

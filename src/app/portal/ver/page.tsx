@@ -53,23 +53,23 @@ export default function PortalVer() {
   }
 
   if (loading) return (
-    <div style={{ minHeight: "100dvh", background: "#EEF2FF", display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <p style={{ color: "#5A6A8A", fontSize: 14 }}>Cargando...</p>
+    <div style={{ minHeight: "100dvh", background: "var(--bg)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <p style={{ color: "var(--muted)", fontSize: 14 }}>Cargando...</p>
     </div>
   )
 
   if (!child) return null
 
+  const iniciales = child.studentName.split(" ").filter(Boolean).slice(0, 2).map(w => w[0]).join("").toUpperCase()
+
   return (
-    <div style={{ minHeight: "100dvh", background: "#EEF2FF" }}>
-      {/* Top bar */}
+    <div style={{ minHeight: "100dvh", background: "var(--bg)" }}>
+      {/* Barra superior: hairline, sin sombra ni blur decorativo. */}
       <nav style={{
-        background: "rgba(255,255,255,0.92)",
-        backdropFilter: "blur(16px)",
-        borderBottom: "1px solid rgba(26,51,204,0.10)",
-        boxShadow: "0 1px 8px rgba(13,30,58,0.07)",
-        padding: "0 20px",
-        height: 52,
+        background: "var(--surface)",
+        borderBottom: "1px solid var(--border)",
+        padding: "0 16px",
+        height: 56,
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
@@ -77,19 +77,19 @@ export default function PortalVer() {
         top: 0,
         zIndex: 40,
       }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo-cr.png" alt="" style={{ width: 24, height: 30, objectFit: "contain" }} />
-          <div>
-            <div style={{ fontSize: 11, fontWeight: 800, color: "#0D1E3A", lineHeight: 1 }}>Cristo Reina</div>
-            {parentName && <div style={{ fontSize: 10, color: "#5A6A8A" }}>Hola, {parentName.split(" ")[0]}</div>}
+          <img src="/logo-cr.png" alt="" style={{ width: 26, height: 32, objectFit: "contain" }} />
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: 13, fontWeight: 650, color: "var(--fg)", lineHeight: 1.2, letterSpacing: "-.01em" }}>Cristo Reina</div>
+            {parentName && <div style={{ fontSize: 12, color: "var(--muted)", lineHeight: 1.2 }}>{parentName.split(" ")[0]}</div>}
           </div>
         </div>
         <button
           onClick={handleLogout}
           style={{
-            padding: "5px 14px", borderRadius: 8, fontSize: 12, fontWeight: 600,
-            border: "1px solid #DDE3F0", color: "#5A6A8A", background: "transparent", cursor: "pointer",
+            padding: "7px 14px", borderRadius: "var(--r-sm)", fontSize: 13, fontWeight: 550,
+            border: "1px solid var(--border-2)", color: "var(--fg-2)", background: "var(--surface)", cursor: "pointer",
           }}
         >
           Salir
@@ -97,53 +97,56 @@ export default function PortalVer() {
       </nav>
 
       {/* Content */}
-      <div style={{ maxWidth: 680, margin: "0 auto", padding: "24px 16px 48px" }}>
-        {/* Student card */}
-        <div style={{
-          background: "linear-gradient(135deg, #0D1E3A 0%, #1A33CC 100%)",
-          borderRadius: 16,
-          padding: "20px 24px",
-          marginBottom: 20,
-          display: "flex",
-          alignItems: "center",
-          gap: 16,
-          boxShadow: "0 4px 20px rgba(13,30,58,0.18)",
-        }}>
-          <div style={{ width: 44, height: 44, borderRadius: 12, background: "rgba(255,255,255,0.12)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 }}>
-            👨‍🎓
+      <div style={{ maxWidth: 680, margin: "0 auto", padding: "28px 16px 56px" }}>
+        {/* Identidad del alumno: el nombre es el titular de la página, no una
+            tarjeta con degradado. Iniciales en vez de emoji. */}
+        <header style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 26 }}>
+          <div style={{
+            width: 48, height: 48, borderRadius: "50%", flexShrink: 0,
+            background: "var(--brand-bg)", color: "var(--brand-ink)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: 16, fontWeight: 650, letterSpacing: "-.02em",
+          }}>
+            {iniciales}
           </div>
-          <div style={{ flex: 1 }}>
-            <p style={{ fontSize: 17, fontWeight: 800, color: "#FFFFFF", margin: 0, lineHeight: 1.1 }}>
+          <div style={{ minWidth: 0 }}>
+            <h1 style={{ fontSize: 22, fontWeight: 680, color: "var(--fg)", margin: 0, lineHeight: 1.18, letterSpacing: "-.021em" }}>
               {child.studentName}
-            </p>
-            <p style={{ fontSize: 12, color: "rgba(255,255,255,0.65)", marginTop: 3, margin: "4px 0 0" }}>
+            </h1>
+            <p style={{ fontSize: 14, color: "var(--muted)", margin: "3px 0 0" }}>
               {child.level}{child.section ? ` · ${child.section}` : ""}
             </p>
           </div>
-        </div>
+        </header>
 
-        {/* Tabs */}
-        <div style={{ display: "flex", gap: 8, marginBottom: 20, overflowX: "auto", paddingBottom: 2 }}>
+        {/* Navegación segmentada: una sola pieza, no botones sueltos. */}
+        <div style={{
+          display: "flex", gap: 2, marginBottom: 22, overflowX: "auto",
+          background: "var(--surface-2)", border: "1px solid var(--border)",
+          borderRadius: "var(--r-md)", padding: 3,
+        }}>
           {[
-            { k: "notas",      l: "📊 Notas" },
-            { k: "asistencia", l: "📅 Asistencia" },
-            { k: "conducta",   l: "📋 Conducta" },
-            { k: "pagos",      l: "💳 Pagos" },
+            { k: "notas",      l: "Notas" },
+            { k: "asistencia", l: "Asistencia" },
+            { k: "conducta",   l: "Conducta" },
+            { k: "pagos",      l: "Pagos" },
           ].map(t => (
             <button
               key={t.k}
               onClick={() => setTab(t.k as typeof tab)}
+              aria-current={tab === t.k ? "page" : undefined}
               style={{
-                padding: "8px 16px",
-                borderRadius: 10,
-                fontSize: 13,
-                fontWeight: 600,
+                flex: 1, padding: "8px 12px",
+                borderRadius: 9,
+                fontSize: 13.5,
+                fontWeight: tab === t.k ? 620 : 520,
                 whiteSpace: "nowrap",
-                border: tab === t.k ? "none" : "1px solid #D8E0F3",
-                background: tab === t.k ? "#1A33CC" : "#FFFFFF",
-                color: tab === t.k ? "#FFFFFF" : "#5A6A8A",
+                border: "none",
+                background: tab === t.k ? "var(--surface)" : "transparent",
+                boxShadow: tab === t.k ? "var(--shadow-1)" : "none",
+                color: tab === t.k ? "var(--fg)" : "var(--muted)",
                 cursor: "pointer",
-                flexShrink: 0,
+                transition: "color .15s ease",
               }}
             >
               {t.l}
@@ -158,39 +161,39 @@ export default function PortalVer() {
         {tab === "asistencia" && (
           <>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, marginBottom: 16 }}>
-              <Mini label="Presente" value={child.attendance.present} color="#15803D" bg="#DCFCE7" />
-              <Mini label="Tarde" value={child.attendance.late} color="#B45309" bg="#FFFBEB" />
-              <Mini label="Ausente" value={child.attendance.absent} color="#DC2626" bg="#FEF2F2" />
+              <Mini label="Presente" value={child.attendance.present} color="var(--ok)" bg="var(--ok-bg)" />
+              <Mini label="Tarde" value={child.attendance.late} color="var(--warn)" bg="var(--warn-bg)" />
+              <Mini label="Ausente" value={child.attendance.absent} color="var(--danger)" bg="var(--danger-bg)" />
               <Mini
                 label="% Asist."
                 value={child.attendance.total ? `${Math.round(((child.attendance.present + child.attendance.late) / child.attendance.total) * 100)}%` : "—"}
-                color="#1A33CC"
-                bg="#EEF2FF"
+                color="var(--brand)"
+                bg="var(--brand-bg)"
               />
             </div>
             {child.attendanceDaily.length === 0
               ? <Empty text="Sin registros de asistencia este mes" />
               : (
-                <div style={{ background: "#FFFFFF", borderRadius: 14, border: "1px solid #D8E0F3", overflow: "hidden" }}>
+                <div style={{ background: "var(--surface)", borderRadius: 14, border: "1px solid var(--border)", overflow: "hidden" }}>
                   <table style={{ width: "100%", fontSize: 13, borderCollapse: "collapse" }}>
                     <thead>
-                      <tr style={{ background: "#F8FAFF" }}>
+                      <tr style={{ background: "var(--surface-2)" }}>
                         {["Fecha", "Estado", "Ingreso", "Salida"].map(h => (
-                          <th key={h} style={{ textAlign: "left", padding: "10px 16px", fontSize: 11, fontWeight: 700, color: "#5A6A8A", textTransform: "uppercase", letterSpacing: "0.05em" }}>{h}</th>
+                          <th key={h} style={{ textAlign: "left", padding: "10px 16px", fontSize: 11, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>{h}</th>
                         ))}
                       </tr>
                     </thead>
                     <tbody>
                       {child.attendanceDaily.map((d, i) => (
-                        <tr key={i} style={{ borderTop: "1px solid #EEF2FF" }}>
-                          <td style={{ padding: "10px 16px", color: "#0D1E3A" }}>{new Date(d.date).toLocaleDateString("es-PE", { weekday: "short", day: "numeric", month: "short" })}</td>
+                        <tr key={i} style={{ borderTop: "1px solid var(--brand-bg)" }}>
+                          <td style={{ padding: "10px 16px", color: "var(--fg)" }}>{new Date(d.date).toLocaleDateString("es-PE", { weekday: "short", day: "numeric", month: "short" })}</td>
                           <td style={{ padding: "10px 16px" }}>
-                            {d.status === "present" ? <span style={{ color: "#15803D", fontSize: 12, fontWeight: 600 }}>Presente</span>
-                              : d.status === "late" ? <span style={{ color: "#B45309", fontSize: 12, fontWeight: 600 }}>Tarde</span>
-                                : <span style={{ color: "#DC2626", fontSize: 12, fontWeight: 600 }}>Ausente</span>}
+                            {d.status === "present" ? <span style={{ color: "var(--ok)", fontSize: 12, fontWeight: 600 }}>Presente</span>
+                              : d.status === "late" ? <span style={{ color: "var(--warn)", fontSize: 12, fontWeight: 600 }}>Tarde</span>
+                                : <span style={{ color: "var(--danger)", fontSize: 12, fontWeight: 600 }}>Ausente</span>}
                           </td>
-                          <td style={{ padding: "10px 16px", color: "#5A6A8A" }}>{hora(d.entryAt)}</td>
-                          <td style={{ padding: "10px 16px", color: "#5A6A8A" }}>{hora(d.exitAt)}</td>
+                          <td style={{ padding: "10px 16px", color: "var(--muted)" }}>{hora(d.entryAt)}</td>
+                          <td style={{ padding: "10px 16px", color: "var(--muted)" }}>{hora(d.exitAt)}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -208,26 +211,26 @@ export default function PortalVer() {
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {child.conducta.map(inc => (
                   <div key={inc.id} style={{
-                    background: "#FFFFFF", borderRadius: 12, border: "1px solid #D8E0F3",
+                    background: "var(--surface)", borderRadius: 12, border: "1px solid var(--border)",
                     padding: "14px 16px", display: "flex", gap: 12,
                   }}>
                     <div style={{
                       width: 8, height: 8, borderRadius: "50%", marginTop: 5, flexShrink: 0,
-                      background: inc.type === "positive" ? "#22C55E" : inc.severity === "high" ? "#EF4444" : "#F59E0B",
+                      background: inc.type === "positive" ? "var(--ok)" : inc.severity === "high" ? "var(--danger)" : "var(--warn)",
                     }} />
                     <div style={{ flex: 1 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 4 }}>
                         <span style={{
                           fontSize: 10, padding: "2px 8px", borderRadius: 99, fontWeight: 700,
-                          background: inc.type === "positive" ? "#DCFCE7" : "#FEE2E2",
-                          color: inc.type === "positive" ? "#15803D" : "#DC2626",
+                          background: inc.type === "positive" ? "var(--ok-bg)" : "var(--danger-bg)",
+                          color: inc.type === "positive" ? "var(--ok)" : "var(--danger)",
                         }}>
                           {inc.type === "positive" ? "Reconocimiento" : "Incidencia"}
                         </span>
-                        {inc.title && <span style={{ fontSize: 13, fontWeight: 600, color: "#0D1E3A" }}>{inc.title}</span>}
+                        {inc.title && <span style={{ fontSize: 13, fontWeight: 600, color: "var(--fg)" }}>{inc.title}</span>}
                       </div>
-                      <p style={{ fontSize: 13, color: "#5A6A8A", margin: "0 0 4px" }}>{inc.description}</p>
-                      <p style={{ fontSize: 11, color: "#8A9ABB", margin: 0 }}>
+                      <p style={{ fontSize: 13, color: "var(--muted)", margin: "0 0 4px" }}>{inc.description}</p>
+                      <p style={{ fontSize: 11, color: "var(--muted)", margin: 0 }}>
                         {new Date(inc.date).toLocaleDateString("es-PE", { day: "numeric", month: "long" })}
                       </p>
                     </div>
@@ -248,9 +251,9 @@ export default function PortalVer() {
                   return (
                     <div key={i} style={{
                       padding: "12px 16px", borderRadius: 12, fontSize: 13, fontWeight: 600, minWidth: 90,
-                      background: paid ? "#DCFCE7" : "#FEF9C3",
-                      color: paid ? "#15803D" : "#B45309",
-                      border: `1px solid ${paid ? "#BBF7D0" : "#FDE68A"}`,
+                      background: paid ? "var(--ok-bg)" : "var(--warn-bg)",
+                      color: paid ? "var(--ok)" : "var(--warn)",
+                      border: `1px solid ${paid ? "var(--ok-bg)" : "var(--warn-bg)"}`,
                     }}>
                       <div>{MESES[(p.month ?? 1) - 1]} {p.year}</div>
                       <div style={{ fontWeight: 800, marginTop: 2 }}>
@@ -270,20 +273,20 @@ export default function PortalVer() {
 function Empty({ text }: { text: string }) {
   return (
     <div style={{
-      background: "#FFFFFF", borderRadius: 14, border: "1px solid #D8E0F3",
+      background: "var(--surface)", borderRadius: 14, border: "1px solid var(--border)",
       padding: "40px 24px", textAlign: "center",
     }}>
-      <p style={{ fontSize: 13, color: "#8A9ABB", margin: 0 }}>{text}</p>
+      <p style={{ fontSize: 13, color: "var(--muted)", margin: 0 }}>{text}</p>
     </div>
   )
 }
 
 function notaColor(score: number | null): string {
-  if (score == null) return "#0D1E3A"
-  if (score >= 18) return "#15803D"
-  if (score >= 14) return "#0369A1"
-  if (score >= 11) return "#B45309"
-  return "#DC2626"
+  if (score == null) return "var(--fg)"
+  if (score >= 18) return "var(--ok)"
+  if (score >= 14) return "var(--brand-ink)"
+  if (score >= 11) return "var(--warn)"
+  return "var(--danger)"
 }
 
 /**
@@ -311,9 +314,9 @@ function NotasTab({ grades }: { grades: Grade[] }) {
             <button key={p.id} onClick={() => setPeriodId(p.id)}
               style={{
                 padding: "7px 14px", borderRadius: 10, fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", cursor: "pointer",
-                border: p.id === periodId ? "1px solid #1B3D8F" : "1px solid #D8E0F3",
-                background: p.id === periodId ? "#1B3D8F" : "#FFFFFF",
-                color: p.id === periodId ? "#FFFFFF" : "#5A6A8A",
+                border: p.id === periodId ? "1px solid var(--brand-ink)" : "1px solid var(--border)",
+                background: p.id === periodId ? "var(--brand-ink)" : "var(--surface)",
+                color: p.id === periodId ? "var(--surface)" : "var(--muted)",
               }}>
               {p.name}
             </button>
@@ -332,31 +335,31 @@ function NotasTab({ grades }: { grades: Grade[] }) {
             : null
           const open = openArea === area
           return (
-            <div key={area} style={{ background: "#FFFFFF", borderRadius: 14, border: "1px solid #D8E0F3", overflow: "hidden" }}>
+            <div key={area} style={{ background: "var(--surface)", borderRadius: 14, border: "1px solid var(--border)", overflow: "hidden" }}>
               <button onClick={() => setOpenArea(open ? null : area)}
                 aria-expanded={open}
                 style={{
                   width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
                   padding: "14px 16px", background: "none", border: "none", cursor: "pointer", textAlign: "left",
                 }}>
-                <span style={{ fontSize: 14, fontWeight: 700, color: "#0D1E3A" }}>{area}</span>
+                <span style={{ fontSize: 14, fontWeight: 700, color: "var(--fg)" }}>{area}</span>
                 <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
                   <span style={{ fontSize: 16, fontWeight: 800, color: notaColor(avg) }}>{avg ?? "—"}</span>
-                  <span style={{ fontSize: 12, color: "#8A9ABB", transform: open ? "rotate(90deg)" : "none", transition: "transform .15s" }}>▸</span>
+                  <span style={{ fontSize: 12, color: "var(--muted)", transform: open ? "rotate(90deg)" : "none", transition: "transform .15s" }}>▸</span>
                 </span>
               </button>
 
               {open && (
-                <div style={{ borderTop: "1px solid #EEF2FF" }}>
+                <div style={{ borderTop: "1px solid var(--brand-bg)" }}>
                   {items.map((g, i) => (
                     <div key={i} style={{
                       display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
-                      padding: "10px 16px", borderTop: i === 0 ? "none" : "1px solid #F4F7FF",
+                      padding: "10px 16px", borderTop: i === 0 ? "none" : "1px solid var(--surface-2)",
                     }}>
                       <span style={{ minWidth: 0 }}>
-                        <span style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#0D1E3A" }}>{g.course}</span>
+                        <span style={{ display: "block", fontSize: 13, fontWeight: 600, color: "var(--fg)" }}>{g.course}</span>
                         {g.course !== g.competencia && (
-                          <span style={{ display: "block", fontSize: 11, color: "#8A9ABB", marginTop: 1 }}>{g.competencia}</span>
+                          <span style={{ display: "block", fontSize: 11, color: "var(--muted)", marginTop: 1 }}>{g.competencia}</span>
                         )}
                       </span>
                       <span style={{ fontSize: 13, fontWeight: 800, color: notaColor(g.score), whiteSpace: "nowrap" }}>{g.display}</span>
@@ -376,7 +379,7 @@ function Mini({ label, value, color, bg }: { label: string; value: string | numb
   return (
     <div style={{ background: bg, borderRadius: 12, padding: "12px 8px", textAlign: "center" }}>
       <p style={{ fontSize: 20, fontWeight: 900, color, margin: 0, lineHeight: 1 }}>{value}</p>
-      <p style={{ fontSize: 10, color: "#5A6A8A", marginTop: 3, margin: "4px 0 0" }}>{label}</p>
+      <p style={{ fontSize: 10, color: "var(--muted)", marginTop: 3, margin: "4px 0 0" }}>{label}</p>
     </div>
   )
 }
