@@ -38,6 +38,7 @@ export default function NotasAreaPage() {
   const [rows, setRows] = useState<Row[]>([])
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [dirty, setDirty] = useState(false)
   const [toast, setToast] = useState("")
 
   useEffect(() => {
@@ -64,6 +65,7 @@ export default function NotasAreaPage() {
   const load = useCallback(async () => {
     if (!courseId || !sectionId || !periodId) return
     setLoading(true)
+    setDirty(false)
     const data = await fetch(`/api/notas/area?courseId=${courseId}&sectionId=${sectionId}&periodId=${periodId}`).then(r => r.json())
     setAreaName(data.areaName)
     setCompetencias(data.competencias)
@@ -87,6 +89,7 @@ export default function NotasAreaPage() {
   useEffect(() => { load() }, [load])
 
   function setScore(studentId: string, compIdx: number, colIdx: number, value: string) {
+    setDirty(true)
     setRows(rs => rs.map(r => {
       if (r.studentId !== studentId) return r
       const scores = r.scores.map(s => [...s])
@@ -96,6 +99,7 @@ export default function NotasAreaPage() {
   }
 
   function changeActCount(compIdx: number, delta: number) {
+    setDirty(true)
     setActCounts(counts => {
       const next = [...counts]
       next[compIdx] = Math.max(1, Math.min(8, next[compIdx] + delta))
@@ -125,6 +129,7 @@ export default function NotasAreaPage() {
       body: JSON.stringify({ courseId, sectionId, periodId, records }),
     })
     setSaving(false)
+    setDirty(false)
     setToast("Notas guardadas ✓")
     setTimeout(() => setToast(""), 2500)
     await load()
@@ -156,7 +161,16 @@ export default function NotasAreaPage() {
       )}
 
       {areaName && (
-        <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "var(--muted)" }}>Área: {areaName}</p>
+        <div className="sticky top-16 z-30 flex items-center justify-between gap-3 py-2 mb-2" style={{ background: "var(--bg)" }}>
+          <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--muted)" }}>
+            Área: {areaName}
+            {dirty && <span className="ml-2 normal-case font-medium" style={{ color: "#f59e0b" }}>· cambios sin guardar</span>}
+          </p>
+          <button onClick={save} disabled={saving || !dirty}
+            className="px-5 py-2 rounded-lg bg-primary-500 text-white font-semibold text-sm hover:bg-primary-600 disabled:opacity-40 shadow-sm">
+            {saving ? "Guardando..." : "Guardar notas"}
+          </button>
+        </div>
       )}
 
       {loading && <p className="text-sm text-center py-8" style={{ color: "var(--muted)" }}>Cargando...</p>}
@@ -224,13 +238,6 @@ export default function NotasAreaPage() {
         </div>
       )}
 
-      {rows.length > 0 && (
-        <div className="flex justify-end mt-4">
-          <button onClick={save} disabled={saving} className="px-6 py-2.5 rounded-lg bg-primary-500 text-white font-semibold text-sm hover:bg-primary-600 disabled:opacity-60">
-            {saving ? "Guardando..." : "Guardar notas"}
-          </button>
-        </div>
-      )}
     </div>
   )
 }
