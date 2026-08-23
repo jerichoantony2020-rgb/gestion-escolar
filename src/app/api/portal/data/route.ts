@@ -80,8 +80,13 @@ export async function GET(_req: NextRequest) {
       level: levelLabel,
       section: sectionLabel,
       grades: grades.map(g => ({
-        course: g.competencia.area.name,
+        area: g.competencia.area.name,
+        // Lo que el apoderado reconoce ("Literatura"); si el área no se reparte
+        // en cursos, se muestra la competencia.
+        course: g.competencia.courseLabel ?? g.competencia.name,
         competencia: g.competencia.name,
+        periodId: g.periodId,
+        periodNumber: g.period.number,
         period: g.period.name,
         score: g.finalScore,
         level: g.level,

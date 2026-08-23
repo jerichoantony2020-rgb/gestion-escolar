@@ -6,7 +6,7 @@ import { currentBimestreNumber } from "@/lib/bimestre"
 type Student = { id: string; firstName: string; lastName: string; enrollments: { section: { id: string; name: string } }[] }
 type Section = { id: string; name: string; levelName: string }
 type Period = { id: string; name: string }
-type Competencia = { id: string; name: string; scores: (number | string)[]; finalScore: number | null; level: string }
+type Competencia = { id: string; name: string; courseLabel: string | null; scores: (number | string)[]; finalScore: number | null; level: string }
 type Area = { id: string; name: string; competencias: Competencia[]; areaScore: number | null; areaLevel: string }
 type Boletin = {
   studentName: string; section: string; grade: string; level: string; period: string
@@ -104,7 +104,10 @@ export default function BoletinPage() {
               </div>
               {area.competencias.filter(c => c.finalScore != null).map(c => (
                 <div key={c.id} className="flex items-center justify-between gap-3 px-5 py-2 border-t" style={{ borderColor: "var(--border)" }}>
-                  <p className="text-sm flex-1" style={{ color: "var(--muted)" }}>{c.name}</p>
+                  <p className="text-sm flex-1 min-w-0" style={{ color: "var(--muted)" }}>
+                    {c.courseLabel && <span className="block font-medium" style={{ color: "var(--fg)" }}>{c.courseLabel}</span>}
+                    {c.name}
+                  </p>
                   <span className="text-sm font-medium" style={{ color: "var(--fg)" }}>{c.finalScore}</span>
                   <span className="text-sm font-bold w-7 text-center" style={{ color: c.level ? LEVEL_COLOR[c.level] : "var(--muted)" }}>{c.level || "—"}</span>
                 </div>

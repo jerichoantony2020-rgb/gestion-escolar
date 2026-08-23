@@ -4,12 +4,17 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 
 type Daily = { date: string; status: string; entryAt: string | null; exitAt: string | null }
+type Grade = {
+  area: string; course: string; competencia: string
+  periodId: string; periodNumber: number; period: string
+  score: number | null; level: string; display: string
+}
 type Child = {
   studentId: string
   studentName: string
   level: string
   section: string
-  grades: { course: string; competencia: string; period: string; score: number | null; level: string; display: string }[]
+  grades: Grade[]
   attendance: { present: number; late: number; absent: number; total: number }
   attendanceDaily: Daily[]
   conducta: { id: string; type: string; title: string | null; description: string; severity: string; date: string }[]
@@ -147,38 +152,7 @@ export default function PortalVer() {
         </div>
 
         {/* NOTAS */}
-        {tab === "notas" && (
-          child.grades.length === 0
-            ? <Empty text="Sin notas registradas aún" />
-            : (
-              <div style={{ background: "#FFFFFF", borderRadius: 14, border: "1px solid #D8E0F3", overflow: "hidden" }}>
-                <table style={{ width: "100%", fontSize: 13, borderCollapse: "collapse" }}>
-                  <thead>
-                    <tr style={{ background: "#F8FAFF" }}>
-                      {["Área / Competencia", "Bimestre", "Nota"].map(h => (
-                        <th key={h} style={{ textAlign: h === "Nota" ? "right" : "left", padding: "10px 16px", fontSize: 11, fontWeight: 700, color: "#5A6A8A", textTransform: "uppercase", letterSpacing: "0.05em" }}>{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {child.grades.map((g, i) => {
-                      const color = g.score == null ? "#0D1E3A" : g.score >= 14 ? "#15803D" : g.score >= 11 ? "#B45309" : "#DC2626"
-                      return (
-                        <tr key={i} style={{ borderTop: "1px solid #EEF2FF" }}>
-                          <td style={{ padding: "10px 16px", color: "#0D1E3A", fontWeight: 500 }}>
-                            {g.course}
-                            <span style={{ display: "block", fontSize: 11, color: "#5A6A8A", fontWeight: 400 }}>{g.competencia}</span>
-                          </td>
-                          <td style={{ padding: "10px 16px", color: "#5A6A8A", fontSize: 12 }}>{g.period}</td>
-                          <td style={{ padding: "10px 16px", textAlign: "right", fontWeight: 800, color, whiteSpace: "nowrap" }}>{g.display}</td>
-                        </tr>
-                      )
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            )
-        )}
+        {tab === "notas" && <NotasTab grades={child.grades} />}
 
         {/* ASISTENCIA */}
         {tab === "asistencia" && (
@@ -301,6 +275,100 @@ function Empty({ text }: { text: string }) {
     }}>
       <p style={{ fontSize: 13, color: "#8A9ABB", margin: 0 }}>{text}</p>
     </div>
+  )
+}
+
+function notaColor(score: number | null): string {
+  if (score == null) return "#0D1E3A"
+  if (score >= 18) return "#15803D"
+  if (score >= 14) return "#0369A1"
+  if (score >= 11) return "#B45309"
+  return "#DC2626"
+}
+
+/**
+ * Notas agrupadas por área y bimestre. Cada área se pliega para que en celular
+ * el apoderado vea de un vistazo la nota que va a la libreta y abra el detalle
+ * solo si le interesa.
+ */
+function NotasTab({ grades }: { grades: Grade[] }) {
+  const periods = [...new Map(grades.map(g => [g.periodId, { id: g.periodId, name: g.period, number: g.periodNumber }])).values()]
+    .sort((a, b) => a.number - b.number)
+
+  const [periodId, setPeriodId] = useState(() => periods.length ? periods[periods.length - 1].id : "")
+  const [openArea, setOpenArea] = useState<string | null>(null)
+
+  if (grades.length === 0) return <Empty text="Sin notas registradas aún" />
+
+  const ofPeriod = grades.filter(g => g.periodId === periodId)
+  const areas = [...new Map(ofPeriod.map(g => [g.area, g.area])).keys()].sort((a, b) => a.localeCompare(b))
+
+  return (
+    <>
+      {periods.length > 1 && (
+        <div style={{ display: "flex", gap: 8, marginBottom: 14, overflowX: "auto", paddingBottom: 2 }}>
+          {periods.map(p => (
+            <button key={p.id} onClick={() => setPeriodId(p.id)}
+              style={{
+                padding: "7px 14px", borderRadius: 10, fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", cursor: "pointer",
+                border: p.id === periodId ? "1px solid #1B3D8F" : "1px solid #D8E0F3",
+                background: p.id === periodId ? "#1B3D8F" : "#FFFFFF",
+                color: p.id === periodId ? "#FFFFFF" : "#5A6A8A",
+              }}>
+              {p.name}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {areas.length === 0 && <Empty text="Sin notas en este bimestre" />}
+
+      <div style={{ display: "grid", gap: 10 }}>
+        {areas.map(area => {
+          const items = ofPeriod.filter(g => g.area === area)
+          const scored = items.filter(i => i.score != null)
+          const avg = scored.length
+            ? Math.round((scored.reduce((s, i) => s + (i.score ?? 0), 0) / scored.length) * 10) / 10
+            : null
+          const open = openArea === area
+          return (
+            <div key={area} style={{ background: "#FFFFFF", borderRadius: 14, border: "1px solid #D8E0F3", overflow: "hidden" }}>
+              <button onClick={() => setOpenArea(open ? null : area)}
+                aria-expanded={open}
+                style={{
+                  width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
+                  padding: "14px 16px", background: "none", border: "none", cursor: "pointer", textAlign: "left",
+                }}>
+                <span style={{ fontSize: 14, fontWeight: 700, color: "#0D1E3A" }}>{area}</span>
+                <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <span style={{ fontSize: 16, fontWeight: 800, color: notaColor(avg) }}>{avg ?? "—"}</span>
+                  <span style={{ fontSize: 12, color: "#8A9ABB", transform: open ? "rotate(90deg)" : "none", transition: "transform .15s" }}>▸</span>
+                </span>
+              </button>
+
+              {open && (
+                <div style={{ borderTop: "1px solid #EEF2FF" }}>
+                  {items.map((g, i) => (
+                    <div key={i} style={{
+                      display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
+                      padding: "10px 16px", borderTop: i === 0 ? "none" : "1px solid #F4F7FF",
+                    }}>
+                      <span style={{ minWidth: 0 }}>
+                        <span style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#0D1E3A" }}>{g.course}</span>
+                        {g.course !== g.competencia && (
+                          <span style={{ display: "block", fontSize: 11, color: "#8A9ABB", marginTop: 1 }}>{g.competencia}</span>
+                        )}
+                      </span>
+                      <span style={{ fontSize: 13, fontWeight: 800, color: notaColor(g.score), whiteSpace: "nowrap" }}>{g.display}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+    </>
   )
 }
 

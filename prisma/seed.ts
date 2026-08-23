@@ -292,21 +292,24 @@ async function main() {
   console.log(`✅ Cursos faltantes verificados`)
 
   // ── Áreas curriculares y Competencias (formato MINEDU: AD/A/B/C) ───────────
-  type CompSeed = { name: string; course?: string }
+  type CompSeed = { name: string; course?: string; courseLabel?: string }
   type AreaSeed = { level: string; area: string; competencias: CompSeed[] }
 
   const areaSeed: AreaSeed[] = [
     // ── SECUNDARIA (calcado del Informe de Progreso oficial) ──
+    // En Secundaria estas dos áreas se reparten en varios cursos con nombre
+    // propio (courseLabel): es lo que ve el alumno y el apoderado. La
+    // calificación sigue siendo un solo curso por área (course).
     { level: "Secundaria", area: "Comunicación", competencias: [
-      { name: "Se comunica oralmente en su lengua materna", course: "COMUNICACIÓN" },
-      { name: "Lee diversos tipos de textos escritos", course: "COMUNICACIÓN" },
-      { name: "Escribe diversos tipos de textos", course: "COMUNICACIÓN" },
+      { name: "Se comunica oralmente en su lengua materna", course: "COMUNICACIÓN", courseLabel: "Lenguaje" },
+      { name: "Lee diversos tipos de textos escritos", course: "COMUNICACIÓN", courseLabel: "Literatura" },
+      { name: "Escribe diversos tipos de textos", course: "COMUNICACIÓN", courseLabel: "Razonamiento Verbal" },
     ] },
     { level: "Secundaria", area: "Matemática", competencias: [
-      { name: "Resuelve problemas de cantidad", course: "MATEMÁTICA" },
-      { name: "Resuelve problemas de regularidad, equivalencia y cambio", course: "MATEMÁTICA" },
-      { name: "Resuelve problemas de movimiento, forma y localización", course: "MATEMÁTICA" },
-      { name: "Resuelve problemas de gestión de datos e incertidumbre", course: "MATEMÁTICA" },
+      { name: "Resuelve problemas de cantidad", course: "MATEMÁTICA", courseLabel: "Aritmética" },
+      { name: "Resuelve problemas de regularidad, equivalencia y cambio", course: "MATEMÁTICA", courseLabel: "Álgebra" },
+      { name: "Resuelve problemas de movimiento, forma y localización", course: "MATEMÁTICA", courseLabel: "Geometría" },
+      { name: "Resuelve problemas de gestión de datos e incertidumbre", course: "MATEMÁTICA", courseLabel: "Trigonometría" },
     ] },
     { level: "Secundaria", area: "Desarrollo Personal, Ciud. y Cívica", competencias: [
       { name: "Construye su identidad", course: "DPCC" },
@@ -436,10 +439,15 @@ async function main() {
       const existing = await prisma.competencia.findFirst({ where: { areaId: area.id, name: comp.name } })
       const cId = comp.course ? courseId(a.level, comp.course) : undefined
       if (!existing) {
-        await prisma.competencia.create({ data: { areaId: area.id, courseId: cId, name: comp.name, order: i } })
+        await prisma.competencia.create({ data: { areaId: area.id, courseId: cId, courseLabel: comp.courseLabel ?? null, name: comp.name, order: i } })
         compCount++
-      } else if (cId && existing.courseId !== cId) {
-        await prisma.competencia.update({ where: { id: existing.id }, data: { courseId: cId } })
+      } else {
+        // Solo se rellena la etiqueta si aún no tiene una: si el colegio la
+        // editó desde Admin, su valor manda sobre el del seed.
+        const data: { courseId?: string; courseLabel?: string } = {}
+        if (cId && existing.courseId !== cId) data.courseId = cId
+        if (comp.courseLabel && !existing.courseLabel) data.courseLabel = comp.courseLabel
+        if (Object.keys(data).length) await prisma.competencia.update({ where: { id: existing.id }, data })
       }
     }
   }

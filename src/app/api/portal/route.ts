@@ -71,8 +71,11 @@ export async function GET() {
       level: enroll?.section.level?.name ?? "",
       section: enroll ? (enroll.section.poligrado ? enroll.section.name : `${enroll.section.grade?.name ?? ""} "${enroll.section.name}"`) : "—",
       grades: grades.map(g => ({
-        course: g.competencia.area.name,
+        area: g.competencia.area.name,
+        course: g.competencia.courseLabel ?? g.competencia.name,
         competencia: g.competencia.name,
+        periodId: g.periodId,
+        periodNumber: g.period.number,
         period: g.period.name,
         score: g.finalScore,
         level: g.level,

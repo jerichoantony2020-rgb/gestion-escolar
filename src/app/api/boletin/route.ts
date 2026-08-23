@@ -73,6 +73,7 @@ export async function GET(req: NextRequest) {
       return {
         id: c.id,
         name: c.name,
+        courseLabel: c.courseLabel,
         scores: g ? (JSON.parse(g.scores) as (number | string)[]) : [],
         finalScore: g?.finalScore ?? null,
         level: g?.level ?? "",

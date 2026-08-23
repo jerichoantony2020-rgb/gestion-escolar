@@ -5,7 +5,11 @@ import { useState, useEffect } from "react"
 type Daily = { date: string; status: string; entryAt: string | null; exitAt: string | null }
 type Child = {
   studentId: string; studentName: string; level: string; section: string
-  grades: { course: string; competencia: string; period: string; score: number | null; level: string; display: string }[]
+  grades: {
+    area: string; course: string; competencia: string
+    periodId: string; periodNumber: number; period: string
+    score: number | null; level: string; display: string
+  }[]
   attendance: { present: number; late: number; absent: number; total: number }
   attendanceDaily: Daily[]
   conducta: { id: string; type: string; title: string | null; description: string; severity: string; code: string | null; points: number | null; date: string }[]
@@ -75,25 +79,7 @@ export default function PortalClient() {
           <p className="text-sm font-semibold text-primary-500">Ver Informe de Progreso completo →</p>
           <p className="text-xs mt-0.5" style={{ color: "var(--muted)" }}>Notas por competencia (AD/A/B/C), asistencia y conducta del bimestre</p>
         </a>
-        {c.grades.length === 0 ? <Empty text="Sin notas registradas aún" /> : (
-          <div className="rounded-xl border overflow-hidden" style={{ borderColor: "var(--border)" }}>
-            <table className="w-full text-sm">
-              <thead><tr style={{ background: "var(--surface)" }}>{["Área / Competencia", "Bimestre", "Nota"].map(h => <th key={h} className="text-left px-4 py-2 font-semibold text-xs uppercase" style={{ color: "var(--muted)" }}>{h}</th>)}</tr></thead>
-              <tbody>
-                {c.grades.map((g, i) => (
-                  <tr key={i} className="border-t" style={{ borderColor: "var(--border)" }}>
-                    <td className="px-4 py-2" style={{ color: "var(--fg)" }}>
-                      {g.course}
-                      <span className="block text-xs" style={{ color: "var(--muted)" }}>{g.competencia}</span>
-                    </td>
-                    <td className="px-4 py-2 text-xs" style={{ color: "var(--muted)" }}>{g.period}</td>
-                    <td className="px-4 py-2 text-right font-bold text-primary-500 whitespace-nowrap">{g.display}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+        <NotasPorArea grades={c.grades} />
         </>
       )}
 
@@ -182,6 +168,84 @@ export default function PortalClient() {
 
 function Empty({ text }: { text: string }) {
   return <div className="rounded-xl border p-8 text-center" style={{ background: "var(--surface)", borderColor: "var(--border)" }}><p className="text-sm" style={{ color: "var(--muted)" }}>{text}</p></div>
+}
+
+function notaColor(score: number | null): string {
+  if (score == null) return "var(--muted)"
+  if (score >= 18) return "#16a34a"
+  if (score >= 14) return "#0ea5e9"
+  if (score >= 11) return "#f59e0b"
+  return "#ef4444"
+}
+
+/** Notas agrupadas por área y bimestre, con el detalle plegable. */
+function NotasPorArea({ grades }: { grades: Child["grades"] }) {
+  const periods = [...new Map(grades.map(g => [g.periodId, { id: g.periodId, name: g.period, number: g.periodNumber }])).values()]
+    .sort((a, b) => a.number - b.number)
+  const [periodId, setPeriodId] = useState(() => periods.length ? periods[periods.length - 1].id : "")
+  const [openArea, setOpenArea] = useState<string | null>(null)
+
+  if (grades.length === 0) return <Empty text="Sin notas registradas aún" />
+
+  const ofPeriod = grades.filter(g => g.periodId === periodId)
+  const areas = [...new Set(ofPeriod.map(g => g.area))].sort((a, b) => a.localeCompare(b))
+
+  return (
+    <>
+      {periods.length > 1 && (
+        <div className="flex gap-2 mb-4 overflow-x-auto">
+          {periods.map(p => (
+            <button key={p.id} onClick={() => setPeriodId(p.id)}
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap ${p.id === periodId ? "bg-primary-500 text-white" : "border"}`}
+              style={p.id === periodId ? {} : { borderColor: "var(--border)", color: "var(--muted)" }}>
+              {p.name}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {areas.length === 0 && <Empty text="Sin notas en este bimestre" />}
+
+      <div className="grid gap-2.5">
+        {areas.map(area => {
+          const items = ofPeriod.filter(g => g.area === area)
+          const scored = items.filter(i => i.score != null)
+          const avg = scored.length
+            ? Math.round((scored.reduce((s, i) => s + (i.score ?? 0), 0) / scored.length) * 10) / 10
+            : null
+          const open = openArea === area
+          return (
+            <div key={area} className="rounded-xl border overflow-hidden" style={{ borderColor: "var(--border)" }}>
+              <button onClick={() => setOpenArea(open ? null : area)} aria-expanded={open}
+                className="w-full flex items-center justify-between gap-3 px-4 py-3 text-left"
+                style={{ background: "var(--surface)" }}>
+                <span className="text-sm font-bold" style={{ color: "var(--fg)" }}>{area}</span>
+                <span className="flex items-center gap-2.5">
+                  <span className="text-base font-extrabold" style={{ color: notaColor(avg) }}>{avg ?? "—"}</span>
+                  <span className="text-xs transition-transform" style={{ color: "var(--muted)", transform: open ? "rotate(90deg)" : "none" }}>▸</span>
+                </span>
+              </button>
+              {open && (
+                <div style={{ background: "var(--bg)" }}>
+                  {items.map((g, i) => (
+                    <div key={i} className="flex items-center justify-between gap-3 px-4 py-2.5 border-t" style={{ borderColor: "var(--border)" }}>
+                      <span className="min-w-0">
+                        <span className="block text-sm font-medium" style={{ color: "var(--fg)" }}>{g.course}</span>
+                        {g.course !== g.competencia && (
+                          <span className="block text-xs mt-0.5" style={{ color: "var(--muted)" }}>{g.competencia}</span>
+                        )}
+                      </span>
+                      <span className="text-sm font-bold whitespace-nowrap" style={{ color: notaColor(g.score) }}>{g.display}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+    </>
+  )
 }
 function Mini({ label, value, color }: { label: string; value: string | number; color: string }) {
   return <div className="rounded-lg border p-2 text-center" style={{ background: "var(--surface)", borderColor: "var(--border)" }}><p className={`text-lg font-bold ${color}`}>{value}</p><p className="text-[10px]" style={{ color: "var(--muted)" }}>{label}</p></div>

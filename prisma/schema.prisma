@@ -378,6 +378,11 @@ model Competencia {
   areaId   String
   courseId String?
   name     String
+  // Nombre del curso tal como lo conoce el alumno y el apoderado ("Literatura"),
+  // distinto del curso de calificación (courseId = "Comunicación", el que se le
+  // asigna al docente). Solo se usa en áreas que el colegio reparte en varios
+  // cursos; si es null, se muestra el nombre de la competencia.
+  courseLabel String?
   order    Int     @default(0)
   area     Area    @relation(fields: [areaId], references: [id], onDelete: Cascade)
   course   Course? @relation(fields: [courseId], references: [id])

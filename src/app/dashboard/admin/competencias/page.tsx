@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 
-type Competencia = { id: string; name: string; courseId: string | null }
+type Competencia = { id: string; name: string; courseId: string | null; courseLabel: string | null }
 type Area = { id: string; name: string; competencias: Competencia[] }
 type LevelData = { id: string; name: string; courses: { id: string; name: string }[]; areas: Area[] }
 
@@ -10,6 +10,7 @@ export default function CompetenciasPage() {
   const [levels, setLevels] = useState<LevelData[]>([])
   const [activeLevel, setActiveLevel] = useState("")
   const [changes, setChanges] = useState<Record<string, string | null>>({})
+  const [labelChanges, setLabelChanges] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [toast, setToast] = useState("")
@@ -37,9 +38,16 @@ export default function CompetenciasPage() {
     setTimeout(() => setToast(""), 2500)
   }
 
+  const pendingCount = new Set([...Object.keys(changes), ...Object.keys(labelChanges)]).size
+
   async function save() {
-    const updates = Object.entries(changes).map(([competenciaId, courseId]) => ({ competenciaId, courseId }))
-    if (updates.length === 0) return
+    const ids = new Set([...Object.keys(changes), ...Object.keys(labelChanges)])
+    if (ids.size === 0) return
+    const updates = [...ids].map(competenciaId => ({
+      competenciaId,
+      ...(competenciaId in changes ? { courseId: changes[competenciaId] } : {}),
+      ...(competenciaId in labelChanges ? { courseLabel: labelChanges[competenciaId] } : {}),
+    }))
     setSaving(true)
     await fetch("/api/admin/competencias", {
       method: "POST", headers: { "Content-Type": "application/json" },
@@ -47,6 +55,7 @@ export default function CompetenciasPage() {
     })
     setSaving(false)
     setChanges({})
+    setLabelChanges({})
     setToast("Cambios guardados ✓")
     setTimeout(() => setToast(""), 2500)
   }
@@ -67,8 +76,9 @@ export default function CompetenciasPage() {
         (el que tenga ese curso asignado en su aula, en Admin → Usuarios).
       </p>
       <p className="text-sm mb-6" style={{ color: "var(--muted)" }}>
-        Si un mismo docente dicta varias competencias juntas, ponles el mismo curso y las verá todas en una sola
-        pantalla al calificar. Si alguna fila no debería estar en la libreta (no es oficial del MINEDU), quítala con "Eliminar".
+        El <strong>nombre del curso</strong> es cómo lo llaman el alumno y el apoderado (ej. &quot;Literatura&quot;) y es lo que
+        verán en el portal; déjalo vacío si el área no se reparte en cursos. Si alguna fila no debería estar en la
+        libreta, quítala con &quot;Eliminar&quot;.
       </p>
 
       <div className="flex gap-2 mb-6">
@@ -84,8 +94,16 @@ export default function CompetenciasPage() {
             {area.competencias.map(c => {
               const current = changes[c.id] !== undefined ? changes[c.id] : c.courseId
               return (
-                <div key={c.id} className="flex items-center justify-between gap-3 px-4 py-3" style={{ background: "var(--bg)" }}>
-                  <p className="text-sm flex-1" style={{ color: "var(--fg)" }}>{c.name}</p>
+                <div key={c.id} className="flex items-center justify-between gap-3 px-4 py-3 flex-wrap" style={{ background: "var(--bg)" }}>
+                  <p className="text-sm flex-1 min-w-[200px]" style={{ color: "var(--fg)" }}>{c.name}</p>
+                  <input
+                    value={labelChanges[c.id] ?? c.courseLabel ?? ""}
+                    onChange={e => setLabelChanges(l => ({ ...l, [c.id]: e.target.value }))}
+                    placeholder="Nombre del curso (opcional)"
+                    title="Cómo lo llama el alumno y el apoderado. Vacío = se muestra la competencia."
+                    className="px-3 py-1.5 rounded-lg border text-sm outline-none focus:ring-2 focus:ring-primary-500 w-[190px]"
+                    style={{ background: "var(--surface)", borderColor: "var(--border)", color: "var(--fg)" }}
+                  />
                   <select
                     value={current ?? ""}
                     onChange={e => setCourse(c.id, e.target.value)}
@@ -104,8 +122,8 @@ export default function CompetenciasPage() {
       ))}
 
       <div className="sticky bottom-4 flex justify-end">
-        <button onClick={save} disabled={saving || Object.keys(changes).length === 0} className="px-6 py-2.5 rounded-lg bg-primary-500 text-white font-semibold text-sm hover:bg-primary-600 disabled:opacity-40 shadow-lg">
-          {saving ? "Guardando..." : `Guardar cambios${Object.keys(changes).length ? ` (${Object.keys(changes).length})` : ""}`}
+        <button onClick={save} disabled={saving || pendingCount === 0} className="px-6 py-2.5 rounded-lg bg-primary-500 text-white font-semibold text-sm hover:bg-primary-600 disabled:opacity-40 shadow-lg">
+          {saving ? "Guardando..." : `Guardar cambios${pendingCount ? ` (${pendingCount})` : ""}`}
         </button>
       </div>
     </div>

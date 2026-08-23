@@ -30,7 +30,7 @@ export async function GET() {
       areas: areas.filter(a => a.levelId === l.id).map(a => ({
         id: a.id,
         name: a.name,
-        competencias: a.competencias.map(c => ({ id: c.id, name: c.name, courseId: c.courseId })),
+        competencias: a.competencias.map(c => ({ id: c.id, name: c.name, courseId: c.courseId, courseLabel: c.courseLabel })),
       })),
     })),
   })
@@ -42,11 +42,14 @@ export async function POST(req: NextRequest) {
   if (!session) return NextResponse.json({ error: "No autorizado" }, { status: 401 })
   if (!CAN_MANAGE.has(session.user.role)) return NextResponse.json({ error: "No autorizado" }, { status: 403 })
 
-  const { updates } = await req.json() as { updates: { competenciaId: string; courseId: string | null }[] }
+  const { updates } = await req.json() as { updates: { competenciaId: string; courseId?: string | null; courseLabel?: string | null }[] }
   if (!Array.isArray(updates)) return NextResponse.json({ error: "Datos inválidos" }, { status: 400 })
 
   for (const u of updates) {
-    await prisma.competencia.update({ where: { id: u.competenciaId }, data: { courseId: u.courseId || null } })
+    const data: { courseId?: string | null; courseLabel?: string | null } = {}
+    if ("courseId" in u) data.courseId = u.courseId || null
+    if ("courseLabel" in u) data.courseLabel = u.courseLabel?.trim() || null
+    if (Object.keys(data).length) await prisma.competencia.update({ where: { id: u.competenciaId }, data })
   }
 
   return NextResponse.json({ ok: true })
