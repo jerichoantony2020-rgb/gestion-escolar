@@ -12,3 +12,15 @@ export function currentBimestre(date = new Date()) {
   const ranges = bimestreRanges(date.getFullYear())
   return ranges.find(r => date >= r.start && date <= r.end) ?? ranges[0]
 }
+
+/**
+ * Número (1-4) del bimestre en curso, para preseleccionarlo en los
+ * selectores. No usar `findIndex(r => r === currentBimestre())`: cada llamada
+ * a bimestreRanges() crea objetos nuevos, así que la comparación por
+ * referencia nunca acierta.
+ */
+export function currentBimestreNumber(date = new Date()): number {
+  const ranges = bimestreRanges(date.getFullYear())
+  const idx = ranges.findIndex(r => date >= r.start && date <= r.end)
+  return idx === -1 ? 1 : idx + 1
+}

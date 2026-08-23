@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { currentBimestreNumber } from "@/lib/bimestre"
 
 type Student = { id: string; firstName: string; lastName: string; enrollments: { section: { id: string; name: string } }[] }
 type Section = { id: string; name: string; levelName: string }
@@ -32,7 +33,10 @@ export default function BoletinPage() {
     })
     fetch("/api/notas/area/contexto").then(r => r.json()).then(c => {
       setPeriods(c.periods)
-      if (c.periods[0]) setPeriodId(c.periods[0].id)
+      if (c.periods?.length) {
+        const match = c.periods.find((p: Period & { number: number }) => p.number === currentBimestreNumber())
+        setPeriodId(match?.id ?? c.periods[0].id)
+      }
     })
   }, [])
 

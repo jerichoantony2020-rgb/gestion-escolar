@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useParams } from "next/navigation"
-import { bimestreRanges, currentBimestre } from "@/lib/bimestre"
+import { currentBimestreNumber } from "@/lib/bimestre"
 
 type CompScore = { scores: (number | string)[]; finalScore: number | null }
 type Competencia = { id: string; name: string; scores: CompScore[] }
@@ -35,9 +35,7 @@ export default function ActividadesPage() {
     fetch(`/api/informe?studentId=${studentId}`).then(r => r.json()).then((d: Informe) => {
       setData(d)
       if (d.periods?.length) {
-        const now = new Date()
-        const bimNumber = bimestreRanges(now.getFullYear()).findIndex(r => r === currentBimestre(now)) + 1
-        const match = d.periods.find(p => p.number === bimNumber)
+        const match = d.periods.find(p => p.number === currentBimestreNumber())
         setPeriodId(match?.id ?? d.periods[0].id)
       }
       setLoading(false)

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback, Fragment } from "react"
+import { currentBimestreNumber } from "@/lib/bimestre"
 
 type Ctx = {
   courses: { id: string; name: string }[]
@@ -48,7 +49,10 @@ export default function NotasAreaPage() {
       setSectionId(firstSection)
       const firstCourse = c.pairs.find(p => p.sectionId === firstSection)?.courseId ?? ""
       setCourseId(firstCourse)
-      if (c.periods[0]) setPeriodId(c.periods[0].id)
+      if (c.periods.length) {
+        const match = c.periods.find(p => p.number === currentBimestreNumber())
+        setPeriodId(match?.id ?? c.periods[0].id)
+      }
     })
   }, [])
 
