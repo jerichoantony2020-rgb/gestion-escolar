@@ -64,60 +64,45 @@ export default function PortalVer() {
 
   return (
     <div style={{ minHeight: "100dvh", background: "var(--bg)" }}>
-      {/* Barra superior: hairline, sin sombra ni blur decorativo. */}
-      <nav style={{
-        background: "var(--surface)",
-        borderBottom: "1px solid var(--border)",
-        padding: "0 16px",
-        height: 56,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        position: "sticky",
-        top: 0,
-        zIndex: 40,
-      }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo-cr.png" alt="" style={{ width: 26, height: 32, objectFit: "contain" }} />
-          <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: 13, fontWeight: 650, color: "var(--fg)", lineHeight: 1.2, letterSpacing: "-.01em" }}>Cristo Reina</div>
-            {parentName && <div style={{ fontSize: 12, color: "var(--muted)", lineHeight: 1.2 }}>{parentName.split(" ")[0]}</div>}
-          </div>
+      {/* Campo de cabecera: el color ocupa una región entera de la pantalla. */}
+      <div className="brand-field">
+        <div style={{ maxWidth: 680, margin: "0 auto", padding: "0 16px" }}>
+          <nav style={{ height: 56, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/logo-cr.png" alt="" style={{ width: 26, height: 32, objectFit: "contain" }} />
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: 13, fontWeight: 650, lineHeight: 1.2, letterSpacing: "-.01em" }}>Cristo Reina</div>
+                {parentName && <div style={{ fontSize: 12, color: "rgba(255,255,255,.72)", lineHeight: 1.2 }}>{parentName.split(" ")[0]}</div>}
+              </div>
+            </div>
+            <button
+              onClick={handleLogout}
+              style={{
+                padding: "7px 14px", borderRadius: "var(--r-sm)", fontSize: 13, fontWeight: 550,
+                border: "1px solid rgba(255,255,255,.3)", background: "rgba(255,255,255,.12)", cursor: "pointer",
+              }}
+            >
+              Salir
+            </button>
+          </nav>
+
+          <header style={{ display: "flex", alignItems: "center", gap: 14, padding: "6px 0 26px" }}>
+            <div className="brand-avatar">{iniciales}</div>
+            <div style={{ minWidth: 0 }}>
+              <h1 style={{ fontSize: 23, fontWeight: 680, margin: 0, lineHeight: 1.18, letterSpacing: "-.022em" }}>
+                {child.studentName}
+              </h1>
+              <p style={{ fontSize: 14, color: "rgba(255,255,255,.75)", margin: "3px 0 0" }}>
+                {child.level}{child.section ? ` · ${child.section}` : ""}
+              </p>
+            </div>
+          </header>
         </div>
-        <button
-          onClick={handleLogout}
-          style={{
-            padding: "7px 14px", borderRadius: "var(--r-sm)", fontSize: 13, fontWeight: 550,
-            border: "1px solid var(--border-2)", color: "var(--fg-2)", background: "var(--surface)", cursor: "pointer",
-          }}
-        >
-          Salir
-        </button>
-      </nav>
+      </div>
 
       {/* Content */}
-      <div style={{ maxWidth: 680, margin: "0 auto", padding: "28px 16px 56px" }}>
-        {/* Identidad del alumno: el nombre es el titular de la página, no una
-            tarjeta con degradado. Iniciales en vez de emoji. */}
-        <header style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 26 }}>
-          <div style={{
-            width: 48, height: 48, borderRadius: "50%", flexShrink: 0,
-            background: "var(--brand-bg)", color: "var(--brand-ink)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: 16, fontWeight: 650, letterSpacing: "-.02em",
-          }}>
-            {iniciales}
-          </div>
-          <div style={{ minWidth: 0 }}>
-            <h1 style={{ fontSize: 22, fontWeight: 680, color: "var(--fg)", margin: 0, lineHeight: 1.18, letterSpacing: "-.021em" }}>
-              {child.studentName}
-            </h1>
-            <p style={{ fontSize: 14, color: "var(--muted)", margin: "3px 0 0" }}>
-              {child.level}{child.section ? ` · ${child.section}` : ""}
-            </p>
-          </div>
-        </header>
+      <div style={{ maxWidth: 680, margin: "0 auto", padding: "22px 16px 56px" }}>
 
         {/* Navegación segmentada: una sola pieza, no botones sueltos. */}
         <div style={{
@@ -142,11 +127,11 @@ export default function PortalVer() {
                 fontWeight: tab === t.k ? 620 : 520,
                 whiteSpace: "nowrap",
                 border: "none",
-                background: tab === t.k ? "var(--surface)" : "transparent",
+                background: tab === t.k ? "var(--brand)" : "transparent",
                 boxShadow: tab === t.k ? "var(--shadow-1)" : "none",
-                color: tab === t.k ? "var(--fg)" : "var(--muted)",
+                color: tab === t.k ? "#fff" : "var(--muted)",
                 cursor: "pointer",
-                transition: "color .15s ease",
+                transition: "color .15s ease, background .15s ease",
               }}
             >
               {t.l}
@@ -338,7 +323,7 @@ function NotasTab({ grades }: { grades: Grade[] }) {
             : null
           const open = openArea === area
           return (
-            <div key={area} className="area-card rise" data-open={open}
+            <div key={area} className="area-card rise" data-open={open} data-nivel={nivelDe(avg)}
               style={{ animationDelay: `${ai * 55}ms` }}>
               <button className="area-head" onClick={() => setOpenArea(open ? null : area)} aria-expanded={open}>
                 <span style={{ minWidth: 0 }}>
