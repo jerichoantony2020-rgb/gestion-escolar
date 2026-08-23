@@ -309,16 +309,19 @@ function NotasTab({ grades }: { grades: Grade[] }) {
   return (
     <>
       {periods.length > 1 && (
-        <div style={{ display: "flex", gap: 8, marginBottom: 14, overflowX: "auto", paddingBottom: 2 }}>
+        <div style={{ display: "flex", gap: 18, marginBottom: 18, overflowX: "auto", borderBottom: "1px solid var(--border)" }}>
           {periods.map(p => (
             <button key={p.id} onClick={() => setPeriodId(p.id)}
+              aria-current={p.id === periodId ? "true" : undefined}
               style={{
-                padding: "7px 14px", borderRadius: 10, fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", cursor: "pointer",
-                border: p.id === periodId ? "1px solid var(--brand-ink)" : "1px solid var(--border)",
-                background: p.id === periodId ? "var(--brand-ink)" : "var(--surface)",
-                color: p.id === periodId ? "var(--surface)" : "var(--muted)",
+                padding: "0 0 10px", background: "none", border: "none", cursor: "pointer",
+                fontSize: 13.5, whiteSpace: "nowrap",
+                fontWeight: p.id === periodId ? 620 : 520,
+                color: p.id === periodId ? "var(--fg)" : "var(--muted)",
+                boxShadow: p.id === periodId ? "inset 0 -2px 0 var(--brand)" : "none",
+                transition: "color .16s ease",
               }}>
-              {p.name}
+              {p.name.replace(" Bimestre", "")}
             </button>
           ))}
         </div>
@@ -327,7 +330,7 @@ function NotasTab({ grades }: { grades: Grade[] }) {
       {areas.length === 0 && <Empty text="Sin notas en este bimestre" />}
 
       <div style={{ display: "grid", gap: 10 }}>
-        {areas.map(area => {
+        {areas.map((area, ai) => {
           const items = ofPeriod.filter(g => g.area === area)
           const scored = items.filter(i => i.score != null)
           const avg = scored.length
@@ -335,34 +338,42 @@ function NotasTab({ grades }: { grades: Grade[] }) {
             : null
           const open = openArea === area
           return (
-            <div key={area} style={{ background: "var(--surface)", borderRadius: 14, border: "1px solid var(--border)", overflow: "hidden" }}>
-              <button onClick={() => setOpenArea(open ? null : area)}
-                aria-expanded={open}
-                style={{
-                  width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
-                  padding: "14px 16px", background: "none", border: "none", cursor: "pointer", textAlign: "left",
-                }}>
-                <span style={{ fontSize: 14, fontWeight: 700, color: "var(--fg)" }}>{area}</span>
-                <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <span style={{ fontSize: 16, fontWeight: 800, color: notaColor(avg) }}>{avg ?? "—"}</span>
-                  <span style={{ fontSize: 12, color: "var(--muted)", transform: open ? "rotate(90deg)" : "none", transition: "transform .15s" }}>▸</span>
+            <div key={area} className="area-card rise" data-open={open}
+              style={{ animationDelay: `${ai * 55}ms` }}>
+              <button className="area-head" onClick={() => setOpenArea(open ? null : area)} aria-expanded={open}>
+                <span style={{ minWidth: 0 }}>
+                  <span className="area-name" style={{ display: "block" }}>{area}</span>
+                  <span style={{ display: "block", fontSize: 12.5, color: "var(--muted)", marginTop: 2 }}>
+                    {items.length} {items.length === 1 ? "curso" : "cursos"}
+                  </span>
+                </span>
+                <span style={{ display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
+                  <span className="area-score" style={{ color: notaColor(avg) }}>{avg ?? "—"}</span>
+                  <span className={`nivel nivel-${nivelDe(avg) || "vacio"}`}>{nivelDe(avg) || "—"}</span>
+                  <Chevron />
                 </span>
               </button>
 
               {open && (
-                <div style={{ borderTop: "1px solid var(--brand-bg)" }}>
+                <div className="unfold" style={{ borderTop: "1px solid var(--border)", padding: "4px 0 6px" }}>
                   {items.map((g, i) => (
-                    <div key={i} style={{
-                      display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
-                      padding: "10px 16px", borderTop: i === 0 ? "none" : "1px solid var(--surface-2)",
+                    <div key={i} className="rise" style={{
+                      animationDelay: `${i * 40}ms`,
+                      display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14,
+                      padding: "11px 18px",
                     }}>
                       <span style={{ minWidth: 0 }}>
-                        <span style={{ display: "block", fontSize: 13, fontWeight: 600, color: "var(--fg)" }}>{g.course}</span>
+                        <span style={{ display: "block", fontSize: 13.5, fontWeight: 560, color: "var(--fg-2)", letterSpacing: "-.006em" }}>{g.course}</span>
                         {g.course !== g.competencia && (
-                          <span style={{ display: "block", fontSize: 11, color: "var(--muted)", marginTop: 1 }}>{g.competencia}</span>
+                          <span style={{ display: "block", fontSize: 12, color: "var(--muted)", marginTop: 2, lineHeight: 1.35 }}>{g.competencia}</span>
                         )}
                       </span>
-                      <span style={{ fontSize: 13, fontWeight: 800, color: notaColor(g.score), whiteSpace: "nowrap" }}>{g.display}</span>
+                      <span style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
+                        <span style={{ fontSize: 15, fontWeight: 650, color: notaColor(g.score), fontVariantNumeric: "tabular-nums" }}>
+                          {g.score ?? "—"}
+                        </span>
+                        <span className={`nivel nivel-${g.level || "vacio"}`}>{g.level || "—"}</span>
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -372,6 +383,23 @@ function NotasTab({ grades }: { grades: Grade[] }) {
         })}
       </div>
     </>
+  )
+}
+
+function nivelDe(score: number | null): string {
+  if (score == null) return ""
+  if (score >= 18) return "AD"
+  if (score >= 14) return "A"
+  if (score >= 11) return "B"
+  return "C"
+}
+
+function Chevron() {
+  return (
+    <svg className="area-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M9 6l6 6-6 6" />
+    </svg>
   )
 }
 

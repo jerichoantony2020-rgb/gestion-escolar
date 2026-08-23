@@ -109,6 +109,85 @@
 /* Los datos se comparan en columna: cifras de ancho fijo. */
 .tnum, table, input[type="number"] { font-variant-numeric: tabular-nums; }
 
+/* ── Superficies del navegador ────────────────────────────────────────────
+   Lo que no dibujamos también lleva el diseño: cursor, foco, subrayado.   */
+:root { accent-color: var(--brand); caret-color: var(--brand); }
+:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+a { text-underline-offset: 3px; text-decoration-thickness: 1px; }
+
+/* ── Movimiento: un solo momento autorizado ───────────────────────────────
+   La entrada escalonada de la lista. Salida exponencial desde un estado ya
+   visible, para que nada "aparezca" y se lea como carga rota.             */
+@keyframes rise {
+  from { opacity: 0; transform: translate3d(0, 10px, 0); }
+  to   { opacity: 1; transform: none; }
+}
+.rise { animation: rise .5s cubic-bezier(.16,1,.3,1) both; }
+
+/* El acordeón abre con altura real, no con display:none. */
+@keyframes unfold {
+  from { opacity: 0; transform: translate3d(0, -6px, 0); }
+  to   { opacity: 1; transform: none; }
+}
+.unfold { animation: unfold .32s cubic-bezier(.16,1,.3,1) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .rise, .unfold { animation: none !important; }
+}
+
+/* ── Insignia de nivel de logro ───────────────────────────────────────────
+   El logro se lee por peso y color de la marca, no solo por la letra.     */
+.nivel {
+  display: inline-grid; place-items: center;
+  min-width: 30px; height: 26px; padding: 0 8px;
+  border-radius: 7px;
+  font-size: 13px; font-weight: 680; letter-spacing: -.01em;
+  font-variant-numeric: tabular-nums;
+}
+.nivel-AD { background: var(--ok-bg);     color: var(--ok);     box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ok) 22%, transparent); }
+.nivel-A  { background: var(--brand-bg);  color: var(--brand-ink); box-shadow: inset 0 0 0 1px var(--brand-line); }
+.nivel-B  { background: var(--warn-bg);   color: var(--warn);   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--warn) 22%, transparent); }
+.nivel-C  { background: var(--danger-bg); color: var(--danger); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--danger) 22%, transparent); }
+.nivel-vacio { background: var(--surface-2); color: var(--muted); }
+
+/* ── Fila de área plegable ────────────────────────────────────────────────
+   Plegada es papel plano; abierta se levanta con sombra real (desplazamiento
+   + desenfoque), que es lo que distingue profundidad de un halo decorativo. */
+.area-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  transition: box-shadow .28s cubic-bezier(.16,1,.3,1), border-color .28s ease, transform .28s cubic-bezier(.16,1,.3,1);
+}
+.area-card[data-open="true"] {
+  border-color: var(--brand-line);
+  box-shadow: var(--shadow-2);
+}
+.area-head {
+  width: 100%; display: flex; align-items: center; justify-content: space-between;
+  gap: 14px; padding: 16px 18px; background: none; border: 0; cursor: pointer;
+  text-align: left; border-radius: var(--r-lg);
+}
+.area-head:hover .area-name { color: var(--brand-ink); }
+.area-name {
+  font-size: 14px; font-weight: 620; color: var(--fg);
+  letter-spacing: -.012em; transition: color .16s ease;
+}
+/* La cifra del área es el dato con más peso de la pantalla. */
+.area-score {
+  font-size: 30px; font-weight: 700; line-height: 1;
+  letter-spacing: -.03em; font-variant-numeric: tabular-nums;
+}
+.area-chevron {
+  width: 18px; height: 18px; flex-shrink: 0; color: var(--muted);
+  transition: transform .28s cubic-bezier(.16,1,.3,1);
+}
+.area-card[data-open="true"] .area-chevron { transform: rotate(90deg); }
+
 /* Papel plano. Los degradados radiales de colores son el tell del panel
    genérico; el interés visual lo aporta el contenido, no el fondo. */
 .dash-bg {
