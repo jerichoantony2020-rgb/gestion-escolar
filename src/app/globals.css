@@ -49,7 +49,7 @@
   /* Texto */
   --fg:        #14161A;   /* títulos y datos */
   --fg-2:      #3F434D;   /* cuerpo */
-  --muted:     #71757F;   /* etiquetas y metadatos */
+  --muted:     #666A74;   /* etiquetas y metadatos — AA (5.01:1) en el fondo más claro */
 
   /* Marca: azul del escudo, calibrado para pantalla */
   --brand:     #1B47D6;
