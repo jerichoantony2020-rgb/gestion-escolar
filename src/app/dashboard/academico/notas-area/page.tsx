@@ -5,6 +5,7 @@ import { useState, useEffect, useCallback, Fragment } from "react"
 type Ctx = {
   courses: { id: string; name: string }[]
   sections: { id: string; name: string }[]
+  pairs: { sectionId: string; courseId: string }[]
   periods: { id: string; name: string; number: number }[]
   role: string
 }
@@ -42,11 +43,23 @@ export default function NotasAreaPage() {
   useEffect(() => {
     fetch("/api/notas/area/contexto").then(r => r.json()).then((c: Ctx) => {
       setCtx(c)
-      if (c.courses[0]) setCourseId(c.courses[0].id)
-      if (c.sections[0]) setSectionId(c.sections[0].id)
+      const firstSection = c.sections[0]?.id ?? ""
+      setSectionId(firstSection)
+      const firstCourse = c.pairs.find(p => p.sectionId === firstSection)?.courseId ?? ""
+      setCourseId(firstCourse)
       if (c.periods[0]) setPeriodId(c.periods[0].id)
     })
   }, [])
+
+  function onSectionChange(newSectionId: string) {
+    setSectionId(newSectionId)
+    const firstCourse = ctx?.pairs.find(p => p.sectionId === newSectionId)?.courseId ?? ""
+    setCourseId(firstCourse)
+  }
+
+  const coursesForSection = ctx
+    ? ctx.courses.filter(c => ctx.pairs.some(p => p.sectionId === sectionId && p.courseId === c.id))
+    : []
 
   const load = useCallback(async () => {
     if (!courseId || !sectionId || !periodId) return
@@ -131,8 +144,8 @@ export default function NotasAreaPage() {
       </p>
 
       <div className="flex flex-wrap gap-3 mb-5 items-end">
-        <Sel label="Curso" value={courseId} onChange={setCourseId} options={ctx?.courses.map(c => ({ value: c.id, label: c.name })) ?? []} />
-        <Sel label="Sección" value={sectionId} onChange={setSectionId} options={ctx?.sections.map(s => ({ value: s.id, label: s.name })) ?? []} />
+        <Sel label="Sección" value={sectionId} onChange={onSectionChange} options={ctx?.sections.map(s => ({ value: s.id, label: s.name })) ?? []} />
+        <Sel label="Curso" value={courseId} onChange={setCourseId} options={coursesForSection.map(c => ({ value: c.id, label: c.name }))} />
         <Sel label="Bimestre" value={periodId} onChange={setPeriodId} options={ctx?.periods.map(p => ({ value: p.id, label: p.name })) ?? []} />
       </div>
 
