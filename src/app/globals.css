@@ -56,8 +56,11 @@
   --brand-ink: #14349E;   /* texto/acción sobre claro, contraste AA */
   --brand-bg:  #EEF2FF;   /* relleno tenue: chips, iconos, selección */
   --brand-line:#C7D3F8;
-  --brand-deep:#122A86;   /* fondo del campo de cabecera */
-  --brand-lift:#2E63F0;   /* extremo claro del campo */
+  /* Extremos del campo de cabecera. El más claro no sube de #1B47D6: por
+     encima de ahí el blanco puro baja de 7:1 y el texto secundario ya no
+     alcanza AA sobre el degradado. */
+  --brand-deep:#102578;
+  --brand-lift:#1B47D6;
   --sky:       #3DA5F4;   /* segundo azul del escudo */
   --gold:      #E8B62C;   /* oro del escudo: identidad, nunca estado */
 
@@ -164,7 +167,7 @@ a { text-underline-offset: 3px; text-decoration-thickness: 1px; }
    El color manda una región entera, no se salpica en acentos sueltos: la
    cabecera es un campo azul del escudo y el contenido baja sobre papel.    */
 .brand-field {
-  background: linear-gradient(158deg, var(--brand-deep) 0%, var(--brand) 62%, var(--brand-lift) 100%);
+  background: linear-gradient(158deg, var(--brand-deep) 0%, var(--brand-lift) 100%);
   color: #fff;
   position: relative;
 }

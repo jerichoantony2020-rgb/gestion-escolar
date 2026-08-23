@@ -73,7 +73,7 @@ export default function PortalVer() {
               <img src="/logo-cr.png" alt="" style={{ width: 26, height: 32, objectFit: "contain" }} />
               <div style={{ minWidth: 0 }}>
                 <div style={{ fontSize: 13, fontWeight: 650, lineHeight: 1.2, letterSpacing: "-.01em" }}>Cristo Reina</div>
-                {parentName && <div style={{ fontSize: 12, color: "rgba(255,255,255,.72)", lineHeight: 1.2 }}>{parentName.split(" ")[0]}</div>}
+                {parentName && <div style={{ fontSize: 12, color: "rgba(255,255,255,.8)", lineHeight: 1.2 }}>{parentName.split(" ")[0]}</div>}
               </div>
             </div>
             <button
@@ -93,7 +93,7 @@ export default function PortalVer() {
               <h1 style={{ fontSize: 23, fontWeight: 680, margin: 0, lineHeight: 1.18, letterSpacing: "-.022em" }}>
                 {child.studentName}
               </h1>
-              <p style={{ fontSize: 14, color: "rgba(255,255,255,.75)", margin: "3px 0 0" }}>
+              <p style={{ fontSize: 14, color: "rgba(255,255,255,.8)", margin: "3px 0 0" }}>
                 {child.level}{child.section ? ` · ${child.section}` : ""}
               </p>
             </div>
