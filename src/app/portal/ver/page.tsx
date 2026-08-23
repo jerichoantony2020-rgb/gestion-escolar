@@ -9,7 +9,7 @@ type Child = {
   studentName: string
   level: string
   section: string
-  grades: { course: string; period: string; display: string }[]
+  grades: { course: string; competencia: string; period: string; score: number | null; level: string; display: string }[]
   attendance: { present: number; late: number; absent: number; total: number }
   attendanceDaily: Daily[]
   conducta: { id: string; type: string; title: string | null; description: string; severity: string; date: string }[]
@@ -155,20 +155,22 @@ export default function PortalVer() {
                 <table style={{ width: "100%", fontSize: 13, borderCollapse: "collapse" }}>
                   <thead>
                     <tr style={{ background: "#F8FAFF" }}>
-                      {["Curso", "Bimestre", "Nota"].map(h => (
+                      {["Área / Competencia", "Bimestre", "Nota"].map(h => (
                         <th key={h} style={{ textAlign: h === "Nota" ? "right" : "left", padding: "10px 16px", fontSize: 11, fontWeight: 700, color: "#5A6A8A", textTransform: "uppercase", letterSpacing: "0.05em" }}>{h}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
                     {child.grades.map((g, i) => {
-                      const num = parseFloat(g.display)
-                      const color = isNaN(num) ? "#0D1E3A" : num >= 14 ? "#15803D" : num >= 11 ? "#B45309" : "#DC2626"
+                      const color = g.score == null ? "#0D1E3A" : g.score >= 14 ? "#15803D" : g.score >= 11 ? "#B45309" : "#DC2626"
                       return (
                         <tr key={i} style={{ borderTop: "1px solid #EEF2FF" }}>
-                          <td style={{ padding: "10px 16px", color: "#0D1E3A", fontWeight: 500 }}>{g.course}</td>
+                          <td style={{ padding: "10px 16px", color: "#0D1E3A", fontWeight: 500 }}>
+                            {g.course}
+                            <span style={{ display: "block", fontSize: 11, color: "#5A6A8A", fontWeight: 400 }}>{g.competencia}</span>
+                          </td>
                           <td style={{ padding: "10px 16px", color: "#5A6A8A", fontSize: 12 }}>{g.period}</td>
-                          <td style={{ padding: "10px 16px", textAlign: "right", fontWeight: 800, color }}>{g.display}</td>
+                          <td style={{ padding: "10px 16px", textAlign: "right", fontWeight: 800, color, whiteSpace: "nowrap" }}>{g.display}</td>
                         </tr>
                       )
                     })}

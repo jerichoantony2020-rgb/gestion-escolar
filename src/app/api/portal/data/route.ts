@@ -36,9 +36,10 @@ export async function GET(_req: NextRequest) {
   const monthEnd = new Date(year, month, 1)
 
   const [grades, att, incidents, orders] = await Promise.all([
-    prisma.gradeRecord.findMany({
+    // Notas por competencia (formato MINEDU), agrupadas por su área.
+    prisma.competenciaGrade.findMany({
       where: { institutionId: instId, studentId: s.id },
-      include: { course: true, period: true },
+      include: { competencia: { include: { area: true } }, period: true },
       orderBy: { period: { number: "desc" } },
     }),
     prisma.attendanceRecord.findMany({
@@ -79,14 +80,12 @@ export async function GET(_req: NextRequest) {
       level: levelLabel,
       section: sectionLabel,
       grades: grades.map(g => ({
-        course: g.course.name,
+        course: g.competencia.area.name,
+        competencia: g.competencia.name,
         period: g.period.name,
-        display:
-          g.course.gradeType === "qualitative"
-            ? (g.qualitative ?? "—")
-            : g.finalGrade != null
-              ? g.finalGrade.toFixed(1)
-              : "—",
+        score: g.finalScore,
+        level: g.level,
+        display: g.finalScore != null ? `${g.finalScore} (${g.level})` : (g.level || "—"),
       })),
       attendance: { present, late, absent, total: att.length },
       attendanceDaily: att.slice(0, 15).map(a => ({
