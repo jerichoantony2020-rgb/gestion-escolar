@@ -490,7 +490,7 @@ export default function AsistenciaPage() {
       {/* MARCAR */}
       {tab === "marcar" && (
         <>
-          <div className="flex flex-wrap items-center gap-3 mb-3">
+          <div className="sticky top-16 z-30 flex flex-wrap items-center gap-3 py-2 mb-3 print:hidden" style={{ background: "var(--bg)" }}>
             <div className="flex gap-2 text-xs">
               <span className="text-green-600 font-medium">● {counts.present} presentes</span>
               <span className="text-amber-600 font-medium">● {counts.late} tarde</span>
@@ -499,6 +499,11 @@ export default function AsistenciaPage() {
             <button onClick={() => markAll("present")} className="text-xs px-3 py-1.5 rounded-lg border hover:bg-green-50 hover:text-green-600 transition-colors ml-auto" style={{ borderColor: "var(--border)", color: "var(--muted)" }}>
               Marcar todos presente
             </button>
+            {rows.length > 0 && (
+              <button onClick={save} disabled={saving} className="px-5 py-2 rounded-lg bg-primary-500 text-white font-semibold text-sm hover:bg-primary-600 disabled:opacity-60 shadow-sm">
+                {saving ? "Guardando..." : "Guardar asistencia"}
+              </button>
+            )}
           </div>
 
           <div className="rounded-xl border overflow-hidden" style={{ borderColor: "var(--border)" }}>
@@ -520,13 +525,6 @@ export default function AsistenciaPage() {
             ))}
           </div>
 
-          {rows.length > 0 && (
-            <div className="flex justify-end mt-4">
-              <button onClick={save} disabled={saving} className="px-6 py-2.5 rounded-lg bg-primary-500 text-white font-semibold text-sm hover:bg-primary-600 disabled:opacity-60">
-                {saving ? "Guardando..." : "Guardar asistencia"}
-              </button>
-            </div>
-          )}
         </>
       )}
 

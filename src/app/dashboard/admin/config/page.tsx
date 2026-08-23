@@ -30,6 +30,13 @@ export default function ConfigPage() {
       <p className="text-sm mb-8" style={{ color: "var(--muted)" }}>Ajustes generales del colegio</p>
 
       <form onSubmit={handleSave} className="space-y-6">
+        <div className="sticky top-16 z-30 flex justify-end py-2" style={{ background: "var(--bg)" }}>
+          <button type="submit" disabled={saving}
+            className="px-5 py-2 rounded-lg bg-primary-500 text-white font-semibold text-sm hover:bg-primary-600 disabled:opacity-60 transition-colors shadow-sm">
+            {saving ? "Guardando..." : saved ? "✓ Guardado" : "Guardar cambios"}
+          </button>
+        </div>
+
         {/* Pagos */}
         <section className="rounded-xl border p-5" style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
           <h2 className="font-semibold mb-4" style={{ color: "var(--fg)" }}>Pagos y pensiones</h2>
@@ -112,10 +119,6 @@ export default function ConfigPage() {
           </div>
         </section>
 
-        <button type="submit" disabled={saving}
-          className="px-6 py-2.5 rounded-lg bg-primary-500 text-white font-semibold text-sm hover:bg-primary-600 disabled:opacity-60 transition-colors">
-          {saving ? "Guardando..." : saved ? "✓ Guardado" : "Guardar cambios"}
-        </button>
       </form>
     </div>
   )

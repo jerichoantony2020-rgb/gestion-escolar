@@ -3,7 +3,9 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 
-const ALLOWED = ["director", "coordinador", "psicologo"]
+// Aceptar o rechazar una derivación es una decisión clínica: solo el
+// psicólogo. Dirección y coordinación pueden verlas, no resolverlas.
+const ALLOWED = ["psicologo"]
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await getServerSession(authOptions)

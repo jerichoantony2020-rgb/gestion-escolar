@@ -27,7 +27,8 @@ const STATUS_COLOR: Record<string, { bg: string; color: string }> = {
 export default function DerivacionesPage() {
   const { data: session } = useSession()
   const role = session?.user?.role ?? ""
-  const canRespond = ["psicologo", "director", "coordinador"].includes(role)
+  // Solo el psicólogo resuelve derivaciones; dirección/coordinación las ven.
+  const canRespond = role === "psicologo"
   const isDocente = role === "docente"
 
   const [derivations, setDerivations] = useState<Derivation[]>([])

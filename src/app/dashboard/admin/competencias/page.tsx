@@ -81,6 +81,12 @@ export default function CompetenciasPage() {
         libreta, quítala con &quot;Eliminar&quot;.
       </p>
 
+      <div className="sticky top-16 z-30 flex justify-end py-2 mb-2" style={{ background: "var(--bg)" }}>
+        <button onClick={save} disabled={saving || pendingCount === 0} className="px-5 py-2 rounded-lg bg-primary-500 text-white font-semibold text-sm hover:bg-primary-600 disabled:opacity-40 shadow-sm">
+          {saving ? "Guardando..." : `Guardar cambios${pendingCount ? ` (${pendingCount})` : ""}`}
+        </button>
+      </div>
+
       <div className="flex gap-2 mb-6">
         {levels.map(l => (
           <button key={l.id} onClick={() => setActiveLevel(l.id)} className={`px-4 py-2 rounded-lg text-sm font-medium ${l.id === activeLevel ? "bg-primary-500 text-white" : "border"}`} style={l.id === activeLevel ? {} : { borderColor: "var(--border)", color: "var(--muted)" }}>{l.name}</button>
@@ -121,11 +127,6 @@ export default function CompetenciasPage() {
         </div>
       ))}
 
-      <div className="sticky bottom-4 flex justify-end">
-        <button onClick={save} disabled={saving || pendingCount === 0} className="px-6 py-2.5 rounded-lg bg-primary-500 text-white font-semibold text-sm hover:bg-primary-600 disabled:opacity-40 shadow-lg">
-          {saving ? "Guardando..." : `Guardar cambios${pendingCount ? ` (${pendingCount})` : ""}`}
-        </button>
-      </div>
     </div>
   )
 }
