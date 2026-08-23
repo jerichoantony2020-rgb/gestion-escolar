@@ -198,7 +198,15 @@ export default function ConductaPage() {
               </>
             ) : (
               <form onSubmit={save} className="space-y-3">
-                <h2 className="text-lg font-bold mb-1" style={{ color: "var(--fg)" }}>Registrar conducta</h2>
+                {/* Acciones arriba: el formulario puede desbordar en celular y
+                    el botón no debe quedar fuera de vista. */}
+                <div className="sticky -top-6 z-10 flex items-center justify-between gap-3 -mx-6 px-6 pt-6 pb-3 -mt-6" style={{ background: "var(--bg)" }}>
+                  <h2 className="text-lg font-bold" style={{ color: "var(--fg)" }}>Registrar conducta</h2>
+                  <div className="flex gap-2">
+                    <button type="button" onClick={() => setModal(false)} className="px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--border)", color: "var(--muted)" }}>Cancelar</button>
+                    <button type="submit" disabled={saving} className="px-4 py-2 rounded-lg bg-primary-500 text-white text-sm font-semibold hover:bg-primary-600 disabled:opacity-60">{saving ? "Guardando..." : "Registrar"}</button>
+                  </div>
+                </div>
 
                 <div className="grid grid-cols-2 gap-2">
                   <button type="button" onClick={() => setForm(f => ({ ...f, type: "negative" }))} className={`px-3 py-2 rounded-lg text-sm font-medium ${form.type === "negative" ? "bg-red-500 text-white" : "border"}`} style={form.type === "negative" ? {} : { borderColor: "var(--border)", color: "var(--muted)" }}>Falta (código)</button>
@@ -264,10 +272,6 @@ export default function ConductaPage() {
                   <input type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} className="w-full px-3 py-2 rounded-lg border text-sm outline-none" style={{ background: "var(--bg)", borderColor: "var(--border)", color: "var(--fg)" }} />
                 </div>
 
-                <div className="flex justify-end gap-3 pt-2">
-                  <button type="button" onClick={() => setModal(false)} className="px-4 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--border)", color: "var(--muted)" }}>Cancelar</button>
-                  <button type="submit" disabled={saving} className="px-4 py-2 rounded-lg bg-primary-500 text-white text-sm font-semibold hover:bg-primary-600 disabled:opacity-60">{saving ? "Guardando..." : "Registrar"}</button>
-                </div>
               </form>
             )}
           </div>

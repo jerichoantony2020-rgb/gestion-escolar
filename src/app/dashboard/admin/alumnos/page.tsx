@@ -171,8 +171,19 @@ export default function AlumnosPage() {
       {modal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
           <div className="w-full max-w-lg rounded-2xl border p-6 shadow-xl overflow-y-auto max-h-[90vh]" style={{ background: "var(--bg)", borderColor: "var(--border)" }}>
-            <h2 className="text-lg font-bold mb-4" style={{ color: "var(--fg)" }}>{editing ? "Editar alumno" : "Nuevo alumno"}</h2>
             <form onSubmit={handleSave} className="space-y-3">
+              {/* Acciones arriba: el formulario desborda y el botón no debe
+                  quedar fuera de vista. */}
+              <div className="sticky -top-6 z-10 flex items-center justify-between gap-3 -mx-6 px-6 pt-6 pb-3 -mt-6" style={{ background: "var(--bg)" }}>
+                <h2 className="text-lg font-bold" style={{ color: "var(--fg)" }}>{editing ? "Editar alumno" : "Nuevo alumno"}</h2>
+                <div className="flex gap-2 shrink-0">
+                  <button type="button" onClick={() => setModal(false)} className="px-3 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--border)", color: "var(--muted)" }}>Cancelar</button>
+                  <button type="submit" disabled={saving} className="px-4 py-2 rounded-lg bg-primary-500 text-white text-sm font-semibold hover:bg-primary-600 disabled:opacity-60">
+                    {saving ? "Guardando..." : editing ? "Actualizar" : "Registrar"}
+                  </button>
+                </div>
+              </div>
+
               <div className="grid grid-cols-2 gap-3">
                 <Field label="Nombres *" value={form.firstName} onChange={v => setForm(f => ({ ...f, firstName: v }))} required />
                 <Field label="Apellidos *" value={form.lastName} onChange={v => setForm(f => ({ ...f, lastName: v }))} required />
@@ -204,12 +215,6 @@ export default function AlumnosPage() {
                 <Field label="Pensión mensual (S/)" type="number" value={form.monthlyFee} onChange={v => setForm(f => ({ ...f, monthlyFee: v }))} />
               </div>
 
-              <div className="flex justify-end gap-3 pt-2">
-                <button type="button" onClick={() => setModal(false)} className="px-4 py-2 rounded-lg border text-sm" style={{ borderColor: "var(--border)", color: "var(--muted)" }}>Cancelar</button>
-                <button type="submit" disabled={saving} className="px-4 py-2 rounded-lg bg-primary-500 text-white text-sm font-semibold hover:bg-primary-600 disabled:opacity-60">
-                  {saving ? "Guardando..." : editing ? "Actualizar" : "Registrar"}
-                </button>
-              </div>
             </form>
           </div>
         </div>
