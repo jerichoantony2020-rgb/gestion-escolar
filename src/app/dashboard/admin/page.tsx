@@ -14,7 +14,6 @@ export default async function AdminPage() {
     { href: "/dashboard/admin/apoderados", icon: "👨‍👩‍👧", label: "Apoderados",       desc: "Cuentas del portal familiar" },
     { href: "/dashboard/admin/aulas",     icon: "🏫",  label: "Niveles y Aulas",  desc: "Inicial, Primaria, Secundaria y aulas polígrado" },
     { href: "/dashboard/admin/cursos",    icon: "📚",  label: "Cursos",           desc: "Materias y escala de notas por nivel" },
-    { href: "/dashboard/admin/competencias", icon: "🧭", label: "Competencias por Curso", desc: "Qué curso (y docente) califica cada competencia MINEDU" },
     { href: "/dashboard/admin/anuncios",  icon: "📢",  label: "Anuncios",         desc: "Comunicados institucionales" },
     { href: "/dashboard/admin/config",    icon: "⚙️",  label: "Configuración",    desc: "Datos del colegio y plantillas" },
   ]
