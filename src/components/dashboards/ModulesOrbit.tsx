@@ -14,7 +14,7 @@ export type ConstelModule = {
 
 /** Ángulos en grados desde arriba, en sentido horario. */
 const ANGLES = [-90, -30, 30, 90, 150, 210]
-const R = 152
+const R = 215
 
 function posicion(i: number, total: number) {
   const a = total === ANGLES.length ? ANGLES[i] : -90 + (360 / total) * i
@@ -37,16 +37,16 @@ export default function ModulesOrbit({ modules }: { modules: ConstelModule[] }) 
 
       {/* Escritorio */}
       <div className="stage">
-        <svg className="stage-grid" viewBox="0 0 420 420" aria-hidden="true">
-          <circle cx="210" cy="210" r={R} fill="none" stroke="rgba(255,255,255,.15)" strokeWidth="1" />
-          <circle cx="210" cy="210" r="104" fill="none" stroke="rgba(255,255,255,.08)" strokeWidth="1" />
+        <svg className="stage-grid" viewBox="0 0 600 600" aria-hidden="true">
+          <circle cx="300" cy="300" r={R} fill="none" stroke="rgba(255,255,255,.18)" strokeWidth="1" />
+          <circle cx="300" cy="300" r="145" fill="none" stroke="rgba(255,255,255,.10)" strokeWidth="1" />
           <g stroke="rgba(255,255,255,.16)" strokeWidth="1">
             {modules.map((m, i) => {
               const a = ((n === ANGLES.length ? ANGLES[i] : -90 + (360 / n) * i) * Math.PI) / 180
               return (
                 <line key={m.href}
-                  x1={210 + 58 * Math.cos(a)} y1={210 + 58 * Math.sin(a)}
-                  x2={210 + 120 * Math.cos(a)} y2={210 + 120 * Math.sin(a)} />
+                  x1={300 + 74 * Math.cos(a)} y1={300 + 74 * Math.sin(a)}
+                  x2={300 + 178 * Math.cos(a)} y2={300 + 178 * Math.sin(a)} />
               )
             })}
           </g>
@@ -56,8 +56,8 @@ export default function ModulesOrbit({ modules }: { modules: ConstelModule[] }) 
               const a = (((n === ANGLES.length ? ANGLES[i] : -90 + (360 / n) * i) + 30) * Math.PI) / 180
               return (
                 <line key={m.href}
-                  x1={210 + (R - 6) * Math.cos(a)} y1={210 + (R - 6) * Math.sin(a)}
-                  x2={210 + R * Math.cos(a)} y2={210 + R * Math.sin(a)} />
+                  x1={300 + (R - 8) * Math.cos(a)} y1={300 + (R - 8) * Math.sin(a)}
+                  x2={300 + R * Math.cos(a)} y2={300 + R * Math.sin(a)} />
               )
             })}
           </g>
@@ -79,7 +79,7 @@ export default function ModulesOrbit({ modules }: { modules: ConstelModule[] }) 
                 ["--hue" as string]: m.hue,
                 ["--ring" as string]: `color-mix(in srgb, ${m.hue} 45%, transparent)`,
               }}>
-              <span className="cnode-disc"><Icon size={22} /></span>
+              <span className="cnode-disc"><Icon size={26} /></span>
               <span className="cnode-text">
                 <span className="cnode-label">{m.label}</span>
                 <span className="cnode-desc">{m.desc}</span>
@@ -100,7 +100,7 @@ export default function ModulesOrbit({ modules }: { modules: ConstelModule[] }) 
                 ["--hue" as string]: m.hue,
                 ["--ring" as string]: `color-mix(in srgb, ${m.hue} 45%, transparent)`,
               }}>
-              <span className="cnode-disc"><Icon size={22} /></span>
+              <span className="cnode-disc"><Icon size={26} /></span>
               <span className="cnode-label">{m.label}</span>
               <span className="cnode-desc">{m.desc}</span>
             </Link>

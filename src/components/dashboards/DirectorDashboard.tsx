@@ -120,11 +120,8 @@ export default function DirectorDashboard({ session }: { session: Session | null
         })}
       </div>
 
-      {/* ── Módulos ── */}
+      {/* ── Módulos ── (el título lo lleva el propio panel) */}
       <section>
-        <h2 style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.18em", color: "#8A9ABB", textTransform: "uppercase", margin: "0 0 8px", textAlign: "center" }}>
-          Módulos del sistema
-        </h2>
         <ModulesOrbit modules={modules.filter(m => !m.requirePayments || canViewPayments)} />
       </section>
 
