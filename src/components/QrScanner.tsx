@@ -37,7 +37,9 @@ export default function QrScanner({ onScan, active }: { onScan: (text: string) =
         )
         if (!cancelled) setRunning(true)
       } catch (e) {
-        setError("No se pudo acceder a la cámara. Da permiso de cámara en tu navegador. (" + (e as Error).message + ")")
+        // Algunos navegadores no traen mensaje: no mostrar "(undefined)".
+        const detalle = (e as Error)?.message
+        setError("No se pudo abrir la cámara. Revisa que le hayas dado permiso en el navegador" + (detalle ? ` (${detalle})` : "") + ".")
       }
     }
     start()
