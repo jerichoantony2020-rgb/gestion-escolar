@@ -25,13 +25,13 @@ const stats = [
 ] as const
 
 const modules: (ConstelModule & { requirePayments?: boolean })[] = [
-  { href: "/dashboard/academico",  label: "Académico",   icon: "academico",  desc: "Notas, asistencia y conducta", hue: "#8FB0FF", active: true },
-  { href: "/dashboard/finanzas",   label: "Finanzas",    icon: "finanzas",   desc: "Pagos y recaudación",          hue: "#6FE0A0", requirePayments: true },
-  { href: "/dashboard/medico",     label: "Médico",      icon: "medico",     desc: "Fichas de salud",              hue: "#FF9B85" },
-  { href: "/dashboard/psicologia", label: "Psicología",  icon: "psicologia", desc: "Casos y seguimiento",          hue: "#C4A9FF" },
-  { href: "/dashboard/biblioteca", label: "Biblioteca",  icon: "biblioteca", desc: "Plan lector",                  hue: "#FFC978" },
-  { href: "/dashboard/admin",      label: "Administrar", icon: "admin",      desc: "Usuarios, grados y config",    hue: "#A8BDD4" },
-  { href: "/dashboard/analitica",  label: "Analítica",   icon: "analitica",  desc: "Reportes e indicadores",       hue: "#7FE3D0" },
+  { href: "/dashboard/academico",  label: "Académico",   icon: "academico",  desc: "Notas, asistencia y conducta", hue: "#1B47D6", active: true },
+  { href: "/dashboard/finanzas",   label: "Finanzas",    icon: "finanzas",   desc: "Pagos y recaudación",          hue: "#15803D", requirePayments: true },
+  { href: "/dashboard/medico",     label: "Médico",      icon: "medico",     desc: "Fichas de salud",              hue: "#B0301A" },
+  { href: "/dashboard/psicologia", label: "Psicología",  icon: "psicologia", desc: "Casos y seguimiento",          hue: "#7C3AED" },
+  { href: "/dashboard/biblioteca", label: "Biblioteca",  icon: "biblioteca", desc: "Plan lector",                  hue: "#A5540A" },
+  { href: "/dashboard/admin",      label: "Administrar", icon: "admin",      desc: "Usuarios, grados y config",    hue: "#475569" },
+  { href: "/dashboard/analitica",  label: "Analítica",   icon: "analitica",  desc: "Reportes e indicadores",       hue: "#0E7490" },
 ]
 
 const quickLinks: { href: string; label: string; Icon: IconComponent }[] = [
@@ -68,20 +68,14 @@ export default function DirectorDashboard({ session }: { session: Session | null
   return (
     <div style={{ maxWidth: 1080, margin: "0 auto", padding: "28px 20px 48px" }}>
 
-      {/* ── Bienvenida ── */}
-      <header style={{
+      {/* ── Bienvenida: mismo campo azul que el resto de la plataforma ── */}
+      <header className="brand-field" style={{
         borderRadius: 22,
-        background: "linear-gradient(135deg, #0D1E3A 0%, #16306B 58%, #1A33CC 100%)",
         padding: "clamp(26px,4vw,38px) clamp(24px,4vw,40px)",
         marginBottom: 22,
         display: "flex", alignItems: "center", justifyContent: "space-between", gap: 24,
-        boxShadow: "0 2px 6px rgba(13,30,58,0.10), 0 18px 40px rgba(13,30,58,0.20)",
-        position: "relative", overflow: "hidden",
+        overflow: "hidden",
       }}>
-        <div aria-hidden="true" style={{
-          position: "absolute", inset: 0,
-          background: "radial-gradient(circle at 88% 18%, rgba(240,200,0,.14), transparent 45%), radial-gradient(circle at 70% 120%, rgba(71,181,232,.16), transparent 50%)",
-        }} />
         <div style={{ position: "relative" }}>
           {/* El saludo y la fecha dependen de la hora local: el servidor (UTC) y el
               navegador (Perú) producen textos distintos, así que se marcan como
@@ -89,19 +83,19 @@ export default function DirectorDashboard({ session }: { session: Session | null
           <h1 suppressHydrationWarning style={{ fontSize: "clamp(24px,3.2vw,34px)", fontWeight: 800, color: "#FFFFFF", margin: "0 0 8px", lineHeight: 1.1, letterSpacing: "-0.02em" }}>
             {greeting()}, {name}
           </h1>
-          <p suppressHydrationWarning style={{ fontSize: 14, color: "rgba(255,255,255,0.68)", margin: 0 }}>
+          <p suppressHydrationWarning style={{ fontSize: 14, color: "rgba(255,255,255,0.8)", margin: 0 }}>
             {new Date().toLocaleDateString("es-PE", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
           </p>
         </div>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/logo-cr.png" alt="" style={{ position: "relative", width: 74, height: 90, objectFit: "contain", flexShrink: 0, filter: "drop-shadow(0 6px 18px rgba(240,200,0,0.22))" }} />
+        <img src="/logo-cr.png" alt="" style={{ position: "relative", width: 74, height: 90, objectFit: "contain", flexShrink: 0, filter: "drop-shadow(0 6px 18px rgba(4,10,36,0.35))" }} />
       </header>
 
       {/* ── Panel de indicadores ── */}
       <div style={{
         display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))",
-        gap: 1, background: "#EDF1F9", borderRadius: 18, border: "1px solid #DDE3F0",
-        boxShadow: "0 1px 3px rgba(13,30,58,0.06)", overflow: "hidden", marginBottom: 36,
+        gap: 1, background: "var(--border)", borderRadius: 18, border: "1px solid var(--border)",
+        boxShadow: "var(--shadow-1)", overflow: "hidden", marginBottom: 36,
       }}>
         {stats.map((s) => {
           const raw = data ? data[s.key] : null
@@ -126,8 +120,8 @@ export default function DirectorDashboard({ session }: { session: Session | null
       </section>
 
       {/* ── Acceso rápido ── */}
-      <section style={{ marginTop: 32, paddingTop: 26, borderTop: "1px solid #DDE3F0" }}>
-        <h2 style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.18em", color: "#8A9ABB", textTransform: "uppercase", margin: "0 0 14px" }}>
+      <section style={{ marginTop: 32, paddingTop: 26, borderTop: "1px solid var(--border)" }}>
+        <h2 style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.18em", color: "var(--muted)", textTransform: "uppercase", margin: "0 0 14px" }}>
           Acceso rápido
         </h2>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>

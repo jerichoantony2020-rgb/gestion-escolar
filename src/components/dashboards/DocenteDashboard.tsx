@@ -4,11 +4,11 @@ import type { Session } from "next-auth"
 import ModulesOrbit, { type ConstelModule } from "./ModulesOrbit"
 
 const modules: ConstelModule[] = [
-  { href: "/dashboard/academico/notas",      label: "Notas",      icon: "notas",           desc: "Registrar calificaciones", hue: "#8FB0FF", active: true },
-  { href: "/dashboard/academico/asistencia", label: "Asistencia", icon: "tomarAsistencia", desc: "Marcar y consultar",       hue: "#6FE0A0" },
-  { href: "/dashboard/academico/conducta",   label: "Conducta",   icon: "conducta",        desc: "Incidencias del aula",     hue: "#FFC978" },
-  { href: "/dashboard/psicologia",           label: "Psicología", icon: "psicologia",      desc: "Derivar un alumno",        hue: "#C4A9FF" },
-  { href: "/dashboard/biblioteca",           label: "Plan lector", icon: "biblioteca",     desc: "Lecturas y avances",       hue: "#7FE3D0" },
+  { href: "/dashboard/academico/notas",      label: "Notas",      icon: "notas",           desc: "Registrar calificaciones", hue: "#1B47D6", active: true },
+  { href: "/dashboard/academico/asistencia", label: "Asistencia", icon: "tomarAsistencia", desc: "Marcar y consultar",       hue: "#15803D" },
+  { href: "/dashboard/academico/conducta",   label: "Conducta",   icon: "conducta",        desc: "Incidencias del aula",     hue: "#A5540A" },
+  { href: "/dashboard/psicologia",           label: "Psicología", icon: "psicologia",      desc: "Derivar un alumno",        hue: "#7C3AED" },
+  { href: "/dashboard/biblioteca",           label: "Plan lector", icon: "biblioteca",     desc: "Lecturas y avances",       hue: "#A5540A" },
 ]
 
 function greeting() {

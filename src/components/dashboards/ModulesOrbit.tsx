@@ -6,7 +6,7 @@ export type ConstelModule = {
   label: string
   desc: string
   icon: IconName
-  /** Color propio del módulo, para distinguirlos sin leer la etiqueta. */
+  /** Color sólido del módulo: lo distingue sin leer la etiqueta. */
   hue: string
   /** Marca el módulo destacado con el oro del escudo. */
   active?: boolean
@@ -38,9 +38,9 @@ export default function ModulesOrbit({ modules }: { modules: ConstelModule[] }) 
       {/* Escritorio */}
       <div className="stage">
         <svg className="stage-grid" viewBox="0 0 600 600" aria-hidden="true">
-          <circle cx="300" cy="300" r={R} fill="none" stroke="rgba(255,255,255,.18)" strokeWidth="1" />
-          <circle cx="300" cy="300" r="145" fill="none" stroke="rgba(255,255,255,.10)" strokeWidth="1" />
-          <g stroke="rgba(255,255,255,.16)" strokeWidth="1">
+          <circle cx="300" cy="300" r={R} fill="none" stroke="var(--border-2)" strokeWidth="1" />
+          <circle cx="300" cy="300" r="145" fill="none" stroke="var(--border)" strokeWidth="1" />
+          <g stroke="var(--border)" strokeWidth="1">
             {modules.map((m, i) => {
               const a = ((n === ANGLES.length ? ANGLES[i] : -90 + (360 / n) * i) * Math.PI) / 180
               return (
@@ -51,7 +51,7 @@ export default function ModulesOrbit({ modules }: { modules: ConstelModule[] }) 
             })}
           </g>
           {/* Marcas sobre el anillo, una por módulo */}
-          <g stroke="rgba(255,255,255,.2)" strokeWidth="1">
+          <g stroke="var(--border-2)" strokeWidth="1">
             {modules.map((m, i) => {
               const a = (((n === ANGLES.length ? ANGLES[i] : -90 + (360 / n) * i) + 30) * Math.PI) / 180
               return (
@@ -76,8 +76,7 @@ export default function ModulesOrbit({ modules }: { modules: ConstelModule[] }) 
               data-on={m.active ? "" : undefined}
               style={{
                 left: `calc(50% + ${x}px)`, top: `calc(50% + ${y}px)`,
-                ["--hue" as string]: m.hue,
-                ["--ring" as string]: `color-mix(in srgb, ${m.hue} 45%, transparent)`,
+                ["--tile" as string]: m.hue,
               }}>
               <span className="cnode-disc"><Icon size={26} /></span>
               <span className="cnode-text">
@@ -97,8 +96,7 @@ export default function ModulesOrbit({ modules }: { modules: ConstelModule[] }) 
             <Link key={m.href} href={m.href} className="cnode"
               data-on={m.active ? "" : undefined}
               style={{
-                ["--hue" as string]: m.hue,
-                ["--ring" as string]: `color-mix(in srgb, ${m.hue} 45%, transparent)`,
+                ["--tile" as string]: m.hue,
               }}>
               <span className="cnode-disc"><Icon size={26} /></span>
               <span className="cnode-label">{m.label}</span>
