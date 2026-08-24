@@ -80,8 +80,10 @@ export default function ModulesOrbit({ modules }: { modules: ConstelModule[] }) 
                 ["--ring" as string]: `color-mix(in srgb, ${m.hue} 45%, transparent)`,
               }}>
               <span className="cnode-disc"><Icon size={22} /></span>
-              <span className="cnode-label">{m.label}</span>
-              <span className="cnode-desc">{m.desc}</span>
+              <span className="cnode-text">
+                <span className="cnode-label">{m.label}</span>
+                <span className="cnode-desc">{m.desc}</span>
+              </span>
             </Link>
           )
         })}
