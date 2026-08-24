@@ -50,7 +50,8 @@ export default async function InicioPage() {
           --gold-dim:  rgba(240,200,0,0.14);
           --gold-line: rgba(196,158,0,0.38);
           --paper:     #FFFFFF;
-          --paper-2:   #FBFAF5;
+          --paper-2:   #F7F3E4;   /* crema del oro del escudo */
+          --paper-3:   #EEF3FC;   /* tinte del azul del escudo */
           --white:     #FFFFFF;
           --dim:       rgba(13,30,58,0.68);
           --faint:     rgba(13,30,58,0.66);
@@ -68,6 +69,8 @@ export default async function InicioPage() {
         .contact-row:last-child { border-bottom:none; }
         .ci { width:44px; height:44px; border-radius:10px; background:var(--gold-dim); border:1px solid var(--gold-line); display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:20px; }
         .section-label { font-size:10px; font-weight:700; letter-spacing:.25em; color:var(--gold-ink); text-transform:uppercase; margin-bottom:14px; }
+        .banda-azul h2 { color:#FFFFFF; }
+        .banda-azul .inicio-card:hover { background:var(--paper); border-color:var(--gold-line); }
         .divider { height:1px; background:linear-gradient(90deg,transparent,rgba(240,200,0,0.55),rgba(13,30,58,0.18),transparent); }
         .empty-state { border:1px dashed rgba(13,30,58,0.16); border-radius:14px; padding:48px 24px; text-align:center; color:var(--faint); font-size:14px; }
         .inicio-nav-link { font-size:13px; color:var(--dim); text-decoration:none; padding:6px 12px; border-radius:8px; transition:color .2s; }
@@ -143,8 +146,8 @@ export default async function InicioPage() {
         </header>
 
         {/* ── HERO ── */}
-        <section style={{ minHeight:"100dvh", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", textAlign:"center", padding:"80px 24px", background:"linear-gradient(180deg,#FFFFFF 0%,#FDFCF6 58%,#FBF6E4 100%)", position:"relative", overflow:"hidden" }}>
-          <div style={{ position:"absolute", top:"40%", left:"50%", transform:"translate(-50%,-50%)", width:600, height:400, borderRadius:"50%", background:"radial-gradient(ellipse,rgba(240,200,0,0.20) 0%,transparent 68%)", pointerEvents:"none" }} />
+        <section style={{ minHeight:"100dvh", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", textAlign:"center", padding:"80px 24px", background:"linear-gradient(180deg,#FFFFFF 0%,#FCF8E9 52%,#F6EDCE 100%)", position:"relative", overflow:"hidden" }}>
+          <div style={{ position:"absolute", top:"40%", left:"50%", transform:"translate(-50%,-50%)", width:600, height:400, borderRadius:"50%", background:"radial-gradient(ellipse,rgba(240,200,0,0.30) 0%,transparent 66%)", pointerEvents:"none" }} />
           <ShieldHero />
           <p style={{ fontSize:11, fontWeight:700, letterSpacing:"0.28em", color:"var(--gold-ink)", textTransform:"uppercase", marginBottom:14 }}>Institución Educativa Particular</p>
           <h1 style={{ fontSize:"clamp(40px,7vw,76px)", fontWeight:900, letterSpacing:"-0.02em", lineHeight:1.05, marginBottom:20 }}>Cristo Reina</h1>
@@ -160,7 +163,7 @@ export default async function InicioPage() {
         <div className="divider" />
 
         {/* ── QUIÉNES SOMOS ── */}
-        <section id="nosotros" className="inicio-section-pad" style={{ background:"var(--paper-2)" }}>
+        <section id="nosotros" className="inicio-section-pad" style={{ background:"var(--paper-3)" }}>
           <div className="inicio-grid-2" style={{ maxWidth:1200, margin:"0 auto", display:"grid", gridTemplateColumns:"1fr 1fr", gap:64, alignItems:"center" }}>
             <div>
               <p className="section-label">Quiénes somos</p>
@@ -216,7 +219,7 @@ export default async function InicioPage() {
         <div className="divider" />
 
         {/* ── NOTICIAS ── */}
-        <section id="noticias" className="inicio-section-pad" style={{ background:"var(--paper-2)" }}>
+        <section id="noticias" className="inicio-section-pad" style={{ background:"var(--paper-3)" }}>
           <div style={{ maxWidth:1200, margin:"0 auto" }}>
             <div style={{ textAlign:"center", marginBottom:56 }}>
               <p className="section-label">Actualidad</p>
@@ -291,10 +294,10 @@ export default async function InicioPage() {
         <div className="divider" />
 
         {/* ── NIVELES ── */}
-        <section className="inicio-section-pad" style={{ background:"var(--paper-2)" }}>
+        <section className="inicio-section-pad banda-azul" style={{ background:"linear-gradient(158deg,#102578 0%,#1B47D6 100%)", color:"#fff", position:"relative" }}>
           <div style={{ maxWidth:1200, margin:"0 auto" }}>
             <div style={{ textAlign:"center", marginBottom:56 }}>
-              <p className="section-label">Oferta educativa</p>
+              <p className="section-label" style={{ color:"#F0C800" }}>Oferta educativa</p>
               <h2 style={{ fontSize:"clamp(26px,3.5vw,40px)", fontWeight:800, letterSpacing:"-0.02em" }}>Niveles que ofrecemos</h2>
             </div>
             <div className="inicio-grid-3" style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:20 }}>
