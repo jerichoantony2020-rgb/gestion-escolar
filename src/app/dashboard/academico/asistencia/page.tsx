@@ -138,7 +138,7 @@ export default function AsistenciaPage() {
   const [scanInput, setScanInput] = useState("")
   const [scanMode, setScanMode] = useState<"auto" | "entry" | "exit">("auto")
   const [useCamera, setUseCamera] = useState(false)
-  const [scanResults, setScanResults] = useState<{ name: string; section: string; mode: string; time: string; status: string; waLink: string | null; notify: boolean }[]>([])
+  const [scanResults, setScanResults] = useState<{ name: string; section: string; mode: string; time: string; status: string; waLink: string | null; notify: boolean; resultado?: string }[]>([])
   const [sections, setSections] = useState<Section[]>([])
   const [sectionId, setSectionId] = useState("")
   const [date, setDate] = useState(today())
@@ -474,7 +474,7 @@ Escribe el motivo (dejarlo vacío quita la justificación):`,
     const data = await res.json()
     setScanInput("")
     if (!res.ok) { setScanResults(r => [{ name: data.error ?? "Error", section: "", mode: scanMode, time: "", status: "error", waLink: null, notify: false }, ...r]); return }
-    setScanResults(r => [{ name: data.studentName, section: data.section, mode: data.mode, time: data.time, status: data.status, waLink: data.waLink, notify: data.notify }, ...r].slice(0, 20))
+    setScanResults(r => [{ name: data.studentName, section: data.section, mode: data.mode, time: data.time, status: data.status, waLink: data.waLink, notify: data.notify, resultado: data.resultado }, ...r].slice(0, 20))
     if (data.notify && data.waLink) window.open(data.waLink, "_blank")
   }
 
@@ -583,40 +583,39 @@ Escribe el motivo (dejarlo vacío quita la justificación):`,
             <button onClick={() => setScanMode("entry")} className={`flex-1 px-4 py-3 rounded-xl font-semibold text-sm transition-colors ${scanMode === "entry" ? "bg-green-500 text-white" : "border"}`} style={scanMode === "entry" ? {} : { borderColor: "var(--border)", color: "var(--muted)" }}>🟢 Ingreso</button>
             <button onClick={() => setScanMode("exit")} className={`flex-1 px-4 py-3 rounded-xl font-semibold text-sm transition-colors ${scanMode === "exit" ? "bg-primary-500 text-white" : "border"}`} style={scanMode === "exit" ? {} : { borderColor: "var(--border)", color: "var(--muted)" }}>🔵 Salida</button>
           </div>
-          {/* Toggle cámara / manual */}
-          <div className="flex gap-2 mb-4">
-            <button onClick={() => setUseCamera(true)} className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors ${useCamera ? "bg-primary-500 text-white" : "border"}`} style={useCamera ? {} : { borderColor: "var(--border)", color: "var(--muted)" }}>📷 Escanear con cámara</button>
-            <button onClick={() => setUseCamera(false)} className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors ${!useCamera ? "bg-primary-500 text-white" : "border"}`} style={!useCamera ? {} : { borderColor: "var(--border)", color: "var(--muted)" }}>⌨️ Ingreso manual</button>
+          {/* Solo cámara: el ingreso manual no aportaba y obligaba a teclear. */}
+          <div className="mb-4">
+            <QrScanner active={tab === "escaneo"} onScan={(text) => doScan(text)} />
+            <p className="text-center text-xs mt-2" style={{ color: "var(--muted)" }}>
+              Apunta el código del alumno a la cámara. Se registra solo, no hay que pulsar nada.
+            </p>
           </div>
-
-          {useCamera ? (
-            <div className="mb-4">
-              <QrScanner active={useCamera && tab === "escaneo"} onScan={(text) => doScan(text)} />
-              <p className="text-center text-xs mt-2" style={{ color: "var(--muted)" }}>Modo <b>{scanMode === "entry" ? "Ingreso 🟢" : "Salida 🔵"}</b> · cambia arriba según corresponda</p>
-            </div>
-          ) : (
-            <form onSubmit={e => { e.preventDefault(); doScan(scanInput) }} className="mb-4">
-              <label className="block text-xs font-medium mb-1" style={{ color: "var(--muted)" }}>Ingresa el código QR del alumno (formato CR-…)</label>
-              <div className="flex gap-2">
-                <input autoFocus value={scanInput} onChange={e => onScanInput(e.target.value)} placeholder="CR-xxxxx" className="flex-1 px-3 py-2.5 rounded-lg border text-sm outline-none focus:ring-2 focus:ring-primary-500" style={{ background: "var(--surface)", borderColor: "var(--border)", color: "var(--fg)" }} />
-                <button type="submit" className="px-5 py-2.5 rounded-lg bg-primary-500 text-white text-sm font-semibold hover:bg-primary-600">Registrar</button>
-              </div>
-              <p className="text-xs mt-2" style={{ color: "var(--muted)" }}>💡 Un lector de QR físico también funciona como teclado: enfoca este campo y escanea. La notificación automática al WhatsApp del apoderado se activa en Configuración.</p>
-            </form>
-          )}
 
           <div className="space-y-2">
             {scanResults.length === 0 && <p className="text-center py-8 text-sm" style={{ color: "var(--muted)" }}>Los registros aparecerán aquí</p>}
             {scanResults.map((r, i) => (
               <div key={i} className="rounded-xl border p-3 flex items-center gap-3" style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
                 {r.status === "error" ? (
-                  <span className="text-sm text-red-500">⚠️ {r.name}</span>
+                  <span className="text-sm font-semibold" style={{ color: "var(--danger)" }}>No se pudo registrar: {r.name}</span>
                 ) : (
                   <>
-                    <div className={`w-2.5 h-2.5 rounded-full ${r.mode === "entry" ? "bg-green-500" : "bg-primary-500"}`} />
+                    {/* Un tilde grande y el estado en palabras: el operador tiene
+                        que saber de un vistazo si quedó registrado o no. */}
+                    <span className="grid place-items-center rounded-full shrink-0" style={{
+                      width: 34, height: 34, color: "#fff",
+                      background: r.resultado === "duplicado" ? "var(--muted)" : r.mode === "exit" ? "var(--brand-ink)" : "var(--ok)",
+                    }}>
+                      {r.resultado === "duplicado"
+                        ? <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M12 7v6M12 16.5v.01"/></svg>
+                        : <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>}
+                    </span>
                     <div className="flex-1">
                       <p className="text-sm font-medium" style={{ color: "var(--fg)" }}>{r.name} <span className="text-xs font-normal" style={{ color: "var(--muted)" }}>· {r.section}</span></p>
-                      <p className="text-xs" style={{ color: "var(--muted)" }}>{r.mode === "entry" ? "Ingreso" : "Salida"} {r.time} {r.status === "late" && <span className="text-amber-600 font-medium">(Tarde)</span>}</p>
+                      <p className="text-xs font-semibold mt-0.5" style={{ color: r.resultado === "duplicado" ? "var(--muted)" : r.mode === "exit" ? "var(--brand-ink)" : "var(--ok)" }}>
+                        {r.resultado === "duplicado"
+                          ? `Ya estaba registrado a las ${r.time}`
+                          : `${r.mode === "exit" ? "SALIDA" : "INGRESO"} registrado · ${r.time}${r.status === "late" ? " · Tardanza" : ""}`}
+                      </p>
                     </div>
                     {r.waLink && <a href={r.waLink} target="_blank" rel="noopener noreferrer" className="text-xs px-3 py-1.5 rounded-lg bg-[#25D366] text-white hover:opacity-90">Avisar al padre</a>}
                   </>

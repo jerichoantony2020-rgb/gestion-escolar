@@ -25,8 +25,11 @@ export default function QrScanner({ onScan, active }: { onScan: (text: string) =
           { fps: 10, qrbox: { width: 230, height: 230 } },
           (decodedText) => {
             const now = Date.now()
-            // ignorar repetición del mismo código en <2.5s
-            if (decodedText === lastRef.current.text && now - lastRef.current.at < 2500) return
+            // La cámara lee ~10 veces por segundo. Con 2.5s, un alumno que
+            // sostenía su código 3 segundos disparaba una segunda lectura y
+            // quedaba con ingreso Y salida. El servidor tiene la defensa
+            // definitiva (5 min), esto solo evita el viaje de ida y vuelta.
+            if (decodedText === lastRef.current.text && now - lastRef.current.at < 15000) return
             lastRef.current = { text: decodedText, at: now }
             onScan(decodedText)
           },
@@ -34,7 +37,7 @@ export default function QrScanner({ onScan, active }: { onScan: (text: string) =
         )
         if (!cancelled) setRunning(true)
       } catch (e) {
-        setError("No se pudo acceder a la cámara. Da permiso de cámara o usa el ingreso manual. (" + (e as Error).message + ")")
+        setError("No se pudo acceder a la cámara. Da permiso de cámara en tu navegador. (" + (e as Error).message + ")")
       }
     }
     start()

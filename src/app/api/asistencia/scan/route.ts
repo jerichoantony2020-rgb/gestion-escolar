@@ -4,6 +4,14 @@ import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { inicioDelDiaPeru, estadoDeIngreso, horaPeru } from "@/lib/fecha"
 
+function horaLima(d: Date): string {
+  return d.toLocaleTimeString("es-PE", { hour: "2-digit", minute: "2-digit", timeZone: "America/Lima" })
+}
+function fechaLima(d: Date): string {
+  const p = new Date(d.getTime() - 5 * 60 * 60 * 1000)
+  return `${p.getUTCDate()} de ${MESES[p.getUTCMonth()]}`
+}
+
 const MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"]
 
 // POST /api/asistencia/scan  body {qrData, mode:'entry'|'exit'}
@@ -45,6 +53,26 @@ export async function POST(req: NextRequest) {
   })
   const isExit = mode === "exit" || (mode === "auto" && !!previo?.entryAt)
 
+  // La cámara lee el mismo QR varias veces por segundo. Sin esta ventana, un
+  // alumno que sostiene su código 3 segundos quedaba con ingreso Y salida.
+  // Entrada y salida reales están separadas por horas, así que 5 minutos es
+  // holgado y a la vez infalible.
+  const MIN_ENTRE_ESCANEOS_MS = 5 * 60 * 1000
+  if (previo?.scannedAt && now.getTime() - previo.scannedAt.getTime() < MIN_ENTRE_ESCANEOS_MS) {
+    return NextResponse.json({
+      ok: true,
+      resultado: "duplicado",
+      studentName: `${student.lastName}, ${student.firstName}`,
+      section: enroll.section.poligrado ? enroll.section.name : `${enroll.section.grade?.name ?? ""} "${enroll.section.name}"`,
+      mode: previo.exitAt ? "exit" : "entry",
+      status: previo.status,
+      time: horaLima(previo.scannedAt),
+      notify: false,
+      waLink: null,
+      parentPhone: null,
+    })
+  }
+
   // Puntual hasta las 8:00 a.m. de Perú; después, tardanza. Antes se usaba
   // now.getHours(), que en el servidor es UTC: a las 7:30 de Lima daba 12:30
   // y marcaba tarde a todo el mundo.
@@ -70,20 +98,21 @@ export async function POST(req: NextRequest) {
   const notify = cfg.notifyOnScan === "true"
 
   const parent = student.parents[0]
-  const hora = now.toLocaleTimeString("es-PE", { hour: "2-digit", minute: "2-digit" })
+  const hora = horaLima(now)
   const defaultEntry = "👋 {alumno} ingresó al colegio a las {hora} del {fecha}. — I.E.P. Cristo Reina"
   const defaultExit = "🏠 {alumno} salió del colegio a las {hora} del {fecha}. — I.E.P. Cristo Reina"
   const template = isExit ? (cfg.scanExitTemplate || defaultExit) : (cfg.scanEntryTemplate || defaultEntry)
   const msg = template
     .replaceAll("{alumno}", `${student.firstName} ${student.lastName}`)
     .replaceAll("{hora}", hora)
-    .replaceAll("{fecha}", `${now.getDate()} de ${MESES[now.getMonth()]}`)
+    .replaceAll("{fecha}", fechaLima(now))
 
   const phone = (parent?.phone ?? "").replace(/\D/g, "")
   const waLink = phone ? `https://wa.me/51${phone}?text=${encodeURIComponent(msg)}` : null
 
   return NextResponse.json({
     ok: true,
+    resultado: isExit ? "salida" : "ingreso",
     studentName: `${student.lastName}, ${student.firstName}`,
     section: enroll.section.poligrado ? enroll.section.name : `${enroll.section.grade?.name ?? ""} "${enroll.section.name}"`,
     mode: isExit ? "exit" : "entry",
