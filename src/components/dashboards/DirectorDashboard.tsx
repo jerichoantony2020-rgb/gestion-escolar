@@ -10,6 +10,13 @@ import {
   type IconComponent,
 } from "@/components/icons"
 
+type Atencion = {
+  aulasSinAsistencia: string[]
+  pensionesVencidas: number
+  derivacionesPendientes: number
+  esFinDeSemana: boolean
+}
+
 type Analitica = {
   totalStudents: number
   totalStaff: number
@@ -55,6 +62,7 @@ export default function DirectorDashboard({ session }: { session: Session | null
 
   const [data, setData] = useState<Analitica | null>(null)
   const [failed, setFailed] = useState(false)
+  const [atencion, setAtencion] = useState<Atencion | null>(null)
 
   useEffect(() => {
     let alive = true
@@ -62,6 +70,10 @@ export default function DirectorDashboard({ session }: { session: Session | null
       .then(r => (r.ok ? r.json() : Promise.reject(new Error("no-data"))))
       .then(d => { if (alive) setData(d) })
       .catch(() => { if (alive) setFailed(true) })
+    fetch("/api/atencion")
+      .then(r => (r.ok ? r.json() : Promise.reject(new Error("no-data"))))
+      .then(d => { if (alive) setAtencion(d) })
+      .catch(() => { /* sin datos: la sección simplemente no se muestra */ })
     return () => { alive = false }
   }, [])
 
@@ -114,6 +126,9 @@ export default function DirectorDashboard({ session }: { session: Session | null
         })}
       </div>
 
+      {/* ── Requiere tu atención ── */}
+      {atencion && <Atencion a={atencion} canViewPayments={canViewPayments} />}
+
       {/* ── Módulos ── (el título lo lleva el propio panel) */}
       <section>
         <ModulesOrbit modules={modules.filter(m => !m.requirePayments || canViewPayments)} />
@@ -135,5 +150,69 @@ export default function DirectorDashboard({ session }: { session: Session | null
       </section>
 
     </div>
+  )
+}
+
+function Chevron() {
+  return (
+    <svg className="atencion-go" width="19" height="19" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M9 6l6 6-6 6" />
+    </svg>
+  )
+}
+
+/**
+ * Lo que hay que hacer hoy. Si no hay nada pendiente lo dice explícitamente:
+ * un vacío sin explicación se lee como que la pantalla falló.
+ */
+function Atencion({ a, canViewPayments }: { a: Atencion; canViewPayments: boolean }) {
+  const sinAsistencia = a.aulasSinAsistencia.length
+  const pensiones = canViewPayments ? a.pensionesVencidas : 0
+  const menores = [
+    pensiones > 0 && { href: "/dashboard/finanzas", n: pensiones, t: "Pensiones vencidas", color: "var(--warn)" },
+    a.derivacionesPendientes > 0 && { href: "/dashboard/psicologia/derivaciones", n: a.derivacionesPendientes, t: "Derivaciones esperando a la psicóloga", color: "var(--brand-ink)" },
+  ].filter(Boolean) as { href: string; n: number; t: string; color: string }[]
+
+  const todoAlDia = sinAsistencia === 0 && menores.length === 0
+
+  return (
+    <section style={{ marginBottom: 26 }}>
+      <h2 style={{ fontSize: 11, fontWeight: 650, letterSpacing: "0.11em", color: "var(--muted)", textTransform: "uppercase", margin: "0 0 10px" }}>
+        Requiere tu atención
+      </h2>
+
+      {sinAsistencia > 0 && (
+        <Link href="/dashboard/academico/asistencia" className="atencion-lead">
+          <span className="atencion-num" style={{ color: "var(--warn)" }}>{sinAsistencia}</span>
+          <span style={{ minWidth: 0 }}>
+            <span className="atencion-t">{sinAsistencia === 1 ? "Aula sin asistencia registrada hoy" : "Aulas sin asistencia registrada hoy"}</span>
+            <span className="atencion-d">{a.aulasSinAsistencia.join(" · ")}</span>
+          </span>
+          <Chevron />
+        </Link>
+      )}
+
+      {menores.length > 0 && (
+        <div className="atencion-pair">
+          {menores.map(m => (
+            <Link key={m.href} href={m.href} className="atencion-min">
+              <span className="atencion-num" style={{ color: m.color }}>{m.n}</span>
+              <span className="atencion-min-t">{m.t}</span>
+            </Link>
+          ))}
+        </div>
+      )}
+
+      {todoAlDia && (
+        <div className="atencion-ok">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M20 6L9 17l-5-5" />
+          </svg>
+          {a.esFinDeSemana ? "Fin de semana: no hay asistencia que registrar" : "Todo al día: no hay pendientes"}
+        </div>
+      )}
+    </section>
   )
 }
