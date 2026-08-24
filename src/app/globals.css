@@ -83,37 +83,6 @@
   --r-lg: 16px;
 }
 
-.dark {
-  --bg:        #0B0C0E;
-  --surface:   #151719;
-  --surface-2: #1D2023;
-  --border:    #26292E;
-  --border-2:  #383C42;
-
-  --fg:        #F4F5F7;
-  --fg-2:      #C4C7CE;
-  --muted:     #8B8F98;
-
-  --brand:     #6D8DFF;
-  --brand-ink: #A8BCFF;
-  --brand-bg:  #171C33;
-  --brand-line:#2C3763;
-  --brand-deep:#0E1730;
-  --brand-lift:#1B2A5E;
-  --sky:       #4FB0F7;
-  --gold:      #E0B44A;
-
-  --ok:        #4ADE80;
-  --ok-bg:     #10261A;
-  --warn:      #FBBF24;
-  --warn-bg:   #2A2010;
-  --danger:    #F87171;
-  --danger-bg: #2C1512;
-
-  --shadow-1: 0 1px 2px rgba(0,0,0,.4);
-  --shadow-2: 0 4px 12px rgba(0,0,0,.45), 0 1px 2px rgba(0,0,0,.4);
-  --card-shadow: var(--shadow-1);
-}
 
 /* Los datos se comparan en columna: cifras de ancho fijo. */
 .tnum, table, input[type="number"] { font-variant-numeric: tabular-nums; }
@@ -243,124 +212,6 @@ a { text-underline-offset: 3px; text-decoration-thickness: 1px; }
 /* ── Superficies del navegador: que también lleven el diseño ── */
 ::selection { background: var(--brand-bg); color: var(--brand-ink); }
 
-/* ── Órbita de módulos (dashboard) ─────────────────────────────────────────
-   Un dial de instrumento: marcas finas en el borde, radios que salen del
-   núcleo y los módulos posados sobre la circunferencia.                    */
-
-@keyframes orbit-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-@keyframes orbit-fade { from { opacity: 0; } to { opacity: 1; } }
-@keyframes orbit-enter { from { opacity: 0; transform: scale(.72); } to { opacity: 1; transform: none; } }
-
-.orbit-stage { animation: orbit-fade .55s ease both; }
-
-/* Halo suave que despega la órbita del fondo */
-.orbit-stage::before {
-  content: ""; position: absolute; inset: 6%; border-radius: 50%;
-  background: radial-gradient(circle at 50% 46%, rgba(255,255,255,.92), rgba(255,255,255,0) 68%);
-  pointer-events: none;
-}
-
-/* Dial: 60 marcas finas sobre el borde exterior */
-.orbit-dial {
-  position: absolute; inset: 0; border-radius: 50%;
-  background: repeating-conic-gradient(from -90deg,
-    rgba(26,51,204,.32) 0deg .3deg, rgba(26,51,204,0) .3deg 6deg);
-  -webkit-mask: radial-gradient(closest-side, transparent calc(100% - 9px), #000 calc(100% - 9px));
-  mask: radial-gradient(closest-side, transparent calc(100% - 9px), #000 calc(100% - 9px));
-  animation: orbit-spin 120s linear infinite;
-  pointer-events: none;
-}
-
-.orbit-inner-ring {
-  position: absolute; inset: 15%; border-radius: 50%;
-  border: 1px solid rgba(26,51,204,.10);
-  pointer-events: none;
-}
-
-.orbit-spoke {
-  position: absolute; top: 50%; left: 50%;
-  width: var(--r); height: 1px;
-  transform-origin: 0 0;
-  pointer-events: none;
-}
-
-.orbit-hub {
-  position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
-  width: clamp(100px, 12vw, 132px); height: clamp(100px, 12vw, 132px);
-  border-radius: 50%; display: grid; place-items: center; z-index: 2;
-  background: radial-gradient(circle, rgba(26,51,204,.12), rgba(26,51,204,0) 70%);
-}
-.orbit-hub-core {
-  width: 76%; height: 76%; border-radius: 50%;
-  background: linear-gradient(150deg, #16306B 0%, #0D1E3A 45%, #1A33CC 100%);
-  display: grid; place-items: center;
-  box-shadow: 0 10px 30px rgba(13,30,58,.30), inset 0 1px 0 rgba(255,255,255,.18);
-}
-.orbit-hub-logo { width: 52%; height: 52%; object-fit: contain; }
-
-.orbit-slot { position: absolute; top: 50%; left: 50%; transform-origin: 0 0; z-index: 3; }
-.orbit-enter { animation: orbit-enter .5s cubic-bezier(.22,1,.36,1) both; }
-
-/* La caja del nodo es exactamente el círculo, para que el centrado
-   translate(-50%,-50%) lo deje sobre la circunferencia real. La etiqueta
-   cuelga por fuera del flujo y no desplaza ese centro. */
-.orbit-node {
-  position: relative; display: block; outline: none; text-decoration: none;
-  width: clamp(60px, 7vw, 78px); height: clamp(60px, 7vw, 78px);
-}
-.orbit-node-circle {
-  width: 100%; height: 100%;
-  border-radius: 50%; display: grid; place-items: center;
-  color: var(--accent);
-  background: linear-gradient(160deg, #FFFFFF 0%, var(--soft) 135%);
-  box-shadow:
-    0 1px 2px rgba(13,30,58,.10),
-    0 6px 18px rgba(13,30,58,.10),
-    inset 0 0 0 1px var(--ring);
-  transition: transform .28s cubic-bezier(.22,1,.36,1), box-shadow .28s ease;
-}
-.orbit-node-icon { width: clamp(25px, 2.8vw, 31px); height: clamp(25px, 2.8vw, 31px); }
-.orbit-node-label {
-  position: absolute; top: calc(100% + 9px); left: 50%; transform: translateX(-50%);
-  width: clamp(96px, 11vw, 124px);
-  font-size: 12.5px; font-weight: 650; line-height: 1.25; text-align: center;
-  letter-spacing: -.005em; color: #31406B;
-  transition: color .2s ease;
-}
-.orbit-node:hover .orbit-node-circle,
-.orbit-node:focus-visible .orbit-node-circle {
-  transform: translateY(-6px);
-  box-shadow:
-    0 2px 4px rgba(13,30,58,.10),
-    0 16px 34px var(--glow),
-    inset 0 0 0 1.5px var(--accent);
-}
-.orbit-node:hover .orbit-node-label,
-.orbit-node:focus-visible .orbit-node-label { color: #0D1E3A; }
-.orbit-node:focus-visible .orbit-node-circle { outline: 2px solid var(--accent); outline-offset: 4px; }
-.orbit-node:active .orbit-node-circle { transform: translateY(-2px) scale(.97); }
-
-/* Móvil */
-.orbit-tile {
-  display: flex; flex-direction: column; gap: 6px;
-  padding: 14px; border-radius: 16px; background: #FFFFFF;
-  border: 1px solid var(--ring); text-decoration: none;
-  box-shadow: 0 1px 3px rgba(13,30,58,.06);
-  transition: transform .15s ease;
-}
-.orbit-tile:active { transform: scale(.985); }
-.orbit-tile-icon {
-  width: 38px; height: 38px; border-radius: 50%;
-  background: var(--soft); color: var(--accent);
-  display: grid; place-items: center; margin-bottom: 2px;
-}
-.orbit-tile-label { font-size: 14px; font-weight: 700; color: #0D1E3A; }
-.orbit-tile-desc { font-size: 11.5px; color: #5A6A8A; line-height: 1.35; }
-
-@media (prefers-reduced-motion: reduce) {
-  .orbit-stage, .orbit-dial, .orbit-enter { animation: none !important; }
-}
-
 /* ── Panel de indicadores ── */
 .stat-cell {
   display: flex; align-items: center; gap: 13px;
@@ -427,3 +278,81 @@ body {
   border: 3px solid transparent; background-clip: content-box;
 }
 ::-webkit-scrollbar-thumb:hover { background: var(--muted); background-clip: content-box; }
+
+/* ── Constelación: navegación de módulos ──────────────────────────────────
+   Panel contenido, no una franja a sangre: bordes redondeados y aire a los
+   lados para que se lea como un objeto sobre la página, no como el comienzo
+   de otra pantalla. La geometría es exacta y quieta; lo único que se mueve
+   responde al puntero.                                                     */
+.constel {
+  position: relative; border-radius: 20px; overflow: hidden;
+  background: radial-gradient(120% 90% at 50% 8%, #1E44B8 0%, #142C86 42%, #0B1A55 100%);
+  padding: 20px 16px 26px;
+  box-shadow: 0 1px 2px rgba(11,26,85,.28), 0 14px 34px rgba(11,26,85,.24);
+}
+/* Entrada suave: el borde superior no arranca como un tajo. */
+.constel::before {
+  content: ""; position: absolute; left: 0; right: 0; top: 0; height: 76px;
+  background: linear-gradient(rgba(255,255,255,.10), transparent);
+  pointer-events: none;
+}
+.constel-h {
+  position: relative; display: flex; align-items: baseline; justify-content: space-between;
+  gap: 12px; margin-bottom: 8px; flex-wrap: wrap;
+}
+.constel-k {
+  font-size: 10.5px; font-weight: 650; letter-spacing: .12em; text-transform: uppercase;
+  color: rgba(255,255,255,.55);
+}
+
+.stage { position: relative; width: 420px; height: 420px; margin: 0 auto; max-width: 100%; }
+.stage-grid { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+/* Núcleo: la insignia del colegio. Todo orbita alrededor de ella. */
+.hub {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%);
+  width: 104px; height: 104px; border-radius: 50%;
+  background: radial-gradient(circle at 50% 34%, rgba(255,255,255,.20), rgba(255,255,255,.04) 70%);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.26), 0 10px 30px rgba(4,10,36,.45);
+  display: grid; place-items: center;
+}
+.hub-logo { width: 52px; height: 64px; object-fit: contain; filter: drop-shadow(0 4px 12px rgba(4,10,36,.5)); }
+
+.cnode {
+  position: absolute; transform: translate(-50%,-50%); text-decoration: none;
+  display: grid; justify-items: center; width: 132px;
+}
+.cnode-disc {
+  width: 54px; height: 54px; border-radius: 50%; display: grid; place-items: center;
+  background: linear-gradient(158deg, rgba(255,255,255,.16), rgba(255,255,255,.05));
+  box-shadow: inset 0 0 0 1px var(--ring, rgba(255,255,255,.28)), 0 6px 18px rgba(4,10,36,.45);
+  color: var(--hue, #fff);
+  transition: transform .3s cubic-bezier(.16,1,.3,1), box-shadow .3s ease, background .3s ease;
+}
+.cnode-label {
+  margin-top: 9px; font-size: 12px; font-weight: 640; color: #fff;
+  letter-spacing: -.008em; text-align: center; line-height: 1.2;
+}
+.cnode-desc {
+  margin-top: 3px; font-size: 10.5px; color: rgba(255,255,255,.6);
+  text-align: center; line-height: 1.32;
+}
+.cnode:hover .cnode-disc, .cnode:focus-visible .cnode-disc {
+  transform: translateY(-5px) scale(1.07);
+  background: linear-gradient(158deg, rgba(255,255,255,.26), rgba(255,255,255,.10));
+  box-shadow: inset 0 0 0 1.5px var(--hue, #fff), 0 14px 30px rgba(4,10,36,.55);
+}
+.cnode:hover .cnode-desc, .cnode:focus-visible .cnode-desc { color: rgba(255,255,255,.82); }
+/* El módulo activo lleva el oro del escudo. */
+.cnode[data-on] .cnode-disc { box-shadow: inset 0 0 0 2px var(--gold), 0 10px 26px rgba(4,10,36,.5); }
+
+/* Móvil: mismos discos y descripciones, en dos columnas. */
+.constel-mob { display: none; grid-template-columns: repeat(2, 1fr); gap: 18px 10px; }
+.constel-mob .cnode { position: static; transform: none; width: auto; }
+@media (max-width: 620px) {
+  .stage { display: none; }
+  .constel-mob { display: grid; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cnode:hover .cnode-disc, .cnode:focus-visible .cnode-disc { transform: none; }
+}

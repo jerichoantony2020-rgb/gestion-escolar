@@ -1,14 +1,14 @@
 "use client"
 
 import type { Session } from "next-auth"
-import ModulesOrbit, { type OrbitModule } from "./ModulesOrbit"
+import ModulesOrbit, { type ConstelModule } from "./ModulesOrbit"
 
-const modules: OrbitModule[] = [
-  { href: "/dashboard/academico/notas",      label: "Notas",      icon: "notas",           desc: "Registrar calificaciones", accent: "#1A33CC", bg: "#EEF2FF" },
-  { href: "/dashboard/academico/asistencia", label: "Asistencia", icon: "tomarAsistencia", desc: "Marcar y consultar",       accent: "#15803D", bg: "#DCFCE7" },
-  { href: "/dashboard/academico/conducta",   label: "Conducta",   icon: "conducta",        desc: "Incidencias del aula",     accent: "#B45309", bg: "#FFFBEB" },
-  { href: "/dashboard/psicologia",           label: "Psicología", icon: "psicologia",      desc: "Derivar un alumno",        accent: "#BE185D", bg: "#FCE7F3" },
-  { href: "/dashboard/biblioteca",           label: "Plan lector", icon: "biblioteca",     desc: "Lecturas y avances",       accent: "#6D28D9", bg: "#EDE9FE" },
+const modules: ConstelModule[] = [
+  { href: "/dashboard/academico/notas",      label: "Notas",      icon: "notas",           desc: "Registrar calificaciones", hue: "#8FB0FF", active: true },
+  { href: "/dashboard/academico/asistencia", label: "Asistencia", icon: "tomarAsistencia", desc: "Marcar y consultar",       hue: "#6FE0A0" },
+  { href: "/dashboard/academico/conducta",   label: "Conducta",   icon: "conducta",        desc: "Incidencias del aula",     hue: "#FFC978" },
+  { href: "/dashboard/psicologia",           label: "Psicología", icon: "psicologia",      desc: "Derivar un alumno",        hue: "#C4A9FF" },
+  { href: "/dashboard/biblioteca",           label: "Plan lector", icon: "biblioteca",     desc: "Lecturas y avances",       hue: "#7FE3D0" },
 ]
 
 function greeting() {

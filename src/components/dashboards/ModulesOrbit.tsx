@@ -1,120 +1,106 @@
-"use client"
-
 import Link from "next/link"
 import { MODULE_ICONS, type IconName } from "@/components/icons"
 
-export type OrbitModule = {
+export type ConstelModule = {
   href: string
   label: string
-  icon: IconName
   desc: string
-  accent: string
-  bg: string
+  icon: IconName
+  /** Color propio del módulo, para distinguirlos sin leer la etiqueta. */
+  hue: string
+  /** Marca el módulo destacado con el oro del escudo. */
+  active?: boolean
+}
+
+/** Ángulos en grados desde arriba, en sentido horario. */
+const ANGLES = [-90, -30, 30, 90, 150, 210]
+const R = 152
+
+function posicion(i: number, total: number) {
+  const a = total === ANGLES.length ? ANGLES[i] : -90 + (360 / total) * i
+  const rad = (a * Math.PI) / 180
+  return { x: Math.round(R * Math.cos(rad)), y: Math.round(R * Math.sin(rad)) }
 }
 
 /**
- * Selector circular de módulos: nodos en órbita alrededor de un hub central,
- * sobre un dial de marcas finas. En pantallas pequeñas cae a una lista en
- * grilla, donde una órbita no sería legible ni tocable.
+ * Navegación de módulos en constelación. La geometría es exacta y no gira:
+ * los anillos y radios están quietos y solo el puntero produce movimiento.
  */
-export default function ModulesOrbit({ modules }: { modules: OrbitModule[] }) {
+export default function ModulesOrbit({ modules }: { modules: ConstelModule[] }) {
   const n = modules.length
 
   return (
-    <div>
-      {/* ── Desktop / tablet: órbita ── */}
-      <div
-        className="hidden sm:block relative mx-auto orbit-stage"
-        style={{
-          width: "clamp(380px, 48vw, 580px)",
-          height: "clamp(380px, 48vw, 580px)",
-          ["--r" as string]: "clamp(140px, 21vw, 224px)",
-        }}
-      >
-        {/* Dial de marcas finas (instrumento) */}
-        <div className="orbit-dial" aria-hidden="true" />
-        {/* Anillo interior tenue */}
-        <div className="orbit-inner-ring" aria-hidden="true" />
+    <div className="constel">
+      <div className="constel-h">
+        <span className="constel-k">Módulos del sistema</span>
+      </div>
 
-        {/* Radios */}
-        {modules.map((m, i) => {
-          const angle = (360 / n) * i - 90
-          return (
-            <div
-              key={m.href + "-spoke"}
-              aria-hidden="true"
-              className="orbit-spoke"
-              style={{
-                transform: `rotate(${angle}deg)`,
-                background: `linear-gradient(to right, transparent 12%, ${m.accent}22 45%, ${m.accent}66 100%)`,
-              }}
-            />
-          )
-        })}
+      {/* Escritorio */}
+      <div className="stage">
+        <svg className="stage-grid" viewBox="0 0 420 420" aria-hidden="true">
+          <circle cx="210" cy="210" r={R} fill="none" stroke="rgba(255,255,255,.15)" strokeWidth="1" />
+          <circle cx="210" cy="210" r="104" fill="none" stroke="rgba(255,255,255,.08)" strokeWidth="1" />
+          <g stroke="rgba(255,255,255,.16)" strokeWidth="1">
+            {modules.map((m, i) => {
+              const a = ((n === ANGLES.length ? ANGLES[i] : -90 + (360 / n) * i) * Math.PI) / 180
+              return (
+                <line key={m.href}
+                  x1={210 + 58 * Math.cos(a)} y1={210 + 58 * Math.sin(a)}
+                  x2={210 + 120 * Math.cos(a)} y2={210 + 120 * Math.sin(a)} />
+              )
+            })}
+          </g>
+          {/* Marcas sobre el anillo, una por módulo */}
+          <g stroke="rgba(255,255,255,.2)" strokeWidth="1">
+            {modules.map((m, i) => {
+              const a = (((n === ANGLES.length ? ANGLES[i] : -90 + (360 / n) * i) + 30) * Math.PI) / 180
+              return (
+                <line key={m.href}
+                  x1={210 + (R - 6) * Math.cos(a)} y1={210 + (R - 6) * Math.sin(a)}
+                  x2={210 + R * Math.cos(a)} y2={210 + R * Math.sin(a)} />
+              )
+            })}
+          </g>
+        </svg>
 
-        {/* Hub central */}
-        <div className="orbit-hub">
-          <div className="orbit-hub-core">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo-cr.png" alt="" className="orbit-hub-logo" />
-          </div>
+        <div className="hub">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img className="hub-logo" src="/logo-cr.png" alt="Escudo I.E.P. Cristo Reina" />
         </div>
 
-        {/* Nodos */}
         {modules.map((m, i) => {
-          const angle = (360 / n) * i - 90
+          const { x, y } = posicion(i, n)
           const Icon = MODULE_ICONS[m.icon]
           return (
-            // Capa 1 — posiciona sobre la circunferencia.
-            <div
-              key={m.href}
-              className="orbit-slot"
-              style={{ transform: `rotate(${angle}deg) translateX(var(--r))` }}
-            >
-              {/* Capa 2 — contrarrota para dejar el contenido derecho y lo centra. */}
-              <div style={{ transform: `translate(-50%,-50%) rotate(${-angle}deg)` }}>
-                {/* Capa 3 — animación de entrada, aislada de las transformaciones de posición. */}
-                <div className="orbit-enter" style={{ animationDelay: `${80 + i * 60}ms` }}>
-                  <Link
-                    href={m.href}
-                    className="orbit-node"
-                    style={{
-                      ["--accent" as string]: m.accent,
-                      ["--soft" as string]: m.bg,
-                      ["--ring" as string]: `${m.accent}2E`,
-                      ["--glow" as string]: `${m.accent}40`,
-                    }}
-                  >
-                    <span className="orbit-node-circle">
-                      <Icon className="orbit-node-icon" />
-                    </span>
-                    <span className="orbit-node-label">{m.label}</span>
-                  </Link>
-                </div>
-              </div>
-            </div>
+            <Link key={m.href} href={m.href} className="cnode"
+              data-on={m.active ? "" : undefined}
+              style={{
+                left: `calc(50% + ${x}px)`, top: `calc(50% + ${y}px)`,
+                ["--hue" as string]: m.hue,
+                ["--ring" as string]: `color-mix(in srgb, ${m.hue} 45%, transparent)`,
+              }}>
+              <span className="cnode-disc"><Icon size={22} /></span>
+              <span className="cnode-label">{m.label}</span>
+              <span className="cnode-desc">{m.desc}</span>
+            </Link>
           )
         })}
       </div>
 
-      {/* ── Móvil: grilla ── */}
-      <div className="sm:hidden grid grid-cols-2 gap-3">
-        {modules.map((m) => {
+      {/* Móvil */}
+      <div className="constel-mob">
+        {modules.map(m => {
           const Icon = MODULE_ICONS[m.icon]
           return (
-            <Link
-              key={m.href}
-              href={m.href}
-              className="orbit-tile"
+            <Link key={m.href} href={m.href} className="cnode"
+              data-on={m.active ? "" : undefined}
               style={{
-                ["--accent" as string]: m.accent,
-                ["--soft" as string]: m.bg,
-                ["--ring" as string]: `${m.accent}2E`,
-              }}
-            >
-              <span className="orbit-tile-icon"><Icon size={22} /></span>
-              <span className="orbit-tile-label">{m.label}</span>
-              <span className="orbit-tile-desc">{m.desc}</span>
+                ["--hue" as string]: m.hue,
+                ["--ring" as string]: `color-mix(in srgb, ${m.hue} 45%, transparent)`,
+              }}>
+              <span className="cnode-disc"><Icon size={22} /></span>
+              <span className="cnode-label">{m.label}</span>
+              <span className="cnode-desc">{m.desc}</span>
             </Link>
           )
         })}

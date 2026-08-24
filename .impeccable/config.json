@@ -20,6 +20,12 @@
         ],
         "createdAt": "2026-08-22T17:31:57.799Z",
         "reason": "Claude verified: false cross-match from a ternary — active renders bg-green-100/text-green-700, inactive renders bg-slate-100/text-slate-700; the two classes never actually pair"
+      },
+      {
+        "rule": "overused-font",
+        "value": "geist",
+        "createdAt": "2026-08-23T19:41:21.251Z",
+        "reason": "Mismo caso: coincidencia en minusculas del enlace a Google Fonts para la misma tipografia incumbente."
       }
     ]
   }

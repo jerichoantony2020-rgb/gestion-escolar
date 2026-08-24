@@ -38,32 +38,40 @@ export default async function InicioPage() {
   return (
     <>
       <style>{`
+        /* Página clara con los colores del escudo: papel blanco, tinta azul
+           marino, oro como acento. El oro puro (#F0C800) solo sirve de relleno
+           o grafismo — sobre blanco no alcanza contraste como texto, así que
+           el texto dorado usa una versión tostada. */
         :root {
           --navy:      #0D1E3A;
           --navy-mid:  #112448;
           --gold:      #F0C800;
-          --gold-dim:  rgba(240,200,0,0.15);
+          --gold-ink:  #8A6A00;
+          --gold-dim:  rgba(240,200,0,0.14);
+          --gold-line: rgba(196,158,0,0.38);
+          --paper:     #FFFFFF;
+          --paper-2:   #FBFAF5;
           --white:     #FFFFFF;
-          --dim:       rgba(255,255,255,0.62);
-          --faint:     rgba(255,255,255,0.35);
-          --iborder:   rgba(255,255,255,0.08);
+          --dim:       rgba(13,30,58,0.68);
+          --faint:     rgba(13,30,58,0.46);
+          --iborder:   rgba(13,30,58,0.10);
         }
-        .inicio-card { background:rgba(255,255,255,0.04); border:1px solid var(--iborder); border-radius:16px; padding:28px; transition:background .25s,border-color .25s; }
-        .inicio-card:hover { background:rgba(255,255,255,0.07); border-color:rgba(240,200,0,0.22); }
-        .news-card { background:rgba(255,255,255,0.04); border:1px solid var(--iborder); border-radius:14px; overflow:hidden; transition:background .25s,border-color .25s,transform .2s; display:flex; flex-direction:column; }
-        .news-card:hover { background:rgba(255,255,255,0.07); border-color:rgba(240,200,0,0.25); transform:translateY(-3px); }
-        .act-card { background:rgba(255,255,255,0.04); border:1px solid var(--iborder); border-radius:14px; overflow:hidden; transition:background .25s,border-color .25s,transform .2s; }
-        .act-card:hover { background:rgba(255,255,255,0.07); border-color:rgba(255,255,255,0.15); transform:translateY(-3px); }
+        .inicio-card { background:var(--paper); border:1px solid var(--iborder); border-radius:16px; padding:28px; transition:background .25s,border-color .25s; }
+        .inicio-card:hover { background:var(--paper-2); border-color:var(--gold-line); }
+        .news-card { background:var(--paper); border:1px solid var(--iborder); border-radius:14px; overflow:hidden; transition:background .25s,border-color .25s,transform .2s; display:flex; flex-direction:column; }
+        .news-card:hover { background:var(--paper-2); border-color:var(--gold-line); transform:translateY(-3px); }
+        .act-card { background:var(--paper); border:1px solid var(--iborder); border-radius:14px; overflow:hidden; transition:background .25s,border-color .25s,transform .2s; }
+        .act-card:hover { background:var(--paper-2); border-color:rgba(13,30,58,0.22); transform:translateY(-3px); }
         .btn-gold { display:inline-block; padding:14px 36px; border-radius:10px; background:var(--gold); color:var(--navy); font-weight:800; font-size:15px; text-decoration:none; transition:opacity .2s,transform .15s; }
         .btn-gold:hover { opacity:.9; transform:translateY(-2px); }
         .contact-row { display:flex; align-items:flex-start; gap:16px; padding:20px 0; border-bottom:1px solid var(--iborder); }
         .contact-row:last-child { border-bottom:none; }
-        .ci { width:44px; height:44px; border-radius:10px; background:var(--gold-dim); border:1px solid rgba(240,200,0,0.22); display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:20px; }
-        .section-label { font-size:10px; font-weight:700; letter-spacing:.25em; color:var(--gold); text-transform:uppercase; margin-bottom:14px; }
-        .divider { height:1px; background:linear-gradient(90deg,transparent,rgba(240,200,0,0.4),rgba(71,181,232,0.25),transparent); }
-        .empty-state { border:1px dashed rgba(255,255,255,0.12); border-radius:14px; padding:48px 24px; text-align:center; color:var(--faint); font-size:14px; }
-        .inicio-nav-link { font-size:13px; color:var(--dim,rgba(255,255,255,0.62)); text-decoration:none; padding:6px 12px; border-radius:8px; transition:color .2s; }
-        .inicio-nav-link:hover { color:#fff; }
+        .ci { width:44px; height:44px; border-radius:10px; background:var(--gold-dim); border:1px solid var(--gold-line); display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:20px; }
+        .section-label { font-size:10px; font-weight:700; letter-spacing:.25em; color:var(--gold-ink); text-transform:uppercase; margin-bottom:14px; }
+        .divider { height:1px; background:linear-gradient(90deg,transparent,rgba(240,200,0,0.55),rgba(13,30,58,0.18),transparent); }
+        .empty-state { border:1px dashed rgba(13,30,58,0.16); border-radius:14px; padding:48px 24px; text-align:center; color:var(--faint); font-size:14px; }
+        .inicio-nav-link { font-size:13px; color:var(--dim); text-decoration:none; padding:6px 12px; border-radius:8px; transition:color .2s; }
+        .inicio-nav-link:hover { color:var(--navy); }
         .inicio-section-pad { padding:88px 24px; }
         .hamburger-menu { display:none; }
         @media(max-width:768px) {
@@ -87,10 +95,10 @@ export default async function InicioPage() {
         }
       `}</style>
 
-      <div style={{ background:"var(--navy)", minHeight:"100vh", color:"var(--white)", fontFamily:"var(--font-geist-sans,system-ui,sans-serif)" }}>
+      <div style={{ background:"var(--paper)", minHeight:"100vh", color:"var(--navy)", fontFamily:"var(--font-geist-sans,system-ui,sans-serif)" }}>
 
         {/* ── NAV ── */}
-        <header style={{ position:"sticky", top:0, zIndex:100, backdropFilter:"blur(20px)", background:"rgba(13,30,58,0.92)", borderBottom:"1px solid var(--iborder)" }}>
+        <header style={{ position:"sticky", top:0, zIndex:100, backdropFilter:"blur(20px)", background:"rgba(255,255,255,0.92)", borderBottom:"1px solid var(--iborder)" }}>
           <div style={{ maxWidth:1200, margin:"0 auto", padding:"0 24px", height:64, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
             <div style={{ display:"flex", alignItems:"center", gap:12 }}>
               <div style={{ width:32, height:40, flexShrink:0 }}>
@@ -98,7 +106,7 @@ export default async function InicioPage() {
                 <img src="/logo-cr.png" alt="Escudo I.E.P. Cristo Reina" width={32} height={40} style={{ objectFit:"contain", width:"100%", height:"100%" }} />
               </div>
               <div>
-                <div style={{ fontSize:9, fontWeight:700, letterSpacing:"0.22em", color:"var(--gold)", textTransform:"uppercase" }}>I.E.P.</div>
+                <div style={{ fontSize:9, fontWeight:700, letterSpacing:"0.22em", color:"var(--gold-ink)", textTransform:"uppercase" }}>I.E.P.</div>
                 <div style={{ fontSize:14, fontWeight:800 }}>Cristo Reina</div>
               </div>
             </div>
@@ -110,20 +118,20 @@ export default async function InicioPage() {
                   </a>
                 ))}
               </nav>
-              <Link href="/portal" style={{ padding:"8px 18px", borderRadius:8, border:"1px solid rgba(255,255,255,0.2)", color:"rgba(255,255,255,0.85)", fontSize:13, fontWeight:600, textDecoration:"none" }}>
+              <Link href="/portal" style={{ padding:"8px 18px", borderRadius:8, border:"1px solid rgba(13,30,58,0.18)", color:"var(--navy)", fontSize:13, fontWeight:600, textDecoration:"none" }}>
                 Portal
               </Link>
               {/* Hamburger — enlaces del menú como dropdown CSS-only */}
               <div className="hamburger-menu" style={{ flexDirection:"column", gap:4, cursor:"pointer", padding:"4px 8px" }}>
                 <details style={{ position:"relative" }}>
                   <summary style={{ listStyle:"none", cursor:"pointer", display:"flex", flexDirection:"column", gap:5 }}>
-                    <span style={{ display:"block", width:22, height:2, background:"rgba(255,255,255,0.8)", borderRadius:2 }} />
-                    <span style={{ display:"block", width:22, height:2, background:"rgba(255,255,255,0.8)", borderRadius:2 }} />
-                    <span style={{ display:"block", width:22, height:2, background:"rgba(255,255,255,0.8)", borderRadius:2 }} />
+                    <span style={{ display:"block", width:22, height:2, background:"var(--navy)", borderRadius:2 }} />
+                    <span style={{ display:"block", width:22, height:2, background:"var(--navy)", borderRadius:2 }} />
+                    <span style={{ display:"block", width:22, height:2, background:"var(--navy)", borderRadius:2 }} />
                   </summary>
-                  <div style={{ position:"absolute", right:0, top:"calc(100% + 12px)", background:"rgba(13,30,58,0.98)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:12, padding:"8px 0", minWidth:180, zIndex:200, backdropFilter:"blur(20px)" }}>
+                  <div style={{ position:"absolute", right:0, top:"calc(100% + 12px)", background:"var(--paper)", border:"1px solid var(--iborder)", borderRadius:12, padding:"8px 0", minWidth:180, zIndex:200, backdropFilter:"blur(20px)" }}>
                     {(["#nosotros","#noticias","#actividades","#contacto"] as const).map((h, i) => (
-                      <a key={h} href={h} style={{ display:"block", padding:"12px 20px", color:"rgba(255,255,255,0.8)", textDecoration:"none", fontSize:14, fontWeight:600 }}>
+                      <a key={h} href={h} style={{ display:"block", padding:"12px 20px", color:"var(--dim)", textDecoration:"none", fontSize:14, fontWeight:600 }}>
                         {["Nosotros","Noticias","Actividades","Contacto"][i]}
                       </a>
                     ))}
@@ -135,24 +143,24 @@ export default async function InicioPage() {
         </header>
 
         {/* ── HERO ── */}
-        <section style={{ minHeight:"100dvh", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", textAlign:"center", padding:"80px 24px", background:"linear-gradient(160deg,#0D1E3A 0%,#112448 60%,#0D1E3A 100%)", position:"relative", overflow:"hidden" }}>
-          <div style={{ position:"absolute", top:"40%", left:"50%", transform:"translate(-50%,-50%)", width:600, height:400, borderRadius:"50%", background:"radial-gradient(ellipse,rgba(26,48,96,0.55) 0%,transparent 70%)", pointerEvents:"none" }} />
+        <section style={{ minHeight:"100dvh", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", textAlign:"center", padding:"80px 24px", background:"linear-gradient(180deg,#FFFFFF 0%,#FDFCF6 58%,#FBF6E4 100%)", position:"relative", overflow:"hidden" }}>
+          <div style={{ position:"absolute", top:"40%", left:"50%", transform:"translate(-50%,-50%)", width:600, height:400, borderRadius:"50%", background:"radial-gradient(ellipse,rgba(240,200,0,0.20) 0%,transparent 68%)", pointerEvents:"none" }} />
           <ShieldHero />
-          <p style={{ fontSize:11, fontWeight:700, letterSpacing:"0.28em", color:"var(--gold)", textTransform:"uppercase", marginBottom:14 }}>Institución Educativa Particular</p>
+          <p style={{ fontSize:11, fontWeight:700, letterSpacing:"0.28em", color:"var(--gold-ink)", textTransform:"uppercase", marginBottom:14 }}>Institución Educativa Particular</p>
           <h1 style={{ fontSize:"clamp(40px,7vw,76px)", fontWeight:900, letterSpacing:"-0.02em", lineHeight:1.05, marginBottom:20 }}>Cristo Reina</h1>
           <p style={{ fontSize:"clamp(15px,2vw,18px)", color:"var(--dim)", maxWidth:520, lineHeight:1.7, marginBottom:40 }}>
             Formando personas íntegras con valores, conocimiento y vocación de servicio en Ate, Lima.
           </p>
           <div className="hero-buttons" style={{ display:"flex", gap:12, flexWrap:"wrap", justifyContent:"center" }}>
             <a href="#nosotros" className="btn-gold">Conoce el colegio</a>
-            <a href="#contacto" style={{ display:"inline-block", padding:"14px 36px", borderRadius:10, border:"1px solid rgba(255,255,255,0.2)", color:"rgba(255,255,255,0.85)", fontSize:15, fontWeight:600, textDecoration:"none" }}>Contáctanos</a>
+            <a href="#contacto" style={{ display:"inline-block", padding:"14px 36px", borderRadius:10, border:"1px solid rgba(13,30,58,0.18)", color:"var(--navy)", fontSize:15, fontWeight:600, textDecoration:"none" }}>Contáctanos</a>
           </div>
         </section>
 
         <div className="divider" />
 
         {/* ── QUIÉNES SOMOS ── */}
-        <section id="nosotros" className="inicio-section-pad" style={{ background:"var(--navy-mid)" }}>
+        <section id="nosotros" className="inicio-section-pad" style={{ background:"var(--paper-2)" }}>
           <div className="inicio-grid-2" style={{ maxWidth:1200, margin:"0 auto", display:"grid", gridTemplateColumns:"1fr 1fr", gap:64, alignItems:"center" }}>
             <div>
               <p className="section-label">Quiénes somos</p>
@@ -184,7 +192,7 @@ export default async function InicioPage() {
         <div className="divider" />
 
         {/* ── MISIÓN Y VISIÓN ── */}
-        <section className="inicio-section-pad" style={{ background:"var(--navy)" }}>
+        <section className="inicio-section-pad" style={{ background:"var(--paper)" }}>
           <div style={{ maxWidth:1200, margin:"0 auto" }}>
             <div style={{ textAlign:"center", marginBottom:56 }}>
               <p className="section-label">Identidad institucional</p>
@@ -208,7 +216,7 @@ export default async function InicioPage() {
         <div className="divider" />
 
         {/* ── NOTICIAS ── */}
-        <section id="noticias" className="inicio-section-pad" style={{ background:"var(--navy-mid)" }}>
+        <section id="noticias" className="inicio-section-pad" style={{ background:"var(--paper-2)" }}>
           <div style={{ maxWidth:1200, margin:"0 auto" }}>
             <div style={{ textAlign:"center", marginBottom:56 }}>
               <p className="section-label">Actualidad</p>
@@ -241,7 +249,7 @@ export default async function InicioPage() {
         <div className="divider" />
 
         {/* ── ACTIVIDADES ── */}
-        <section id="actividades" className="inicio-section-pad" style={{ background:"var(--navy)" }}>
+        <section id="actividades" className="inicio-section-pad" style={{ background:"var(--paper)" }}>
           <div style={{ maxWidth:1200, margin:"0 auto" }}>
             <div style={{ textAlign:"center", marginBottom:56 }}>
               <p className="section-label">Vida escolar</p>
@@ -283,7 +291,7 @@ export default async function InicioPage() {
         <div className="divider" />
 
         {/* ── NIVELES ── */}
-        <section className="inicio-section-pad" style={{ background:"var(--navy-mid)" }}>
+        <section className="inicio-section-pad" style={{ background:"var(--paper-2)" }}>
           <div style={{ maxWidth:1200, margin:"0 auto" }}>
             <div style={{ textAlign:"center", marginBottom:56 }}>
               <p className="section-label">Oferta educativa</p>
@@ -311,7 +319,7 @@ export default async function InicioPage() {
         <div className="divider" />
 
         {/* ── CONTACTO ── */}
-        <section id="contacto" className="inicio-section-pad" style={{ background:"var(--navy-mid)" }}>
+        <section id="contacto" className="inicio-section-pad" style={{ background:"var(--paper-2)" }}>
           <div className="contact-grid" style={{ maxWidth:1200, margin:"0 auto", display:"grid", gridTemplateColumns:"1fr 1fr", gap:64, alignItems:"start" }}>
             <div>
               <p className="section-label">Contáctanos</p>

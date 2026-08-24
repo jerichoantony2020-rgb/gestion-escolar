@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import type { Session } from "next-auth"
 import Link from "next/link"
-import ModulesOrbit, { type OrbitModule } from "./ModulesOrbit"
+import ModulesOrbit, { type ConstelModule } from "./ModulesOrbit"
 import {
   IconEstudiantes, IconDocentes, IconSecciones, IconAsistencia,
   IconTomarAsistencia, IconNoticia, IconActividad, IconGlobo,
@@ -24,14 +24,14 @@ const stats = [
   { key: "attendancePct", label: "Asistencia mes", Icon: IconAsistencia,  href: "/dashboard/academico/asistencia", suffix: "%" },
 ] as const
 
-const modules: (OrbitModule & { requirePayments?: boolean })[] = [
-  { href: "/dashboard/academico",  label: "Académico",   icon: "academico",  desc: "Notas, asistencia y conducta", accent: "#1A33CC", bg: "#EEF2FF" },
-  { href: "/dashboard/finanzas",   label: "Finanzas",    icon: "finanzas",   desc: "Pagos y recaudación",          accent: "#B45309", bg: "#FFFBEB", requirePayments: true },
-  { href: "/dashboard/medico",     label: "Médico",      icon: "medico",     desc: "Fichas de salud",              accent: "#0369A1", bg: "#E0F2FE" },
-  { href: "/dashboard/psicologia", label: "Psicología",  icon: "psicologia", desc: "Casos y seguimiento",          accent: "#BE185D", bg: "#FCE7F3" },
-  { href: "/dashboard/biblioteca", label: "Biblioteca",  icon: "biblioteca", desc: "Plan lector",                  accent: "#6D28D9", bg: "#EDE9FE" },
-  { href: "/dashboard/admin",      label: "Administrar", icon: "admin",      desc: "Usuarios, grados y config",    accent: "#0D1E3A", bg: "#F1F5F9" },
-  { href: "/dashboard/analitica",  label: "Analítica",   icon: "analitica",  desc: "Reportes e indicadores",       accent: "#15803D", bg: "#DCFCE7" },
+const modules: (ConstelModule & { requirePayments?: boolean })[] = [
+  { href: "/dashboard/academico",  label: "Académico",   icon: "academico",  desc: "Notas, asistencia y conducta", hue: "#8FB0FF", active: true },
+  { href: "/dashboard/finanzas",   label: "Finanzas",    icon: "finanzas",   desc: "Pagos y recaudación",          hue: "#6FE0A0", requirePayments: true },
+  { href: "/dashboard/medico",     label: "Médico",      icon: "medico",     desc: "Fichas de salud",              hue: "#FF9B85" },
+  { href: "/dashboard/psicologia", label: "Psicología",  icon: "psicologia", desc: "Casos y seguimiento",          hue: "#C4A9FF" },
+  { href: "/dashboard/biblioteca", label: "Biblioteca",  icon: "biblioteca", desc: "Plan lector",                  hue: "#FFC978" },
+  { href: "/dashboard/admin",      label: "Administrar", icon: "admin",      desc: "Usuarios, grados y config",    hue: "#A8BDD4" },
+  { href: "/dashboard/analitica",  label: "Analítica",   icon: "analitica",  desc: "Reportes e indicadores",       hue: "#7FE3D0" },
 ]
 
 const quickLinks: { href: string; label: string; Icon: IconComponent }[] = [
