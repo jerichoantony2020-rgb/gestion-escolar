@@ -70,6 +70,9 @@ export default async function InicioPage() {
         .ci { width:44px; height:44px; border-radius:10px; background:var(--gold-dim); border:1px solid var(--gold-line); display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:20px; }
         .section-label { font-size:10px; font-weight:700; letter-spacing:.25em; color:var(--gold-ink); text-transform:uppercase; margin-bottom:14px; }
         .banda-azul h2 { color:#FFFFFF; }
+        /* Las tarjetas de la banda son blancas: su texto vuelve a tinta azul,
+           o heredaría el blanco de la sección y desaparecería. */
+        .banda-azul .inicio-card { color:var(--navy); }
         .banda-azul .inicio-card:hover { background:var(--paper); border-color:var(--gold-line); }
         .divider { height:1px; background:linear-gradient(90deg,transparent,rgba(240,200,0,0.55),rgba(13,30,58,0.18),transparent); }
         .empty-state { border:1px dashed rgba(13,30,58,0.16); border-radius:14px; padding:48px 24px; text-align:center; color:var(--faint); font-size:14px; }
@@ -294,7 +297,7 @@ export default async function InicioPage() {
         <div className="divider" />
 
         {/* ── NIVELES ── */}
-        <section className="inicio-section-pad banda-azul" style={{ background:"linear-gradient(158deg,#102578 0%,#1B47D6 100%)", color:"#fff", position:"relative" }}>
+        <section className="inicio-section-pad banda-azul" style={{ background:"linear-gradient(158deg,#102578 0%,#1737A8 100%)", color:"#fff", position:"relative" }}>
           <div style={{ maxWidth:1200, margin:"0 auto" }}>
             <div style={{ textAlign:"center", marginBottom:56 }}>
               <p className="section-label" style={{ color:"#F0C800" }}>Oferta educativa</p>
