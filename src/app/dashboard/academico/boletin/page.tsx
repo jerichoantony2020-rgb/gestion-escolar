@@ -54,8 +54,6 @@ export default function BoletinPage() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-2" style={{ color: "var(--fg)" }}>Consultar Notas</h1>
-      <p className="text-sm mb-6" style={{ color: "var(--muted)" }}>Elige el aula, el alumno y el bimestre</p>
 
       <div className="flex flex-wrap gap-3 mb-6">
         <Sel label="Aula" value={sectionId} onChange={setSectionId}

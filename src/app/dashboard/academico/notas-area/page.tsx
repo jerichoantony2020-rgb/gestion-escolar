@@ -147,11 +147,6 @@ export default function NotasAreaPage() {
         <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-lg bg-green-500 text-white text-sm font-medium shadow-lg">{toast}</div>
       )}
 
-      <h1 className="text-2xl font-bold mb-2" style={{ color: "var(--fg)" }}>Registro de Notas por Competencia</h1>
-      <p className="text-sm mb-6" style={{ color: "var(--muted)" }}>
-        Notas numéricas (0–20) por competencia · Actividades + Evaluación Mensual + Evaluación Bimestral · el promedio calcula el nivel (AD/A/B/C) de la libreta
-      </p>
-
       <div className="flex flex-wrap gap-3 mb-5 items-end">
         <Sel label="Sección" value={sectionId} onChange={onSectionChange} options={ctx?.sections.map(s => ({ value: s.id, label: s.name })) ?? []} />
         <Sel label="Curso" value={courseId} onChange={setCourseId} options={coursesForSection.map(c => ({ value: c.id, label: c.name }))} />

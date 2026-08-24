@@ -52,7 +52,6 @@ export default function ActividadesPage() {
     <div className="max-w-4xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-2 flex-wrap gap-3">
         <div>
-          <h1 className="text-2xl font-bold" style={{ color: "var(--fg)" }}>Registro de Actividades</h1>
           <p className="text-sm mt-1" style={{ color: "var(--muted)" }}>{data.studentName} · {data.grado} &quot;{data.seccion}&quot; · notas numéricas (0–20) por evaluación</p>
         </div>
         <a href={`/dashboard/academico/informe/${studentId}`} className="text-sm font-semibold text-primary-500 hover:underline whitespace-nowrap">Ver libreta (AD/A/B/C) →</a>

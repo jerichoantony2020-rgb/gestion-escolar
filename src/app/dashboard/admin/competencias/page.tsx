@@ -69,12 +69,6 @@ export default function CompetenciasPage() {
       {toast && (
         <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-lg bg-green-500 text-white text-sm font-medium shadow-lg">{toast}</div>
       )}
-
-      <h1 className="text-2xl font-bold mb-2" style={{ color: "var(--fg)" }}>Competencias por Curso</h1>
-      <p className="text-sm mb-1" style={{ color: "var(--muted)" }}>
-        Cada fila es una competencia MINEDU. El curso que le asignes es el que decide qué docente la califica
-        (el que tenga ese curso asignado en su aula, en Admin → Usuarios).
-      </p>
       <p className="text-sm mb-6" style={{ color: "var(--muted)" }}>
         El <strong>nombre del curso</strong> es cómo lo llaman el alumno y el apoderado (ej. &quot;Literatura&quot;) y es lo que
         verán en el portal; déjalo vacío si el área no se reparte en cursos. Si alguna fila no debería estar en la

@@ -96,10 +96,6 @@ export default function PsicologiaPage() {
     <div style={{ maxWidth: 900, margin: "0 auto", padding: "24px 16px" }}>
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24, flexWrap: "wrap", gap: 12 }}>
-        <div>
-          <h1 style={{ fontSize: 22, fontWeight: 800, color: "#0D1E3A", margin: 0 }}>Área de Psicología</h1>
-          <p style={{ fontSize: 13, color: "#6b7280", margin: "2px 0 0" }}>Seguimiento psicológico de estudiantes</p>
-        </div>
         <div style={{ display: "flex", gap: 10 }}>
           {pendingCount > 0 && (
             <Link href="/dashboard/psicologia/derivaciones" style={{

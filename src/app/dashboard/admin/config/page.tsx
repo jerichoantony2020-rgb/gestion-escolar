@@ -26,8 +26,6 @@ export default function ConfigPage() {
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
       <BackButton href="/dashboard/admin" />
-      <h1 className="text-2xl font-bold mb-2" style={{ color: "var(--fg)" }}>Configuración</h1>
-      <p className="text-sm mb-8" style={{ color: "var(--muted)" }}>Ajustes generales del colegio</p>
 
       <form onSubmit={handleSave} className="space-y-6">
         <div className="sticky top-16 z-30 flex justify-end py-2" style={{ background: "var(--bg)" }}>

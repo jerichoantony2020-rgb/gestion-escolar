@@ -74,10 +74,6 @@ export default function AulasPage() {
     <div className="max-w-4xl mx-auto px-4 py-8">
       <BackButton href="/dashboard/admin" />
       <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold" style={{ color: "var(--fg)" }}>Niveles y Aulas</h1>
-          <p className="text-sm mt-1" style={{ color: "var(--muted)" }}>Aulas independientes o polígrado (varios grados juntos)</p>
-        </div>
         <button onClick={openNew} className="px-4 py-2 rounded-lg bg-primary-500 text-white text-sm font-semibold hover:bg-primary-600">+ Nueva aula</button>
       </div>
 

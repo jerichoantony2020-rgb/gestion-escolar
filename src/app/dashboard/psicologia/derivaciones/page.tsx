@@ -92,7 +92,6 @@ export default function DerivacionesPage() {
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20, flexWrap: "wrap", gap: 12 }}>
         <div>
           <Link href="/dashboard/psicologia" style={{ fontSize: 13, color: "#6b7280", textDecoration: "none" }}>← Volver</Link>
-          <h1 style={{ fontSize: 20, fontWeight: 800, color: "#0D1E3A", margin: "4px 0 0" }}>Derivaciones a Psicología</h1>
           <p style={{ fontSize: 13, color: "#6b7280", margin: "2px 0 0" }}>
             {isDocente ? "Tus solicitudes de derivación" : "Solicitudes recibidas de docentes"}
           </p>

@@ -46,10 +46,6 @@ export default function CursosPage() {
     <div className="max-w-4xl mx-auto px-4 py-8">
       <BackButton href="/dashboard/admin" />
       <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold" style={{ color: "var(--fg)" }}>Cursos</h1>
-          <p className="text-sm mt-1" style={{ color: "var(--muted)" }}>Materias por nivel con escala numérica (0-20) o literal (AD/A/B/C)</p>
-        </div>
         <button onClick={openNew} className="px-4 py-2 rounded-lg bg-primary-500 text-white text-sm font-semibold hover:bg-primary-600">+ Nuevo curso</button>
       </div>
 

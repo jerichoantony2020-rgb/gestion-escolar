@@ -103,10 +103,6 @@ export default function ConductaPage() {
       {toast && <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-lg bg-green-500 text-white text-sm font-medium shadow-lg">{toast}</div>}
       <BackButton href="/dashboard/academico" />
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
-        <div>
-          <h1 className="text-2xl font-bold" style={{ color: "var(--fg)" }}>Conducta</h1>
-          <p className="text-sm mt-1" style={{ color: "var(--muted)" }}>Reglamento por códigos · descuenta puntos de conducta · avisa al apoderado</p>
-        </div>
         <button onClick={openNew} className="px-4 py-2 rounded-lg bg-primary-500 text-white text-sm font-semibold hover:bg-primary-600">+ Registrar</button>
       </div>
 

@@ -21,8 +21,6 @@ export default function GradosPage() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-2" style={{ color: "var(--fg)" }}>Grados y Secciones</h1>
-      <p className="text-sm mb-8" style={{ color: "var(--muted)" }}>Estructura académica del año 2026</p>
 
       <div className="space-y-6">
         {Object.entries(byLevel).map(([level, gs]) => (

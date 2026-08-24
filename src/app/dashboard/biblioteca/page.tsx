@@ -65,7 +65,6 @@ export default function BibliotecaPage() {
       <BackButton href="/dashboard" />
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold" style={{ color: "var(--fg)" }}>Biblioteca</h1>
           <p className="text-sm mt-1" style={{ color: "var(--muted)" }}>{items.length} recursos · {enPlan.length} en plan lector</p>
         </div>
         {!isParent && <button onClick={openNew} className="px-4 py-2 rounded-lg bg-primary-500 text-white text-sm font-semibold hover:bg-primary-600">+ Agregar libro</button>}

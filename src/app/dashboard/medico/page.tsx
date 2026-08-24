@@ -44,7 +44,6 @@ export default function MedicoPage() {
     <div className="max-w-4xl mx-auto px-4 py-8">
       {toast && <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-lg bg-green-500 text-white text-sm font-medium shadow-lg">{toast}</div>}
       <BackButton href="/dashboard" />
-      <h1 className="text-2xl font-bold mb-1" style={{ color: "var(--fg)" }}>Ficha Médica</h1>
       <p className="text-sm mb-5" style={{ color: "var(--muted)" }}>{conFicha} de {rows.length} alumnos con ficha registrada</p>
 
       <input type="text" placeholder="Buscar alumno o aula..." value={search} onChange={e => setSearch(e.target.value)}

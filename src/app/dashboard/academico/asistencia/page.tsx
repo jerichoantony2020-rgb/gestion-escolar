@@ -450,8 +450,6 @@ export default function AsistenciaPage() {
       {toast && <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-lg bg-green-500 text-white text-sm font-medium shadow-lg">{toast}</div>}
 
       <div className="print:hidden"><BackButton href="/dashboard/academico" /></div>
-      <h1 className="text-2xl font-bold mb-2 print:hidden" style={{ color: "var(--fg)" }}>Asistencia</h1>
-      <p className="text-sm mb-5 print:hidden" style={{ color: "var(--muted)" }}>Control diario, escaneo QR con ingreso/salida y notificación al apoderado</p>
 
       {/* Tabs */}
       <div className="flex gap-2 mb-5 print:hidden flex-wrap">

@@ -73,10 +73,6 @@ export default function ActividadesAdminPage() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold" style={{ color: "var(--fg)" }}>Actividades</h1>
-          <p className="text-sm mt-1" style={{ color: "var(--muted)" }}>Actividades académicas, deportivas, culturales y religiosas del colegio</p>
-        </div>
         <button onClick={openNew} className="px-4 py-2 rounded-lg text-sm font-semibold text-white" style={{ background: "var(--primary, #1A33CC)" }}>
           + Nueva actividad
         </button>

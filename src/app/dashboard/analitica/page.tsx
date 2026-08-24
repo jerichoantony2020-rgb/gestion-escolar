@@ -21,7 +21,6 @@ export default function AnaliticaPage() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-1" style={{ color: "var(--fg)" }}>Analítica</h1>
       <p className="text-sm mb-6" style={{ color: "var(--muted)" }}>Indicadores de {MESES[d.month - 1]} {d.year}</p>
 
       {/* Generales */}

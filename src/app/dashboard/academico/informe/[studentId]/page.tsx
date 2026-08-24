@@ -62,7 +62,6 @@ export default function InformePage() {
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-6 print:hidden">
-        <h1 className="text-2xl font-bold" style={{ color: "var(--fg)" }}>Informe de Progreso</h1>
         <button onClick={() => window.print()} className="px-4 py-2 rounded-lg bg-primary-500 text-white text-sm font-semibold hover:bg-primary-600">
           Imprimir / PDF
         </button>
