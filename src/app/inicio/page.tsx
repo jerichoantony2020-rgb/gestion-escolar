@@ -4,7 +4,7 @@ import ShieldHero from "./ShieldHero"
 
 const CATS: Record<string, { label: string; color: string; bg: string }> = {
   academica: { label: "Académica", color: "#1A33CC", bg: "rgba(26,51,204,0.15)" },
-  deportiva:  { label: "Deportiva",  color: "#16A34A", bg: "rgba(22,163,74,0.15)"  },
+  deportiva:  { label: "Deportiva",  color: "#15803D", bg: "rgba(22,163,74,0.18)"  },
   cultural:   { label: "Cultural",   color: "#9333EA", bg: "rgba(147,51,234,0.15)" },
   religiosa:  { label: "Religiosa",  color: "#8A6A00", bg: "rgba(240,200,0,0.20)"  },
 }
@@ -53,7 +53,7 @@ export default async function InicioPage() {
           --paper-2:   #FBFAF5;
           --white:     #FFFFFF;
           --dim:       rgba(13,30,58,0.68);
-          --faint:     rgba(13,30,58,0.46);
+          --faint:     rgba(13,30,58,0.66);
           --iborder:   rgba(13,30,58,0.10);
         }
         .inicio-card { background:var(--paper); border:1px solid var(--iborder); border-radius:16px; padding:28px; transition:background .25s,border-color .25s; }
@@ -341,7 +341,7 @@ export default async function InicioPage() {
                   <div>
                     <div style={{ fontSize:11, fontWeight:600, color:"var(--faint)", letterSpacing:"0.1em", textTransform:"uppercase", marginBottom:4 }}>{c.label}</div>
                     {c.href
-                      ? <a href={c.href} target={c.href.startsWith("http") ? "_blank" : undefined} rel="noopener noreferrer" style={{ fontWeight:700, fontSize:16, color:"var(--white)", textDecoration:"none" }}>{c.value}</a>
+                      ? <a href={c.href} target={c.href.startsWith("http") ? "_blank" : undefined} rel="noopener noreferrer" style={{ fontWeight:700, fontSize:16, color:"var(--navy)", textDecoration:"none" }}>{c.value}</a>
                       : <div style={{ fontWeight:700, fontSize:16 }}>{c.value}</div>
                     }
                     <div style={{ color:"var(--faint)", fontSize:13, marginTop:2 }}>{c.sub}</div>
