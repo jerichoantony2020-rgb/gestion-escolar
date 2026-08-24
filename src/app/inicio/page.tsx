@@ -204,8 +204,8 @@ export default async function InicioPage() {
                 <h3 style={{ fontWeight:800, fontSize:20, lineHeight:1.3, marginBottom:16 }}>Formar personas íntegras para la sociedad</h3>
                 <p style={{ color:"var(--dim)", fontSize:15, lineHeight:1.8 }}>Brindar una educación de calidad basada en valores, excelencia académica y formación humana, desarrollando en cada estudiante las competencias necesarias para enfrentar los retos del mundo moderno con ética y responsabilidad.</p>
               </div>
-              <div className="inicio-card" style={{ borderTop:"3px solid #47B5E8" }}>
-                <div style={{ fontSize:10, fontWeight:700, letterSpacing:"0.22em", color:"#47B5E8", textTransform:"uppercase", marginBottom:18 }}>Visión</div>
+              <div className="inicio-card" style={{ borderTop:"3px solid #1F7BA8" }}>
+                <div style={{ fontSize:10, fontWeight:700, letterSpacing:"0.22em", color:"#1F7BA8", textTransform:"uppercase", marginBottom:18 }}>Visión</div>
                 <h3 style={{ fontWeight:800, fontSize:20, lineHeight:1.3, marginBottom:16 }}>Ser referente educativo en Ate, Lima</h3>
                 <p style={{ color:"var(--dim)", fontSize:15, lineHeight:1.8 }}>Ser reconocida como una institución educativa líder en el distrito de Ate, destacada por la calidad de su enseñanza, la solidez de sus valores y el impacto positivo de sus egresados en la familia, la comunidad y el país.</p>
               </div>
@@ -230,7 +230,7 @@ export default async function InicioPage() {
                   <div key={n.id} className="news-card">
                     {n.imageUrl
                       ? <img src={n.imageUrl} alt={n.title} loading="lazy" style={{ width:"100%", height:180, objectFit:"cover" }} />
-                      : <div style={{ height:8, background:"linear-gradient(90deg,var(--gold),#47B5E8)" }} />
+                      : <div style={{ height:8, background:"linear-gradient(90deg,var(--gold),#1F7BA8)" }} />
                     }
                     <div style={{ padding:24, flex:1, display:"flex", flexDirection:"column" }}>
                       <p style={{ fontSize:11, color:"var(--faint)", marginBottom:10 }}>
@@ -301,7 +301,7 @@ export default async function InicioPage() {
               {[
                 { nivel:"Inicial",    rango:"3 a 5 años",      desc:"Estimulamos el desarrollo integral del niño mediante el juego, la creatividad y el afecto, sentando las bases para su aprendizaje futuro.", color:"var(--gold-ink)" },
                 { nivel:"Primaria",   rango:"1.° a 6.° grado", desc:"Fortalecemos las habilidades lectoras, matemáticas y científicas con metodologías activas que motivan el aprendizaje significativo.",      color:"#1A33CC" },
-                { nivel:"Secundaria", rango:"1.° a 5.° año",   desc:"Preparamos a los jóvenes para la educación superior y la vida, con una formación académica sólida y orientación vocacional.",              color:"#47B5E8" },
+                { nivel:"Secundaria", rango:"1.° a 5.° año",   desc:"Preparamos a los jóvenes para la educación superior y la vida, con una formación académica sólida y orientación vocacional.",              color:"#1F7BA8" },
               ].map(n => (
                 <div key={n.nivel} className="inicio-card" style={{ textAlign:"center" }}>
                   <div style={{ width:48, height:48, borderRadius:"50%", margin:"0 auto 20px", border:`2px solid ${n.color}`, display:"flex", alignItems:"center", justifyContent:"center", background:`${n.color}18` }}>
