@@ -138,7 +138,7 @@ export default function AsistenciaPage() {
   const [scanInput, setScanInput] = useState("")
   const [scanMode, setScanMode] = useState<"auto" | "entry" | "exit">("auto")
   const [useCamera, setUseCamera] = useState(false)
-  const [scanResults, setScanResults] = useState<{ name: string; section: string; mode: string; time: string; status: string; waLink: string | null; notify: boolean; resultado?: string }[]>([])
+  const [scanResults, setScanResults] = useState<{ name: string; section: string; mode: string; time: string; status: string; waLink: string | null; notify: boolean; resultado?: string; studentId?: string }[]>([])
   const [sections, setSections] = useState<Section[]>([])
   const [sectionId, setSectionId] = useState("")
   const [date, setDate] = useState(today())
@@ -466,6 +466,16 @@ Escribe el motivo (dejarlo vacío quita la justificación):`,
     autoTimer.current = setTimeout(() => { doScan(code) }, 350)
   }
 
+  /** Revierte un escaneo: pasa cuando se lee el código del alumno equivocado. */
+  async function deshacer(studentId: string, nombre: string) {
+    if (!confirm(`¿Deshacer el registro de ${nombre}? Se borrará su asistencia de hoy.`)) return
+    await fetch("/api/asistencia/scan/deshacer", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ studentId }),
+    })
+    setScanResults(rs => rs.filter(x => x.studentId !== studentId))
+  }
+
   async function doScan(qrData: string) {
     if (autoTimer.current) { clearTimeout(autoTimer.current); autoTimer.current = null }
     const code = qrData.trim()
@@ -474,7 +484,7 @@ Escribe el motivo (dejarlo vacío quita la justificación):`,
     const data = await res.json()
     setScanInput("")
     if (!res.ok) { setScanResults(r => [{ name: data.error ?? "Error", section: "", mode: scanMode, time: "", status: "error", waLink: null, notify: false }, ...r]); return }
-    setScanResults(r => [{ name: data.studentName, section: data.section, mode: data.mode, time: data.time, status: data.status, waLink: data.waLink, notify: data.notify, resultado: data.resultado }, ...r].slice(0, 20))
+    setScanResults(r => [{ name: data.studentName, section: data.section, mode: data.mode, time: data.time, status: data.status, waLink: data.waLink, notify: data.notify, resultado: data.resultado, studentId: data.studentId }, ...r].slice(0, 20))
     if (data.notify && data.waLink) window.open(data.waLink, "_blank")
   }
 

@@ -113,6 +113,7 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({
     ok: true,
     resultado: isExit ? "salida" : "ingreso",
+    studentId,
     studentName: `${student.lastName}, ${student.firstName}`,
     section: enroll.section.poligrado ? enroll.section.name : `${enroll.section.grade?.name ?? ""} "${enroll.section.name}"`,
     mode: isExit ? "exit" : "entry",
