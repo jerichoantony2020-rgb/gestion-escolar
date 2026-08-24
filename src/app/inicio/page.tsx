@@ -6,7 +6,7 @@ const CATS: Record<string, { label: string; color: string; bg: string }> = {
   academica: { label: "Académica", color: "#1A33CC", bg: "rgba(26,51,204,0.15)" },
   deportiva:  { label: "Deportiva",  color: "#16A34A", bg: "rgba(22,163,74,0.15)"  },
   cultural:   { label: "Cultural",   color: "#9333EA", bg: "rgba(147,51,234,0.15)" },
-  religiosa:  { label: "Religiosa",  color: "#F0C800", bg: "rgba(240,200,0,0.15)"  },
+  religiosa:  { label: "Religiosa",  color: "#8A6A00", bg: "rgba(240,200,0,0.20)"  },
 }
 
 export const revalidate = 60 // refresca cada 60 s sin rebuild
@@ -180,7 +180,7 @@ export default async function InicioPage() {
                 { num:"100%", label:"Compromiso",          sub:"Con cada estudiante" },
               ].map(s => (
                 <div key={s.label} className="inicio-card">
-                  <div style={{ fontSize:26, fontWeight:900, color:"var(--gold)", marginBottom:6 }}>{s.num}</div>
+                  <div style={{ fontSize:26, fontWeight:900, color:"var(--gold-ink)", marginBottom:6 }}>{s.num}</div>
                   <div style={{ fontWeight:700, fontSize:14, marginBottom:4 }}>{s.label}</div>
                   <div style={{ color:"var(--faint)", fontSize:12, lineHeight:1.5 }}>{s.sub}</div>
                 </div>
@@ -200,7 +200,7 @@ export default async function InicioPage() {
             </div>
             <div className="inicio-grid-2" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:24 }}>
               <div className="inicio-card" style={{ borderTop:"3px solid var(--gold)" }}>
-                <div style={{ fontSize:10, fontWeight:700, letterSpacing:"0.22em", color:"var(--gold)", textTransform:"uppercase", marginBottom:18 }}>Misión</div>
+                <div style={{ fontSize:10, fontWeight:700, letterSpacing:"0.22em", color:"var(--gold-ink)", textTransform:"uppercase", marginBottom:18 }}>Misión</div>
                 <h3 style={{ fontWeight:800, fontSize:20, lineHeight:1.3, marginBottom:16 }}>Formar personas íntegras para la sociedad</h3>
                 <p style={{ color:"var(--dim)", fontSize:15, lineHeight:1.8 }}>Brindar una educación de calidad basada en valores, excelencia académica y formación humana, desarrollando en cada estudiante las competencias necesarias para enfrentar los retos del mundo moderno con ética y responsabilidad.</p>
               </div>
@@ -299,7 +299,7 @@ export default async function InicioPage() {
             </div>
             <div className="inicio-grid-3" style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:20 }}>
               {[
-                { nivel:"Inicial",    rango:"3 a 5 años",      desc:"Estimulamos el desarrollo integral del niño mediante el juego, la creatividad y el afecto, sentando las bases para su aprendizaje futuro.", color:"var(--gold)" },
+                { nivel:"Inicial",    rango:"3 a 5 años",      desc:"Estimulamos el desarrollo integral del niño mediante el juego, la creatividad y el afecto, sentando las bases para su aprendizaje futuro.", color:"var(--gold-ink)" },
                 { nivel:"Primaria",   rango:"1.° a 6.° grado", desc:"Fortalecemos las habilidades lectoras, matemáticas y científicas con metodologías activas que motivan el aprendizaje significativo.",      color:"#1A33CC" },
                 { nivel:"Secundaria", rango:"1.° a 5.° año",   desc:"Preparamos a los jóvenes para la educación superior y la vida, con una formación académica sólida y orientación vocacional.",              color:"#47B5E8" },
               ].map(n => (
@@ -355,7 +355,7 @@ export default async function InicioPage() {
         <div className="divider" />
 
         {/* ── FOOTER ── */}
-        <footer style={{ padding:"36px 24px", background:"rgba(0,0,0,0.25)" }}>
+        <footer style={{ padding:"36px 24px", background:"var(--paper-2)", borderTop:"1px solid var(--iborder)" }}>
           <div className="footer-inner" style={{ maxWidth:1200, margin:"0 auto", display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:20 }}>
             <div style={{ display:"flex", alignItems:"center", gap:12 }}>
               <div style={{ width:26, height:32 }}>
