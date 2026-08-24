@@ -240,7 +240,7 @@ a { text-underline-offset: 3px; text-decoration-thickness: 1px; }
 /* ── Acceso rápido ── */
 .quick-link {
   display: inline-flex; align-items: center; gap: 8px;
-  padding: 9px 15px; border-radius: 11px;
+  padding: 9px 15px; border-radius: 11px; min-height: 44px;
   background: #FFFFFF; border: 1px solid #DDE3F0;
   color: #31406B; font-size: 13px; font-weight: 600; text-decoration: none;
   transition: color .16s ease, border-color .16s ease, background .16s ease, transform .16s ease;

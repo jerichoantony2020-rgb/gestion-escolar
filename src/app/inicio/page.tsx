@@ -94,6 +94,14 @@ export default async function InicioPage() {
           .footer-inner   { flex-direction:column; align-items:flex-start !important; gap:16px !important; }
           .btn-gold       { padding:12px 24px !important; font-size:14px !important; }
         }
+        /* En celular, todo lo tocable llega a 44px: el teléfono y los
+           enlaces del pie quedaban en 18-21px, imposibles de acertar. */
+        @media(max-width:768px) {
+          .contact-row a, footer a, footer .fnav a {
+            display:inline-flex; align-items:center; min-height:44px;
+          }
+          .inicio-nav-links + a, header a[href="/portal"] { min-height:44px; display:inline-flex; align-items:center; }
+        }
         @media(max-width:480px) {
           .inicio-section-pad { padding:44px 16px; }
           .hero-buttons   { flex-direction:column; align-items:stretch; }
