@@ -48,10 +48,13 @@ export async function POST(req: NextRequest) {
   const date = new Date(dateStr + "T00:00:00")
 
   for (const r of records) {
+    // note lleva la justificación. Solo se toca cuando viene en el payload,
+    // para no borrar una justificación existente al reguardar la lista.
+    const note = "note" in r ? { note: (r.note ?? "").trim() || null } : {}
     await prisma.attendanceRecord.upsert({
       where: { studentId_sectionId_date: { studentId: r.studentId, sectionId, date } },
-      update: { status: r.status },
-      create: { institutionId: instId, studentId: r.studentId, sectionId, date, status: r.status },
+      update: { status: r.status, ...note },
+      create: { institutionId: instId, studentId: r.studentId, sectionId, date, status: r.status, ...note },
     })
   }
 

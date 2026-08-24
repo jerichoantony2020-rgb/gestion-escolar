@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { QRCodeSVG } from "qrcode.react"
 import dynamic from "next/dynamic"
 import * as XLSX from "xlsx"
@@ -10,7 +10,7 @@ import BackButton from "@/components/BackButton"
 const QrScanner = dynamic(() => import("@/components/QrScanner"), { ssr: false })
 
 type Section = { id: string; name: string }
-type Row = { studentId: string; studentName: string; status: string }
+type Row = { studentId: string; studentName: string; status: string; note?: string | null }
 type QrRow = { studentId: string; studentName: string; qrData: string }
 
 const STATUSES = [
@@ -131,9 +131,12 @@ export default function AsistenciaPage() {
   const [uploading, setUploading] = useState(false)
   const [uploadResult, setUploadResult] = useState<{ written: number; unmatched: string[] } | null>(null)
 
+  const [dirtyAsis, setDirtyAsis] = useState(false)
+  const autoTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
   // escaneo
   const [scanInput, setScanInput] = useState("")
-  const [scanMode, setScanMode] = useState<"entry" | "exit">("entry")
+  const [scanMode, setScanMode] = useState<"auto" | "entry" | "exit">("auto")
   const [useCamera, setUseCamera] = useState(false)
   const [scanResults, setScanResults] = useState<{ name: string; section: string; mode: string; time: string; status: string; waLink: string | null; notify: boolean }[]>([])
   const [sections, setSections] = useState<Section[]>([])
@@ -190,9 +193,25 @@ export default function AsistenciaPage() {
   useEffect(() => { if (tab === "historial") loadHistorial() }, [tab, loadHistorial])
 
   function setStatus(studentId: string, status: string) {
+    setDirtyAsis(true)
     setRows(rs => rs.map(r => r.studentId === studentId ? { ...r, status } : r))
   }
+
+  /** Justifica una falta o tardanza. La justificación es el texto de la nota. */
+  function justificar(r: Row) {
+    const actual = r.note ?? ""
+    const texto = window.prompt(
+      `Justificación de ${r.studentName}
+
+Escribe el motivo (dejarlo vacío quita la justificación):`,
+      actual,
+    )
+    if (texto === null) return
+    setDirtyAsis(true)
+    setRows(rs => rs.map(x => x.studentId === r.studentId ? { ...x, note: texto.trim() || null } : x))
+  }
   function markAll(status: string) {
+    setDirtyAsis(true)
     setRows(rs => rs.map(r => ({ ...r, status })))
   }
 
@@ -200,7 +219,7 @@ export default function AsistenciaPage() {
     setSaving(true)
     await fetch("/api/asistencia", {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sectionId, date, records: rows.map(r => ({ studentId: r.studentId, status: r.status })) }),
+      body: JSON.stringify({ sectionId, date, records: rows.map(r => ({ studentId: r.studentId, status: r.status, note: r.note ?? null })) }),
     })
     setSaving(false)
     setToast("Asistencia guardada ✓")
@@ -434,7 +453,21 @@ export default function AsistenciaPage() {
     reader.readAsArrayBuffer(file)
   }
 
+  /**
+   * El lector QR físico teclea el código completo en milisegundos. Si no
+   * envía Enter, nadie presionaría nada: al detectar un código con forma
+   * válida y una pausa de tecleo, se registra solo.
+   */
+  function onScanInput(v: string) {
+    setScanInput(v)
+    if (autoTimer.current) clearTimeout(autoTimer.current)
+    const code = v.trim()
+    if (code.length < 8) return
+    autoTimer.current = setTimeout(() => { doScan(code) }, 350)
+  }
+
   async function doScan(qrData: string) {
+    if (autoTimer.current) { clearTimeout(autoTimer.current); autoTimer.current = null }
     const code = qrData.trim()
     if (!code) return
     const res = await fetch("/api/asistencia/scan", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ qrData: code, mode: scanMode }) })
@@ -509,8 +542,24 @@ export default function AsistenciaPage() {
             {!loading && rows.length === 0 && <p className="text-center py-10 text-sm" style={{ color: "var(--muted)" }}>No hay alumnos en esta sección</p>}
             {!loading && rows.map((r, i) => (
               <div key={r.studentId} className="flex items-center justify-between px-4 py-2.5 border-t first:border-t-0" style={{ borderColor: "var(--border)" }}>
-                <span className="text-sm font-medium" style={{ color: "var(--fg)" }}>{i + 1}. {r.studentName}</span>
-                <div className="flex gap-1">
+                <span className="text-sm font-medium min-w-0" style={{ color: "var(--fg)" }}>
+                  {i + 1}. {r.studentName}
+                  {r.note && (
+                    <span className="ml-2 text-[11px] px-2 py-0.5 rounded-full font-medium align-middle"
+                      style={{ background: "var(--ok-bg)", color: "var(--ok)" }} title={r.note}>
+                      Justificada
+                    </span>
+                  )}
+                </span>
+                <div className="flex gap-1 items-center shrink-0">
+                  {(r.status === "absent" || r.status === "late") && (
+                    <button onClick={() => justificar(r)}
+                      className="px-2.5 py-1 rounded-lg text-xs font-medium border transition-colors hover:bg-green-50"
+                      style={{ borderColor: "var(--border)", color: r.note ? "var(--ok)" : "var(--muted)" }}
+                      title={r.note ?? "Agregar justificación"}>
+                      {r.note ? "Editar just." : "Justificar"}
+                    </button>
+                  )}
                   {STATUSES.map(s => (
                     <button key={s.key} onClick={() => setStatus(r.studentId, s.key)}
                       className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${r.status === s.key ? `${s.color} text-white` : "border"}`}
@@ -530,6 +579,7 @@ export default function AsistenciaPage() {
       {tab === "escaneo" && (
         <div>
           <div className="flex gap-2 mb-4">
+            <button onClick={() => setScanMode("auto")} className={`flex-1 px-4 py-3 rounded-xl font-semibold text-sm transition-colors ${scanMode === "auto" ? "bg-primary-500 text-white" : "border"}`} style={scanMode === "auto" ? {} : { borderColor: "var(--border)", color: "var(--muted)" }}>Automático</button>
             <button onClick={() => setScanMode("entry")} className={`flex-1 px-4 py-3 rounded-xl font-semibold text-sm transition-colors ${scanMode === "entry" ? "bg-green-500 text-white" : "border"}`} style={scanMode === "entry" ? {} : { borderColor: "var(--border)", color: "var(--muted)" }}>🟢 Ingreso</button>
             <button onClick={() => setScanMode("exit")} className={`flex-1 px-4 py-3 rounded-xl font-semibold text-sm transition-colors ${scanMode === "exit" ? "bg-primary-500 text-white" : "border"}`} style={scanMode === "exit" ? {} : { borderColor: "var(--border)", color: "var(--muted)" }}>🔵 Salida</button>
           </div>
@@ -548,7 +598,7 @@ export default function AsistenciaPage() {
             <form onSubmit={e => { e.preventDefault(); doScan(scanInput) }} className="mb-4">
               <label className="block text-xs font-medium mb-1" style={{ color: "var(--muted)" }}>Ingresa el código QR del alumno (formato CR-…)</label>
               <div className="flex gap-2">
-                <input autoFocus value={scanInput} onChange={e => setScanInput(e.target.value)} placeholder="CR-xxxxx" className="flex-1 px-3 py-2.5 rounded-lg border text-sm outline-none focus:ring-2 focus:ring-primary-500" style={{ background: "var(--surface)", borderColor: "var(--border)", color: "var(--fg)" }} />
+                <input autoFocus value={scanInput} onChange={e => onScanInput(e.target.value)} placeholder="CR-xxxxx" className="flex-1 px-3 py-2.5 rounded-lg border text-sm outline-none focus:ring-2 focus:ring-primary-500" style={{ background: "var(--surface)", borderColor: "var(--border)", color: "var(--fg)" }} />
                 <button type="submit" className="px-5 py-2.5 rounded-lg bg-primary-500 text-white text-sm font-semibold hover:bg-primary-600">Registrar</button>
               </div>
               <p className="text-xs mt-2" style={{ color: "var(--muted)" }}>💡 Un lector de QR físico también funciona como teclado: enfoca este campo y escanea. La notificación automática al WhatsApp del apoderado se activa en Configuración.</p>

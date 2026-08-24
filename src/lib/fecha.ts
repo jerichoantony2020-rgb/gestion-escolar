@@ -28,3 +28,24 @@ export function esFinDeSemanaPeru(ahora = new Date()): boolean {
   const d = peruHoy(ahora).diaSemana
   return d === 0 || d === 6
 }
+
+/** Hora y minuto en Perú. Necesario para la tolerancia de ingreso. */
+export function horaPeru(ahora = new Date()): { hora: number; minuto: number; minutosDelDia: number } {
+  const p = new Date(ahora.getTime() - PERU_OFFSET_MS)
+  const hora = p.getUTCHours()
+  const minuto = p.getUTCMinutes()
+  return { hora, minuto, minutosDelDia: hora * 60 + minuto }
+}
+
+/** Horario de ingreso del colegio. */
+export const INGRESO_DESDE = 7 * 60 + 20   // 7:20 a.m.
+export const INGRESO_HASTA = 8 * 60        // 8:00 a.m.
+
+/**
+ * Estado de ingreso según la hora peruana:
+ * hasta las 8:00 en punto es puntual; después es tardanza. Llegar antes de
+ * las 7:20 también es puntual — adelantarse no se penaliza.
+ */
+export function estadoDeIngreso(ahora = new Date()): "present" | "late" {
+  return horaPeru(ahora).minutosDelDia > INGRESO_HASTA ? "late" : "present"
+}

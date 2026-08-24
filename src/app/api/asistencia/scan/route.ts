@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
-import { inicioDelDiaPeru } from "@/lib/fecha"
+import { inicioDelDiaPeru, estadoDeIngreso, horaPeru } from "@/lib/fecha"
 
 const MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"]
 
@@ -38,13 +38,19 @@ export async function POST(req: NextRequest) {
   // Día peruano: escanear después de las 7 p.m. guardaba la asistencia
   // con la fecha del día siguiente.
   const day = inicioDelDiaPeru(now)
-  const isExit = mode === "exit"
+  // Modo automático: si aún no hay ingreso del día es una entrada; si ya lo
+  // hay, es la salida. Así el operador no elige nada al escanear.
+  const previo = await prisma.attendanceRecord.findFirst({
+    where: { institutionId: instId, studentId, sectionId: enroll.sectionId, date: day },
+  })
+  const isExit = mode === "exit" || (mode === "auto" && !!previo?.entryAt)
 
-  // tarde si ingresa después de las 8:00am
-  let status = "present"
-  if (!isExit && (now.getHours() > 8 || (now.getHours() === 8 && now.getMinutes() > 0))) status = "late"
+  // Puntual hasta las 8:00 a.m. de Perú; después, tardanza. Antes se usaba
+  // now.getHours(), que en el servidor es UTC: a las 7:30 de Lima daba 12:30
+  // y marcaba tarde a todo el mundo.
+  const status = isExit ? "present" : estadoDeIngreso(now)
 
-  const existing = await prisma.attendanceRecord.findFirst({ where: { institutionId: instId, studentId, sectionId: enroll.sectionId, date: day } })
+  const existing = previo
   let record
   if (existing) {
     record = await prisma.attendanceRecord.update({
