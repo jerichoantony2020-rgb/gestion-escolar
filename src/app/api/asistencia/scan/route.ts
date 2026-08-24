@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { inicioDelDiaPeru } from "@/lib/fecha"
 
 const MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"]
 
@@ -34,7 +35,9 @@ export async function POST(req: NextRequest) {
   if (!enroll) return NextResponse.json({ error: "El alumno no tiene aula asignada" }, { status: 400 })
 
   const now = new Date()
-  const day = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  // Día peruano: escanear después de las 7 p.m. guardaba la asistencia
+  // con la fecha del día siguiente.
+  const day = inicioDelDiaPeru(now)
   const isExit = mode === "exit"
 
   // tarde si ingresa después de las 8:00am

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { inicioDelDiaPeru, esFinDeSemanaPeru } from "@/lib/fecha"
 
 /**
  * GET /api/atencion → lo que requiere acción hoy, para la pantalla de inicio.
@@ -14,9 +15,11 @@ export async function GET() {
   const instId = session.user.institutionId
 
   const now = new Date()
-  const hoy = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  // Día calendario de Perú, no del servidor: en UTC ya es mañana desde las
+  // 7 p.m. hora de Lima.
+  const hoy = inicioDelDiaPeru(now)
   const manana = new Date(hoy.getTime() + 86400000)
-  const finde = hoy.getDay() === 0 || hoy.getDay() === 6
+  const finde = esFinDeSemanaPeru(now)
 
   // ── Aulas sin asistencia registrada hoy ──
   // Solo se cuentan las aulas que tienen alumnos matriculados; un aula vacía
