@@ -172,6 +172,48 @@ export default function AsistenciaPage() {
   useEffect(() => { if (tab === "marcar") loadMarcar() }, [tab, loadMarcar])
   useEffect(() => { if (tab === "qr") loadQr() }, [tab, loadQr])
 
+  /**
+   * Exporta lo que está en pantalla. Se arma desde el estado ya cargado, no
+   * desde una consulta nueva: lo que el docente ve es lo que baja.
+   */
+  function exportarExcel() {
+    const wb = XLSX.utils.book_new()
+    if (bimestreData) {
+      for (const sec of bimestreData.sections) {
+        const filas = sec.students.map((al, i) => {
+          const f: Record<string, string | number> = { "N°": i + 1, "Apellidos y nombres": al.studentName }
+          bimestreData.labels.forEach((lab, bi) => {
+            const b = al.b[bi]
+            f[`${lab} · Asistió`] = b.present
+            f[`${lab} · Tardanza`] = b.late
+            f[`${lab} · Faltó`] = b.absent
+          })
+          f["Total asistió"] = al.total.present
+          f["Total tardanzas"] = al.total.late
+          f["Total faltas"] = al.total.absent
+          f["% asistencia"] = `${al.total.pct}%`
+          return f
+        })
+        // Excel corta los nombres de hoja en 31 caracteres.
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(filas), sec.name.slice(0, 31))
+      }
+    } else if (vistaData) {
+      for (const sec of vistaData.sections) {
+        const filas = sec.students.map((al, i) => {
+          const f: Record<string, string | number> = { "N°": i + 1, "Apellidos y nombres": al.studentName }
+          // A / T / F es la notación del registro auxiliar peruano.
+          const letra: Record<string, string> = { present: "A", late: "T", absent: "F" }
+          vistaData.dates.forEach(d => { f[fmtDate(d)] = letra[al.marks[d]] ?? "" })
+          f["Asistió"] = al.present; f["Tardanzas"] = al.late; f["Faltas"] = al.absent
+          return f
+        })
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(filas), sec.name.slice(0, 31))
+      }
+    } else return
+    const nombre = scope === "bimestre" ? `Asistencia ${yearAnchor}` : `Asistencia ${scope} ${scope === "semana" ? weekAnchor : monthAnchor}`
+    XLSX.writeFile(wb, `${nombre}.xlsx`)
+  }
+
   const loadHistorial = useCallback(async () => {
     setLoadingHist(true)
     try {
@@ -660,7 +702,7 @@ Escribe el motivo (dejarlo vacío quita la justificación):`,
       {tab === "historial" && (
         <div>
           {/* Selector de vista */}
-          <div className="flex gap-2 mb-4">
+          <div className="flex gap-2 mb-4 items-center flex-wrap">
             {[{ k: "semana", l: "Semana" }, { k: "mes", l: "Mes" }, { k: "bimestre", l: "Bimestre" }].map(o => (
               <button key={o.k} onClick={() => setScope(o.k as "semana" | "mes" | "bimestre")}
                 className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-colors ${scope === o.k ? "bg-primary-500 text-white" : "border"}`}
@@ -668,6 +710,11 @@ Escribe el motivo (dejarlo vacío quita la justificación):`,
                 {o.l}
               </button>
             ))}
+            <button onClick={exportarExcel} disabled={!bimestreData && !vistaData}
+              className="ml-auto px-4 rounded-lg text-sm font-semibold text-white disabled:opacity-40"
+              style={{ background: "var(--ok)", minHeight: 44 }}>
+              Descargar Excel
+            </button>
           </div>
 
           <div className="flex flex-wrap gap-3 items-end mb-5">

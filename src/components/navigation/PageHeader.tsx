@@ -42,7 +42,7 @@ const PREFIJOS: { p: string; t: string; d?: string; volver?: string }[] = [
 
 export default function PageHeader() {
   const path = usePathname()
-  if (!path || path === "/dashboard" || path === "/dashboard/academico" || path === "/dashboard/admin") return null
+  if (!path || path === "/dashboard" || path === "/dashboard/academico" || path === "/dashboard/admin" || path === "/dashboard/asistencia") return null
 
   const meta = TITULOS[path] ?? PREFIJOS.find(x => path.startsWith(x.p))
   if (!meta) return null

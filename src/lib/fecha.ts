@@ -38,14 +38,19 @@ export function horaPeru(ahora = new Date()): { hora: number; minuto: number; mi
 }
 
 /** Horario de ingreso del colegio. */
-export const INGRESO_DESDE = 7 * 60 + 20   // 7:20 a.m.
-export const INGRESO_HASTA = 8 * 60        // 8:00 a.m.
+export const INGRESO_DESDE = 7 * 60 + 20   // 7:20 a.m. — se abre la puerta
+export const INGRESO_HASTA = 8 * 60 + 50   // 8:50 a.m. — límite de puntualidad
 
 /**
- * Estado de ingreso según la hora peruana:
- * hasta las 8:00 en punto es puntual; después es tardanza. Llegar antes de
- * las 7:20 también es puntual — adelantarse no se penaliza.
+ * Estado de ingreso según la hora peruana: hasta las 8:50 es puntual, después
+ * es tardanza. Llegar temprano no se penaliza.
  */
 export function estadoDeIngreso(ahora = new Date()): "present" | "late" {
   return horaPeru(ahora).minutosDelDia > INGRESO_HASTA ? "late" : "present"
+}
+
+/** "8:50 a.m." — para mostrar la regla en pantalla sin repetir el número. */
+export function limitePuntualidadTexto(): string {
+  const h = Math.floor(INGRESO_HASTA / 60), m = INGRESO_HASTA % 60
+  return `${h}:${String(m).padStart(2, "0")} a.m.`
 }
