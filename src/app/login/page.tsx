@@ -64,16 +64,19 @@ export default function LoginPage() {
               Correo electrónico
             </label>
             <input
-              type="email"
+              type="email" autoComplete="email" inputMode="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="usuario@cristoreina.edu.pe"
-              className="w-full px-3 py-2.5 rounded-lg border text-sm outline-none focus:ring-2 focus:ring-primary-500 transition"
+              className="w-full px-3 rounded-lg border outline-none focus:ring-2 focus:ring-primary-500 transition"
+              
               style={{
                 background: "var(--bg)",
                 borderColor: "var(--border)",
                 color: "var(--fg)",
+                minHeight: 52,
+                fontSize: 16,
               }}
             />
           </div>
@@ -83,16 +86,19 @@ export default function LoginPage() {
               Contraseña
             </label>
             <input
-              type="password"
+              type="password" autoComplete="current-password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              className="w-full px-3 py-2.5 rounded-lg border text-sm outline-none focus:ring-2 focus:ring-primary-500 transition"
+              className="w-full px-3 rounded-lg border outline-none focus:ring-2 focus:ring-primary-500 transition"
+              
               style={{
                 background: "var(--bg)",
                 borderColor: "var(--border)",
                 color: "var(--fg)",
+                minHeight: 52,
+                fontSize: 16,
               }}
             />
           </div>
@@ -106,7 +112,8 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2.5 rounded-lg font-semibold text-sm bg-primary-500 text-white hover:bg-primary-600 disabled:opacity-60 transition-colors"
+            className="w-full rounded-lg font-semibold bg-primary-500 text-white hover:bg-primary-600 disabled:opacity-60 transition-colors"
+            style={{ minHeight: 52, fontSize: 15 }}
           >
             {loading ? "Ingresando..." : "Ingresar"}
           </button>
@@ -117,7 +124,7 @@ export default function LoginPage() {
         </p>
       </div>
 
-      <Link href="/inicio" className="mt-6 text-xs hover:underline" style={{ color: "var(--muted)" }}>
+      <Link href="/inicio" className="mt-4 text-xs hover:underline inline-flex items-center" style={{ color: "var(--muted)", minHeight: 44, paddingInline: 12 }}>
         ← Volver al inicio
       </Link>
     </main>
